@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Prata", "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  /* Official Warm Palette Swatches from Verve & Color */
+  --color-warm-linen: #E0DFDB;
+  --color-warm-terracotta: #774929;
+  --color-warm-sand: #C9B6A5;
+  --color-warm-taupe: #88796B;
+  --color-warm-espresso: #201410;
+
+  /* Terracotta scale for interactive states */
+  --color-terracotta-50: #fbf7f4;
+  --color-terracotta-100: #f5ebe1;
+  --color-terracotta-200: #e8d7c8;
+  --color-terracotta-300: #dba786;
+  --color-terracotta-400: #b86b3a;
+  --color-terracotta-500: #774929;
+  --color-terracotta-600: #663d21;
+  --color-terracotta-700: #543119;
+  --color-terracotta-800: #422613;
+  --color-terracotta-900: #201410;
+
+  /* Sand / Clay scale */
+  --color-sand-50: #f9f7f5;
+  --color-sand-100: #f3ede7;
+  --color-sand-200: #e5dbd2;
+  --color-sand-300: #c9b6a5;
+  --color-sand-400: #ab9582;
+  --color-sand-500: #88796b;
+
+  /* Canvas neutrals */
+  --color-canvas-bg: #F5F2EC;
+  --color-canvas-card: #FFFFFF;
+  --color-canvas-subtle: #FAF8F5;
+  --color-canvas-border: #E0DFDB;
+
+  /* Logo brand accents */
+  --color-brand-green: #8DBF15;
+  --color-brand-green-light: #F4F9E8;
+}
+
+body {
+  margin: 0;
+  background-color: #F5F2EC;
+  color: #201410;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
