@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   CheckCircle2,
   Calendar,
@@ -13,8 +14,11 @@ import {
 import BrandLogo from './BrandLogo';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
+import { exportBookingPassPDF } from '../utils/pdfExport';
 
 export default function SuccessModal({ booking, onClose, onViewDashboard }) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   if (!booking) return null;
 
   const {
@@ -57,52 +61,16 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
     document.body.removeChild(link);
   };
 
-  // Generate downloadable receipt text
-  const handleDownloadReceipt = () => {
-    const receiptText = `
-========================================
-       STRETCHWITHLORIE RECEIPT
-========================================
-Studio:            stretchwithlorie (Yoga & Fitness)
-Booking Reference: ${bookingRef}
-Paystack Ref:      ${paystackRef || 'pstk_tr_verified'}
-Payment Gateway:   Paystack
-Payment Method:    ${paymentMethod}
-Payment Status:    PAID (Full Confirmation)
-Date Issued:       ${new Date().toLocaleDateString()}
-
-STUDENT DETAILS:
-Name:  ${studentName}
-Email: ${email}
-Phone: ${phone}
-
-SESSION DETAILS:
-Class:      ${className}
-Date:       ${classDate}
-Time:       ${classTime}
-Instructor: ${instructor}
-Location:   stretchwithlorie Sanctuary
-
-PAYMENT SUMMARY:
-Class Registration Fee:  GH₵${amount}.00
-Mat, Props & Tea:        Included
-Total Amount Paid:       GH₵${amount}.00
-
-HEALTH / INJURY NOTES:
-${healthNotes || 'None'}
-
-Please arrive 10-15 minutes before your session. Mats, organic bolsters, and complimentary infused tea are provided.
-Namaste!
-========================================
-    `.trim();
-
-    const blob = new Blob([receiptText], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', `StretchWithLorie_Receipt_${bookingRef}.txt`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Generate downloadable luxury PDF Studio Entry Pass
+  const handleDownloadPass = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      await exportBookingPassPDF(booking);
+    } catch (err) {
+      console.error('Failed to generate studio pass PDF:', err);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -241,11 +209,22 @@ Namaste!
 
             <button
               type="button"
-              onClick={handleDownloadReceipt}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs"
+              onClick={handleDownloadPass}
+              disabled={isGeneratingPdf}
+              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs cursor-pointer disabled:opacity-60"
+              title="Download official PDF entry pass & receipt"
             >
-              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
-              <span className="truncate">Download Pass</span>
+              {isGeneratingPdf ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent shrink-0" />
+                  <span className="truncate">Preparing PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
+                  <span className="truncate">Download PDF Pass</span>
+                </>
+              )}
             </button>
           </div>
 

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
+import { exportGiftPassPDF } from '../utils/pdfExport';
 
 // SUBSCRIPTION PLANS DATA
 const SUBSCRIPTION_PLANS = [
@@ -130,6 +131,7 @@ export default function WellnessGiftCardModal({
   const [completedOrder, setCompletedOrder] = useState(null);
   const [errors, setErrors] = useState({});
   const [copiedCode, setCopiedCode] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   if (!isOpen) return null;
 
@@ -268,6 +270,18 @@ export default function WellnessGiftCardModal({
       : `✨ *A Wellness Gift for You!* ✨\n\nDearest *${completedOrder.recipientName}*,\n\n${completedOrder.buyerName} has gifted you a *Stretch with Lorie Wellness Card* valued at *GH₵ ${completedOrder.amount}*!\n\n"${completedOrder.personalNote}"\n\n🌿 *Voucher Code:* ${completedOrder.voucherCode}\n📍 *Redeem at:* Stretch with Lorie Sanctuary\n📞 *Book via WhatsApp:* +233 24 123 4567\n\nEnjoy your rejuvenating wellness session!`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+  };
+
+  const handleDownloadGiftPass = async () => {
+    if (!completedOrder) return;
+    try {
+      setIsExportingPdf(true);
+      await exportGiftPassPDF(completedOrder);
+    } catch (err) {
+      console.error('Failed to generate gift pass PDF:', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   return (
@@ -431,11 +445,21 @@ export default function WellnessGiftCardModal({
 
                   <button
                     type="button"
-                    onClick={() => window.print()}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white py-2.5 px-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] transition-colors"
+                    onClick={handleDownloadGiftPass}
+                    disabled={isExportingPdf}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white py-2.5 px-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] transition-colors disabled:opacity-60 cursor-pointer"
                   >
-                    <Download className="h-3.5 w-3.5 text-[#7A8B71]" />
-                    <span>Print / Save Pass</span>
+                    {isExportingPdf ? (
+                      <>
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent shrink-0" />
+                        <span>Preparing PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-3.5 w-3.5 text-[#7A8B71]" />
+                        <span>Download PDF Pass</span>
+                      </>
+                    )}
                   </button>
                 </div>
 

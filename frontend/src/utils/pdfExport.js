@@ -1,5 +1,27 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import logoFullImg from '../assets/logo_full.png';
+
+/**
+ * Loads an image from a URL and converts it to a base64 Data URL
+ * for clean embedding into jsPDF without CORS or async timing issues.
+ */
+async function getBase64ImageFromUrl(imageUrl) {
+  if (!imageUrl) return null;
+  try {
+    const res = await fetch(imageUrl);
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('Could not load logo image for PDF:', err);
+    return null;
+  }
+}
 
 /**
  * exportAttendeesToPDF
@@ -269,4 +291,681 @@ export function exportAttendeesToPDF(registrations, options = {}) {
     count: totalCount,
     revenue: formattedRevenue
   };
+}
+
+/**
+ * exportBookingPassPDF
+ * Generates an ultra-luxurious, printable/savable studio entry pass and receipt in PDF format,
+ * complete with high-resolution studio logo, verified Paystack transaction seals, student intake details,
+ * and sanctuary arrival etiquette.
+ *
+ * @param {Object} booking - Booking details from SuccessModal
+ */
+export async function exportBookingPassPDF(booking) {
+  if (!booking) {
+    throw new Error('No booking data provided for PDF generation.');
+  }
+
+  const {
+    bookingRef = 'SWL-BOOKING',
+    paystackRef = 'pstk_tr_verified',
+    studentName = 'Guest Attendee',
+    email = 'client@stretchwithlorie.com',
+    phone = 'Not provided',
+    className = 'Yoga Session',
+    classDate = 'Scheduled Session',
+    classTime = '60 mins',
+    instructor = 'Lorie',
+    amount = 200,
+    paymentMethod = 'Paystack (Mobile Money)',
+    healthNotes = 'None reported'
+  } = booking;
+
+  // Initialize PDF in portrait A4 (595.28 pt x 841.89 pt)
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 36; // 0.5 inch margin
+  const cardW = pageWidth - margin * 2; // 523.28 pt
+  const cardX = margin;
+  const cardY = 32;
+  const cardH = 776;
+
+  // Fetch logo base64 asynchronously
+  const logoData = await getBase64ImageFromUrl(logoFullImg);
+
+  // 1. Studio Decorative Top Bar
+  doc.setFillColor(35, 45, 33); // Deep Botanical Green #232D21
+  doc.rect(0, 0, pageWidth, 6, 'F');
+  doc.setFillColor(200, 162, 83); // Champagne Gold #C8A253
+  doc.rect(0, 6, pageWidth, 2, 'F');
+
+  // 2. Outer Pass Card Background & Borders
+  doc.setFillColor(250, 248, 245); // Warm Alabaster #FAF8F5
+  doc.roundedRect(cardX, cardY, cardW, cardH, 12, 12, 'F');
+
+  doc.setDrawColor(200, 162, 83); // Champagne Gold #C8A253
+  doc.setLineWidth(1.2);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 12, 12, 'S');
+
+  // Inner subtle decorative frame
+  doc.setDrawColor(230, 225, 216); // Studio border #E6E1D8
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 4, cardY + 4, cardW - 8, cardH - 8, 9, 9, 'S');
+
+  // 3. Header Banner (Deep Botanical Green)
+  const headerY = cardY + 5;
+  const headerH = 76;
+  doc.setFillColor(35, 45, 33); // #232D21
+  doc.rect(cardX + 5, headerY, cardW - 10, headerH, 'F');
+
+  // Gold accent line under header
+  doc.setFillColor(200, 162, 83);
+  doc.rect(cardX + 5, headerY + headerH - 2, cardW - 10, 2, 'F');
+
+  // Place Logo on Left
+  const logoBadgeX = cardX + 16;
+  const logoBadgeY = headerY + 11;
+  const logoBadgeW = 112;
+  const logoBadgeH = 54;
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(logoBadgeX, logoBadgeY, logoBadgeW, logoBadgeH, 8, 8, 'F');
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(logoBadgeX, logoBadgeY, logoBadgeW, logoBadgeH, 8, 8, 'S');
+
+  if (logoData) {
+    try {
+      doc.addImage(logoData, 'PNG', logoBadgeX + 6, logoBadgeY + 4, 100, 46);
+    } catch {
+      // Fallback text if addImage fails
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(35, 45, 33);
+      doc.text('stretchwithlorie', logoBadgeX + 12, logoBadgeY + 28);
+      doc.setFontSize(6.5);
+      doc.setTextColor(122, 139, 113);
+      doc.text('YOGA & FITNESS', logoBadgeX + 16, logoBadgeY + 39);
+    }
+  } else {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(35, 45, 33);
+    doc.text('stretchwithlorie', logoBadgeX + 12, logoBadgeY + 28);
+    doc.setFontSize(6.5);
+    doc.setTextColor(122, 139, 113);
+    doc.text('YOGA & FITNESS', logoBadgeX + 16, logoBadgeY + 39);
+  }
+
+  // Header Text on Right
+  const headerTextX = cardX + 140;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(200, 162, 83); // Champagne Gold
+  doc.text('OFFICIAL STUDIO ENTRY PASS & RECEIPT', headerTextX, headerY + 24);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text('stretchwithlorie Sanctuary', headerTextX, headerY + 42);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(237, 232, 225); // #EDE8E1
+  doc.text('Movement, Mindfulness & Rejuvenation  •  East Legon, Accra, Ghana', headerTextX, headerY + 55);
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(200, 162, 83);
+  doc.text('WhatsApp: +233 24 123 4567   •   Web: stretchwithlorie.com', headerTextX, headerY + 67);
+
+  // 4. Booking Reference & Verified Payment Bar
+  const refBarY = headerY + headerH + 8;
+  const refBarH = 48;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, refBarY, cardW - 28, refBarH, 6, 6, 'FD');
+
+  // Left: Booking Reference & Paystack
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(122, 139, 113); // Sage #7A8B71
+  doc.text('BOOKING REFERENCE', cardX + 24, refBarY + 14);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(43, 46, 49); // Charcoal #2B2E31
+  doc.text(bookingRef, cardX + 24, refBarY + 32);
+
+  if (paystackRef) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(2, 136, 209); // Paystack Cyan #0288D1
+    doc.text(`Paystack Ref: ${paystackRef}`, cardX + 24, refBarY + 43);
+  }
+
+  // Right: Payment Badge & Method
+  const rightColX = cardX + cardW - 24;
+  const paidBadgeW = 156;
+  const paidBadgeH = 18;
+  const paidBadgeX = rightColX - paidBadgeW;
+
+  doc.setFillColor(230, 248, 253); // #E6F8FD
+  doc.setDrawColor(182, 238, 252);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(paidBadgeX, refBarY + 8, paidBadgeW, paidBadgeH, 9, 9, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(2, 136, 209);
+  doc.text(`CONFIRMED PAID • GH₵ ${amount}.00`, paidBadgeX + paidBadgeW / 2, refBarY + 20, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(92, 98, 96);
+  doc.text(`Payment: ${paymentMethod || 'Paystack MoMo'}`, rightColX, refBarY + 36, { align: 'right' });
+  doc.text(`Issued: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, rightColX, refBarY + 44, { align: 'right' });
+
+  // 5. Perforation Line / Ticket Notch
+  const perfY = refBarY + refBarH + 11;
+  doc.setFillColor(250, 248, 245);
+  doc.circle(cardX + 4, perfY, 5, 'F');
+  doc.circle(cardX + cardW - 4, perfY, 5, 'F');
+
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.6);
+  doc.setLineDashPattern([4, 4], 0);
+  doc.line(cardX + 16, perfY, cardX + cardW - 16, perfY);
+  doc.setLineDashPattern([], 0); // reset line dash
+
+  // 6. Session Details (Ticket Body)
+  const sessionY = perfY + 10;
+  const sessionH = 118;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, sessionY, cardW - 28, sessionH, 8, 8, 'FD');
+
+  // Left Content (66% width)
+  const sessLeftX = cardX + 24;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(200, 162, 83); // Champagne Gold
+  doc.text('RESERVED YOGA SESSION', sessLeftX, sessionY + 16);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(43, 46, 49); // Charcoal Slate
+  doc.text(className, sessLeftX, sessionY + 33);
+
+  // 4 Detail Items in 2x2 grid
+  const gridCol1 = sessLeftX;
+  const gridCol2 = sessLeftX + 160;
+
+  // Row 1
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(122, 139, 113); // Sage
+  doc.text('SCHEDULED DATE', gridCol1, sessionY + 49);
+  doc.text('SESSION TIME & DURATION', gridCol2, sessionY + 49);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text(classDate, gridCol1, sessionY + 61);
+  doc.text(`${classTime} (60 mins)`, gridCol2, sessionY + 61);
+
+  // Row 2
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(122, 139, 113);
+  doc.text('INSTRUCTOR', gridCol1, sessionY + 77);
+  doc.text('SANCTUARY LOCATION', gridCol2, sessionY + 77);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text(`${instructor} (Lead Yoga Instructor)`, gridCol1, sessionY + 89);
+  doc.text('stretchwithlorie Sanctuary', gridCol2, sessionY + 89);
+
+  // Mat note
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(92, 98, 96);
+  doc.text('Mat Reservation: Manduka Pro Mat, bolsters & organic props ready on arrival.', sessLeftX, sessionY + 107);
+
+  // Right Stub: Barcode & Entry Seal
+  const stubX = cardX + cardW - 14 - 150;
+  const stubW = 150;
+  doc.setFillColor(247, 244, 239); // #F7F4EF
+  doc.rect(stubX, sessionY, stubW, sessionH, 'F');
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.line(stubX, sessionY, stubX, sessionY + sessionH);
+
+  // Draw simulated barcode
+  const barcodeY = sessionY + 22;
+  const barcodeH = 34;
+  const barcodeX = stubX + 16;
+  const barPattern = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 1, 4, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2];
+  let curBX = barcodeX;
+  doc.setFillColor(43, 46, 49);
+  barPattern.forEach((w, idx) => {
+    if (idx % 2 === 0) {
+      doc.rect(curBX, barcodeY, w, barcodeH, 'F');
+    }
+    curBX += w + 1;
+  });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text(bookingRef, stubX + stubW / 2, sessionY + 68, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('CONTACTLESS ENTRY PASS', stubX + stubW / 2, sessionY + 80, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(92, 98, 96);
+  doc.text('Scan at front desk on arrival', stubX + stubW / 2, sessionY + 90, { align: 'center' });
+
+  // 7. Attendee Profile Card
+  const attY = sessionY + sessionH + 9;
+  const attH = 46;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, attY, cardW - 28, attH, 6, 6, 'FD');
+
+  const attCol1 = cardX + 24;
+  const attCol2 = cardX + 200;
+  const attCol3 = cardX + 370;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('ATTENDEE / STUDENT', attCol1, attY + 14);
+  doc.text('EMAIL ADDRESS', attCol2, attY + 14);
+  doc.text('PHONE / WHATSAPP', attCol3, attY + 14);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text(studentName, attCol1, attY + 28);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(email, attCol2, attY + 28);
+  doc.setFont('helvetica', 'bold');
+  doc.text(phone, attCol3, attY + 28);
+
+  // 8. Instructor Accommodation & Health Notes
+  const healthY = attY + attH + 9;
+  const hasNotes = healthNotes && healthNotes !== 'None' && healthNotes !== 'None reported';
+  const healthH = hasNotes ? 72 : 36;
+
+  doc.setFillColor(242, 245, 240); // Sage Whisper #F2F5F0
+  doc.setDrawColor(220, 228, 217); // #DCE4D9
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, healthY, cardW - 28, healthH, 6, 6, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(90, 105, 82); // Deep Sage #5A6952
+  doc.text('★ INSTRUCTOR ACCOMMODATION & HEALTH INTAKE', cardX + 24, healthY + 14);
+
+  if (hasNotes) {
+    const items = healthNotes.split(' • ');
+    let itemY = healthY + 26;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(60, 68, 58);
+
+    items.forEach((item) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text('•', cardX + 24, itemY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(item, cardX + 32, itemY);
+      itemY += 10;
+    });
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(6.5);
+    doc.setTextColor(122, 139, 113);
+    doc.text('Your instructor reviews these notes prior to session to prepare personalized posture variations.', cardX + 24, healthY + healthH - 6);
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(92, 98, 96);
+    doc.text('Health & Physical Status: All clear. No injuries, physical limitations or pregnancy reported.', cardX + 24, healthY + 26);
+  }
+
+  // 9. Sanctuary Etiquette & Amenities
+  const guideY = healthY + healthH + 9;
+  const guideH = 78;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, guideY, cardW - 28, guideH, 6, 6, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('STUDIO SANCTUARY AMENITIES & ARRIVAL ETIQUETTE', cardX + 24, guideY + 14);
+
+  const colWidth = (cardW - 68) / 3;
+  const col1X = cardX + 24;
+  const col2X = col1X + colWidth + 10;
+  const col3X = col2X + colWidth + 10;
+
+  // Column 1: Punctuality
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text('⏱ 10-Min Early Arrival', col1X, guideY + 28);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(92, 98, 96);
+  doc.text('Please arrive 10-15 mins early to change and settle onto your mat. Doors close at class time for studio focus.', col1X, guideY + 39, { maxWidth: colWidth, lineHeightFactor: 1.3 });
+
+  // Column 2: Props & Tea
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text('🍵 Props & Tea Ritual', col2X, guideY + 28);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(92, 98, 96);
+  doc.text('Manduka mats, organic cork blocks, bolsters and post-session botanical herbal tea are provided complimentary.', col2X, guideY + 39, { maxWidth: colWidth, lineHeightFactor: 1.3 });
+
+  // Column 3: Rescheduling Policy
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(43, 46, 49);
+  doc.text('🌿 Studio Policy', col3X, guideY + 28);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(92, 98, 96);
+  doc.text('24-Hour cancellation and reschedule policy applies. Reach out to Lorie via WhatsApp (+233 24 123 4567).', col3X, guideY + 39, { maxWidth: colWidth, lineHeightFactor: 1.3 });
+
+  // 10. Mandatory Confirmation Statement
+  const termsY = guideY + guideH + 8;
+  const termsH = 34;
+  doc.setFillColor(247, 244, 239); // #F7F4EF
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, termsY, cardW - 28, termsH, 5, 5, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(92, 98, 96);
+  doc.text('MANDATORY CLIENT CONFIRMATION (ACCEPTED BEFORE PAYMENT):', cardX + 24, termsY + 11);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('✓ Disclosed injuries & physical limitations   ✓ Agreed to arrive 10 mins early   ✓ Accepted studio cancellation policy', cardX + 24, termsY + 23);
+
+  // 11. Security Seal & Official Footer
+  const footerY = cardY + cardH - 24;
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.6);
+  doc.line(cardX + 24, footerY - 10, cardX + cardW - 24, footerY - 10);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(43, 46, 49);
+  doc.text('stretchwithlorie  •  Yoga & Fitness Sanctuary  •  East Legon, Accra', cardX + 24, footerY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(122, 139, 113);
+  doc.text(`Electronic Pass ID: ${bookingRef}  •  Single-use admission  •  Verified on Paystack`, cardX + cardW - 24, footerY, { align: 'right' });
+
+  // Save PDF file to user browser
+  const filename = `StretchWithLorie_Pass_${bookingRef}.pdf`;
+  doc.save(filename);
+
+  return {
+    filename,
+    bookingRef
+  };
+}
+
+/**
+ * exportGiftPassPDF
+ * Generates an executive, luxury printable/savable PDF voucher for Gift Cards and Membership Passes.
+ *
+ * @param {Object} order - Order details from WellnessGiftCardModal
+ */
+export async function exportGiftPassPDF(order) {
+  if (!order) {
+    throw new Error('No order details provided for Gift Pass PDF.');
+  }
+
+  const {
+    orderId = 'SWL-PASS',
+    type = 'subscription',
+    title = 'Wellness Pass',
+    amount = 200,
+    buyerName = 'Valued Member',
+    recipientName = 'Dear Friend',
+    personalNote = '',
+    voucherCode = 'SWL-VOUCHER',
+    classesCount = 4,
+    validityMonths = 1
+  } = order;
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 36;
+  const cardW = pageWidth - margin * 2;
+  const cardX = margin;
+  const cardY = 32;
+  const cardH = 776;
+
+  const logoData = await getBase64ImageFromUrl(logoFullImg);
+
+  // Top Accent Bar
+  doc.setFillColor(35, 45, 33);
+  doc.rect(0, 0, pageWidth, 6, 'F');
+  doc.setFillColor(200, 162, 83);
+  doc.rect(0, 6, pageWidth, 2, 'F');
+
+  // Outer Card
+  doc.setFillColor(250, 248, 245);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 12, 12, 'F');
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(1.2);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 12, 12, 'S');
+
+  // Inner Frame
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 4, cardY + 4, cardW - 8, cardH - 8, 9, 9, 'S');
+
+  // Header Banner
+  const headerY = cardY + 5;
+  const headerH = 76;
+  doc.setFillColor(35, 45, 33);
+  doc.rect(cardX + 5, headerY, cardW - 10, headerH, 'F');
+  doc.setFillColor(200, 162, 83);
+  doc.rect(cardX + 5, headerY + headerH - 2, cardW - 10, 2, 'F');
+
+  // Logo Badge
+  const logoBadgeX = cardX + 16;
+  const logoBadgeY = headerY + 11;
+  const logoBadgeW = 112;
+  const logoBadgeH = 54;
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(logoBadgeX, logoBadgeY, logoBadgeW, logoBadgeH, 8, 8, 'F');
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(logoBadgeX, logoBadgeY, logoBadgeW, logoBadgeH, 8, 8, 'S');
+
+  if (logoData) {
+    try {
+      doc.addImage(logoData, 'PNG', logoBadgeX + 6, logoBadgeY + 4, 100, 46);
+    } catch {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(35, 45, 33);
+      doc.text('stretchwithlorie', logoBadgeX + 12, logoBadgeY + 30);
+    }
+  }
+
+  // Header Text
+  const headerTextX = cardX + 140;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(200, 162, 83);
+  doc.text(type === 'subscription' ? 'OFFICIAL MONTHLY STUDIO MEMBERSHIP PASS' : 'DIGITAL WELLNESS GIFT CARD & EXPERIENCE VOUCHER', headerTextX, headerY + 24);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text('stretchwithlorie Sanctuary', headerTextX, headerY + 42);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(237, 232, 225);
+  doc.text('Movement, Mindfulness & Rejuvenation  •  East Legon, Accra, Ghana', headerTextX, headerY + 55);
+
+  // Voucher / Pass Hero Section
+  const heroY = headerY + headerH + 16;
+  const heroH = 140;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(cardX + 14, heroY, cardW - 28, heroH, 8, 8, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(200, 162, 83);
+  doc.text(type === 'subscription' ? 'STUDIO MEMBERSHIP PASS' : 'WELLNESS GIFT EXPERIENCE', cardX + 26, heroY + 22);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(43, 46, 49);
+  doc.text(title, cardX + 26, heroY + 44);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(164, 74, 74); // Terracotta Berry
+  doc.text(`GH₵ ${amount}.00`, cardX + cardW - 36, heroY + 44, { align: 'right' });
+
+  // Voucher Code Box
+  const codeBoxY = heroY + 62;
+  const codeBoxH = 48;
+  doc.setFillColor(247, 244, 239);
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(cardX + 26, codeBoxY, cardW - 52, codeBoxH, 6, 6, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('OFFICIAL REDEMPTION VOUCHER CODE:', cardX + 38, codeBoxY + 16);
+
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(43, 46, 49);
+  doc.text(voucherCode, cardX + 38, codeBoxY + 36);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(92, 98, 96);
+  doc.text(`Valid for ${validityMonths || 1} Month${validityMonths > 1 ? 's' : ''} • ${classesCount ? classesCount + ' Classes' : 'Universal Studio Credit'}`, cardX + cardW - 48, codeBoxY + 28, { align: 'right' });
+
+  // Details Section (Buyer, Recipient, Note)
+  const detailY = heroY + heroH + 14;
+  const detailH = 140;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 216);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, detailY, cardW - 28, detailH, 6, 6, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(122, 139, 113);
+  doc.text('PASS BENEFICIARY DETAILS', cardX + 26, detailY + 20);
+
+  if (type === 'gift') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(43, 46, 49);
+    doc.text(`Gifted To: ${recipientName}`, cardX + 26, detailY + 38);
+    doc.text(`Gifted By: ${buyerName}`, cardX + 26, detailY + 54);
+
+    if (personalNote) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8.5);
+      doc.setTextColor(92, 98, 96);
+      doc.text(`"${personalNote}"`, cardX + 26, detailY + 76, { maxWidth: cardW - 60 });
+    }
+  } else {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(43, 46, 49);
+    doc.text(`Pass Holder: ${buyerName}`, cardX + 26, detailY + 38);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Status: Active Monthly Pass  •  Valid at East Legon Sanctuary`, cardX + 26, detailY + 54);
+    doc.text(`Includes Manduka Mat Reservation & Herbal Tea Ritual on every visit.`, cardX + 26, detailY + 70);
+  }
+
+  // How to redeem / Guidelines
+  const guideY = detailY + detailH + 14;
+  const guideH = 120;
+  doc.setFillColor(242, 245, 240); // Sage Whisper
+  doc.setDrawColor(220, 228, 217);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX + 14, guideY, cardW - 28, guideH, 6, 6, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 105, 82);
+  doc.text('🌿 HOW TO REDEEM YOUR PASS', cardX + 26, guideY + 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(60, 68, 58);
+  doc.text('1. Present this digital pass or voucher code on your phone when arriving at the studio.', cardX + 26, guideY + 40);
+  doc.text('2. Or book class slots directly on WhatsApp with Lorie at +233 24 123 4567 citing your code.', cardX + 26, guideY + 56);
+  doc.text('3. Complimentary Manduka Pro mats, props and infused post-session herbal tea are included.', cardX + 26, guideY + 72);
+  doc.text('4. Cancellations and rescheduling must be notified 24 hours prior to scheduled class time.', cardX + 26, guideY + 88);
+
+  // Footer
+  const footerY = cardY + cardH - 24;
+  doc.setDrawColor(200, 162, 83);
+  doc.setLineWidth(0.6);
+  doc.line(cardX + 24, footerY - 10, cardX + cardW - 24, footerY - 10);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(43, 46, 49);
+  doc.text('stretchwithlorie  •  Yoga & Fitness Sanctuary  •  East Legon, Accra', cardX + 24, footerY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(122, 139, 113);
+  doc.text(`Order ID: ${orderId}  •  Voucher: ${voucherCode}  •  Verified on Paystack`, cardX + cardW - 24, footerY, { align: 'right' });
+
+  const filename = `StretchWithLorie_Pass_${voucherCode}.pdf`;
+  doc.save(filename);
+
+  return { filename, voucherCode };
 }
