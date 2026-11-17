@@ -3,7 +3,7 @@ import { Sparkles, Gift, Calendar, ArrowRight, ShieldCheck, Check } from 'lucide
 export default function WellnessPassHeroCard({ onOpenGiftModal }) {
   return (
     <div className="relative group w-full max-w-full overflow-hidden rounded-3xl border border-[#C8A253]/50 bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] p-5 sm:p-6 text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-[#C8A253]/80">
-      
+
       {/* Decorative Gold & Botanical Ambient Glow */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-[#C8A253]/20 blur-2xl group-hover:bg-[#C8A253]/30 transition-colors" />
       <div className="pointer-events-none absolute -left-10 -bottom-10 h-36 w-36 rounded-full bg-[#7A8B71]/25 blur-xl" />
@@ -11,9 +11,9 @@ export default function WellnessPassHeroCard({ onOpenGiftModal }) {
       {/* Subtle Metallic Card Header */}
       <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/15">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C8A253]/25 border border-[#C8A253]/60 text-[#F7E7C4]">
+          {/* <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C8A253]/25 border border-[#C8A253]/60 text-[#F7E7C4]">
             <Sparkles className="h-4 w-4 text-[#C8A253]" />
-          </div>
+          </div> */}
           <div>
             <span className="font-serif tracking-widest text-[11px] sm:text-xs uppercase font-bold text-[#F7F4EF]">
               Stretch with Lorie
@@ -25,7 +25,7 @@ export default function WellnessPassHeroCard({ onOpenGiftModal }) {
         </div>
 
         <div className="inline-flex items-center gap-1 rounded-full bg-[#C8A253] px-2.5 py-0.5 text-[10px] font-bold text-[#2B2E31] shadow-xs">
-          <Sparkles className="h-3 w-3" />
+          {/* <Sparkles className="h-3 w-3" /> */}
           <span>SPECIAL OFFER</span>
         </div>
       </div>

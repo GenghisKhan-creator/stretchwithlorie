@@ -186,7 +186,7 @@ export default function App() {
 
       {/* Top Announcement Bar for Signature Special Offer */}
       <div className="bg-gradient-to-r from-[#2A3628] via-[#384635] to-[#252E23] text-white text-xs px-3.5 sm:px-6 py-2 border-b border-[#C8A253]/35 shrink-0 z-50">
-        <div className="mx-auto max-w-7xl flex items-center justify-between gap-2 flex-wrap">
+        {/* <div className="mx-auto max-w-7xl flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-[#C8A253] text-[#2B2E31] px-2 py-0.5 font-extrabold text-[10px] tracking-wide shadow-2xs">
               <Sparkles className="h-3 w-3" />
@@ -204,7 +204,7 @@ export default function App() {
             <span>Buy / Gift Now</span>
             <ArrowRight className="h-3 w-3" />
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Navigation Header */}
@@ -226,7 +226,7 @@ export default function App() {
             {/* Hero Banner with Botanical Calm, Architectural Warmth & Wellness Pass Spotlight */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
-                
+
                 {/* Left Column: Headline, Story & Quick CTAs (7 cols) */}
                 <div className="lg:col-span-7 space-y-4">
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#5A6952] border border-[#7A8B71]/30 shadow-2xs">
