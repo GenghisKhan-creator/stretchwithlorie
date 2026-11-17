@@ -16,14 +16,15 @@ import {
   Building2,
   Sparkles
 } from 'lucide-react';
+import MobileMoneyLogo from './MobileMoneyLogo';
 
 // Paystack Official Mark Icon
 export function PaystackIcon({ className = 'h-4 w-4' }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M3 6.5C3 5.67157 3.67157 5 4.5 5H19.5C20.3284 5 21 5.67157 21 6.5C21 7.32843 20.3284 8 19.5 8H4.5C3.67157 8 3 7.32843 3 6.5Z" fill="#00C3F7"/>
-      <path d="M3 12C3 11.1716 3.67157 10.5 4.5 10.5H15.5C16.3284 10.5 17 11.1716 17 12C17 12.8284 16.3284 13.5 15.5 13.5H4.5C3.67157 13.5 3 12.8284 3 12Z" fill="#00C3F7"/>
-      <path d="M3 17.5C3 16.6716 3.67157 16 4.5 16H19.5C20.3284 16 21 16.6716 21 17.5C21 18.3284 20.3284 19 19.5 19H4.5C3.67157 19 3 18.3284 3 17.5Z" fill="#00C3F7"/>
+      <path d="M3 6.5C3 5.67157 3.67157 5 4.5 5H19.5C20.3284 5 21 5.67157 21 6.5C21 7.32843 20.3284 8 19.5 8H4.5C3.67157 8 3 7.32843 3 6.5Z" fill="#00C3F7" />
+      <path d="M3 12C3 11.1716 3.67157 10.5 4.5 10.5H15.5C16.3284 10.5 17 11.1716 17 12C17 12.8284 16.3284 13.5 15.5 13.5H4.5C3.67157 13.5 3 12.8284 3 12Z" fill="#00C3F7" />
+      <path d="M3 17.5C3 16.6716 3.67157 16 4.5 16H19.5C20.3284 16 21 16.6716 21 17.5C21 18.3284 20.3284 19 19.5 19H4.5C3.67157 19 3 18.3284 3 17.5Z" fill="#00C3F7" />
     </svg>
   );
 }
@@ -143,9 +144,16 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     setTouched({ fullName: true, email: true, phone: true, momoNumber: true, clientAddress: true });
 
     if (Object.keys(currentErrors).length === 0) {
+      const momoProviderName =
+        formData.momoNetwork === 'Telecel'
+          ? 'Telecel Cash'
+          : formData.momoNetwork === 'AirtelTigo'
+            ? 'AT Money'
+            : 'MTN MoMo';
+
       const paymentMethodName =
         formData.paymentChannel === 'momo'
-          ? `Paystack (${formData.momoNetwork} MoMo)`
+          ? `Paystack (${momoProviderName})`
           : 'Paystack (Card)';
 
       const sessionTitle = selectedClass.hasScheduleSlots
@@ -172,7 +180,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
 
   return (
     <div className="overflow-hidden rounded-3xl border border-[#E0DFDB] bg-white shadow-xl transition-all">
-      
+
       {/* Top Banner: Selected Class Summary */}
       <div className="border-b border-[#E0DFDB] bg-[#FAF6F2] p-4 sm:p-6 w-full max-w-full overflow-hidden">
         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
@@ -232,7 +240,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-4 sm:p-7 space-y-5">
-        
+
         {/* Step 1: Session Preferences (If Mass Yoga or Private One-on-One) */}
         {selectedClass.hasScheduleSlots && (
           <div className="space-y-2.5 pb-4 border-b border-[#EAE6DF]">
@@ -251,11 +259,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                     key={slot.label}
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: `${slot.day} ${slot.time}` }))}
-                    className={`flex sm:flex-col items-center sm:items-start justify-between rounded-2xl p-3 border transition-all text-left ${
-                      isSelectedSlot
+                    className={`flex sm:flex-col items-center sm:items-start justify-between rounded-2xl p-3 border transition-all text-left ${isSelectedSlot
                         ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
                         : 'border-[#E0DFDB] bg-white hover:bg-[#FAF8F5]'
-                    }`}
+                      }`}
                   >
                     <div>
                       <div className="flex items-center gap-1.5 font-bold text-xs text-[#201410]">
@@ -284,11 +291,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               <button
                 type="button"
                 onClick={() => setFormData((prev) => ({ ...prev, locationOption: 'studio' }))}
-                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${
-                  formData.locationOption === 'studio'
+                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${formData.locationOption === 'studio'
                     ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
                     : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
-                }`}
+                  }`}
               >
                 <Building2 className="h-5 w-5 text-[#774929] shrink-0 mt-0.5" />
                 <div>
@@ -301,11 +307,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               <button
                 type="button"
                 onClick={() => setFormData((prev) => ({ ...prev, locationOption: 'clientLocation' }))}
-                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${
-                  formData.locationOption === 'clientLocation'
+                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${formData.locationOption === 'clientLocation'
                     ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
                     : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
-                }`}
+                  }`}
               >
                 <Home className="h-5 w-5 text-[#774929] shrink-0 mt-0.5" />
                 <div>
@@ -333,11 +338,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                     onChange={handleChange}
                     onBlur={handleBlur}
                     disabled={isSubmitting}
-                    className={`w-full rounded-2xl border bg-white py-2.5 pl-10 pr-4 text-sm text-[#201410] outline-none transition-all ${
-                      touched.clientAddress && errors.clientAddress
+                    className={`w-full rounded-2xl border bg-white py-2.5 pl-10 pr-4 text-sm text-[#201410] outline-none transition-all ${touched.clientAddress && errors.clientAddress
                         ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                         : 'border-[#E0DFDB] focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20'
-                    }`}
+                      }`}
                   />
                 </div>
                 {touched.clientAddress && errors.clientAddress && (
@@ -393,11 +397,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={isSubmitting}
-              className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${
-                touched.fullName && errors.fullName
+              className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.fullName && errors.fullName
                   ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                   : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
-              }`}
+                }`}
             />
           </div>
           {touched.fullName && errors.fullName && (
@@ -426,11 +429,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${
-                  touched.email && errors.email
+                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.email && errors.email
                     ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                     : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
-                }`}
+                  }`}
               />
             </div>
             {touched.email && errors.email && (
@@ -457,11 +459,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${
-                  touched.phone && errors.phone
+                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.phone && errors.phone
                     ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                     : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
-                }`}
+                  }`}
               />
             </div>
             {touched.phone && errors.phone && (
@@ -506,10 +507,6 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               </span>
               Payment via Paystack
             </h3>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2.5 py-0.5 text-[11px] font-bold text-[#0288D1]">
-              <PaystackIcon className="h-3.5 w-3.5" />
-              Secured by Paystack
-            </span>
           </div>
 
           <p className="text-xs text-[#88796B]">
@@ -522,14 +519,13 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'momo' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${
-                formData.paymentChannel === 'momo'
+              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${formData.paymentChannel === 'momo'
                   ? 'border-[#774929] bg-[#FAF6F2] shadow-sm ring-2 ring-[#774929]/20'
                   : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
-              }`}
+                }`}
             >
-              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
-                <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
+                <Smartphone className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
@@ -538,9 +534,11 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                     Popular
                   </span>
                 </div>
-                <p className="text-[11px] text-[#88796B] truncate">
-                  MTN MoMo, Telecel, AT Money
-                </p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <MobileMoneyLogo network="MTN" variant="image" size="xs" className="h-4.5 w-auto rounded-xs shadow-2xs" />
+                  <MobileMoneyLogo network="Telecel" variant="image" size="xs" className="h-4.5 w-auto rounded-xs" />
+                  <MobileMoneyLogo network="AT" variant="image" size="xs" className="h-4.5 w-auto rounded-xs" />
+                </div>
               </div>
             </button>
 
@@ -548,14 +546,13 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'card' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${
-                formData.paymentChannel === 'card'
+              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${formData.paymentChannel === 'card'
                   ? 'border-[#774929] bg-[#FAF6F2] shadow-sm ring-2 ring-[#774929]/20'
                   : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
-              }`}
+                }`}
             >
-              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
-                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
+                <CreditCard className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-[#201410] block">Debit / Credit Card</span>
@@ -569,56 +566,79 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           {/* Channel Content: Mobile Money Provider & Number */}
           {formData.paymentChannel === 'momo' ? (
             <div className="rounded-2xl bg-[#FAF8F5] p-3.5 sm:p-5 border border-[#E0DFDB] space-y-4">
-              
-              {/* Select MoMo Network */}
+
+              {/* Select MoMo Network with Actual Official Logos */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823] mb-2">
-                  Select Mobile Money Network
-                </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
+                    Select Mobile Money Network
+                  </label>
+                  <span className="text-[11px] font-semibold text-[#774929] bg-white px-2 py-0.5 rounded-md border border-[#E0DFDB]">
+                    {formData.momoNetwork === 'Telecel' ? 'Telecel Cash' : formData.momoNetwork === 'AirtelTigo' ? 'AT Money' : 'MTN MoMo'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {/* MTN MoMo */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'MTN' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
-                      formData.momoNetwork === 'MTN'
-                        ? 'border-[#FFCC00] bg-[#FFF9E6] shadow-sm ring-2 ring-[#FFCC00]/40 text-[#201410]'
+                    className={`relative flex flex-col items-center justify-between rounded-2xl p-2 sm:p-3 border transition-all text-center ${formData.momoNetwork === 'MTN'
+                        ? 'border-[#FFCC00] bg-[#FFFBEA] shadow-md ring-2 ring-[#FFCC00]/50'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
-                    }`}
+                      }`}
                   >
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-[#FFCC00] mb-1 ring-1 ring-amber-400"></span>
-                    <span className="text-[11px] sm:text-xs font-bold">MTN MoMo</span>
-                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">Instant prompt</span>
+                    <div className="h-10 sm:h-12 flex items-center justify-center w-full mb-1.5 px-0.5">
+                      <MobileMoneyLogo network="MTN" variant="image" size="lg" className="h-9 sm:h-10 w-auto max-w-full rounded shadow-2xs" />
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-[#201410] leading-tight">MTN MoMo</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B] mt-0.5">Instant prompt</span>
+                    {formData.momoNetwork === 'MTN' && (
+                      <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFCC00] text-[#002B49] text-[9px] font-bold">
+                        ✓
+                      </span>
+                    )}
                   </button>
 
                   {/* Telecel Cash */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'Telecel' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
-                      formData.momoNetwork === 'Telecel'
-                        ? 'border-rose-400 bg-rose-50 shadow-sm ring-2 ring-rose-200 text-[#201410]'
+                    className={`relative flex flex-col items-center justify-between rounded-2xl p-2 sm:p-3 border transition-all text-center ${formData.momoNetwork === 'Telecel'
+                        ? 'border-[#ED1C24] bg-rose-50/70 shadow-md ring-2 ring-[#ED1C24]/30'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
-                    }`}
+                      }`}
                   >
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 mb-1 ring-1 ring-rose-300"></span>
-                    <span className="text-[11px] sm:text-xs font-bold">Telecel Cash</span>
-                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">Voda Cash</span>
+                    <div className="h-10 sm:h-12 flex items-center justify-center w-full mb-1.5 px-0.5">
+                      <MobileMoneyLogo network="Telecel" variant="image" size="lg" className="h-8 sm:h-9 w-auto max-w-full" />
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-[#201410] leading-tight">Telecel Cash</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B] mt-0.5">Voda / Telecel</span>
+                    {formData.momoNetwork === 'Telecel' && (
+                      <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#ED1C24] text-white text-[9px] font-bold">
+                        ✓
+                      </span>
+                    )}
                   </button>
 
-                  {/* AirtelTigo Money */}
+                  {/* AirtelTigo / AT Money */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'AirtelTigo' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
-                      formData.momoNetwork === 'AirtelTigo'
-                        ? 'border-blue-400 bg-blue-50 shadow-sm ring-2 ring-blue-200 text-[#201410]'
+                    className={`relative flex flex-col items-center justify-between rounded-2xl p-2 sm:p-3 border transition-all text-center ${formData.momoNetwork === 'AirtelTigo'
+                        ? 'border-[#002060] bg-blue-50/70 shadow-md ring-2 ring-[#002060]/30'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
-                    }`}
+                      }`}
                   >
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-blue-600 mb-1 ring-1 ring-blue-300"></span>
-                    <span className="text-[11px] sm:text-xs font-bold">AT Money</span>
-                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">AirtelTigo</span>
+                    <div className="h-10 sm:h-12 flex items-center justify-center w-full mb-1.5 px-0.5">
+                      <MobileMoneyLogo network="AirtelTigo" variant="image" size="lg" className="h-9 sm:h-10 w-auto max-w-full" />
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-[#201410] leading-tight">AT Money</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B] mt-0.5">AirtelTigo / AT</span>
+                    {formData.momoNetwork === 'AirtelTigo' && (
+                      <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#002060] text-white text-[9px] font-bold">
+                        ✓
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -661,15 +681,18 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 )}
               </div>
 
-              {/* How it works banner */}
-              <div className="rounded-xl bg-[#F5EBE1]/70 p-3 text-xs text-[#201410] border border-[#E8D7C8] space-y-1">
-                <p className="font-semibold flex items-center gap-1.5 text-[#774929]">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  How Mobile Money Checkout Works:
-                </p>
-                <p className="text-[11px] text-[#88796B] leading-relaxed">
-                  When you tap <strong>Pay with Paystack</strong>, an on-screen USSD prompt will be sent directly to your phone ({formData.momoNumber || formData.phone || 'provided number'}). Simply enter your MoMo PIN on your device to authorize.
-                </p>
+              {/* How it works banner with Provider Logo */}
+              <div className="rounded-xl bg-[#FAF6F2] p-3 text-xs text-[#201410] border border-[#E8D7C8] flex items-start gap-3">
+                <MobileMoneyLogo network={formData.momoNetwork} variant="image" size="md" className="h-9 w-auto shrink-0 mt-0.5 rounded shadow-2xs" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-[#774929] flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Instant {formData.momoNetwork === 'Telecel' ? 'Telecel Cash' : formData.momoNetwork === 'AirtelTigo' ? 'AT Money' : 'MTN MoMo'} Prompt:
+                  </p>
+                  <p className="text-[11px] text-[#88796B] leading-relaxed">
+                    When you tap <strong>Pay with Paystack</strong>, an on-screen USSD prompt will be sent directly to your phone ({formData.momoNumber || formData.phone || 'provided number'}). Simply enter your MoMo PIN on your device to authorize.
+                  </p>
+                </div>
               </div>
 
             </div>
@@ -707,19 +730,24 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
         {/* Live Submission Simulation Overlay or Progress Notification */}
         {isSubmitting && (
           <div className="rounded-2xl bg-[#F0F9FF] border border-[#BAE6FD] p-4 text-xs space-y-2 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 text-[#0369A1] font-bold">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0288D1] border-t-transparent" />
+            <div className="flex items-center gap-2.5 text-[#0369A1] font-bold">
+              {formData.paymentChannel === 'momo' ? (
+                <MobileMoneyLogo network={formData.momoNetwork} variant="image" size="xs" className="h-5 w-auto shrink-0 rounded-xs shadow-2xs" />
+              ) : (
+                <CreditCard className="h-4 w-4 text-[#0288D1] shrink-0" />
+              )}
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0288D1] border-t-transparent shrink-0" />
               <span>
                 {currentPhase === 1 && 'Connecting to Paystack Secure Gateway...'}
                 {currentPhase === 2 &&
                   (formData.paymentChannel === 'momo'
-                    ? `Sending MoMo PIN prompt to ${formData.momoNetwork} (${formData.momoNumber || formData.phone})...`
+                    ? `Sending MoMo PIN prompt to ${formData.momoNetwork === 'Telecel' ? 'Telecel Cash' : formData.momoNetwork === 'AirtelTigo' ? 'AT Money' : 'MTN MoMo'} (${formData.momoNumber || formData.phone})...`
                     : 'Verifying 3D-Secure Card Authorization...')}
                 {currentPhase === 3 && 'Payment Authorized! Generating Class Pass...'}
               </span>
             </div>
             {formData.paymentChannel === 'momo' && (
-              <p className="text-[11px] text-[#0288D1]">
+              <p className="text-[11px] text-[#0288D1] pl-1">
                 📲 Please check your mobile phone and approve the prompt with your Mobile Money PIN.
               </p>
             )}
@@ -731,11 +759,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold text-white shadow-lg transition-all duration-300 ${
-              isSubmitting
+            className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold text-white shadow-lg transition-all duration-300 ${isSubmitting
                 ? 'bg-[#774929]/80 cursor-wait'
                 : 'bg-[#774929] hover:bg-[#663D21] active:scale-[0.99] hover:shadow-xl'
-            }`}
+              }`}
           >
             {isSubmitting ? (
               <>

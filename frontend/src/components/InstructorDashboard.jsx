@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import AddClassModal from './AddClassModal';
 import StudentDetailsModal from './StudentDetailsModal';
+import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 
 export default function InstructorDashboard({
@@ -599,10 +600,14 @@ export default function InstructorDashboard({
                           <CheckCircle2 className="h-3 w-3" />
                           Paid (GH₵{reg.amount})
                         </span>
-                        <p className="text-[10px] text-[#382823] mt-0.5 font-medium flex items-center gap-1">
-                          <PaystackIcon className="h-2.5 w-2.5 shrink-0" />
+                        <div className="text-[10px] text-[#382823] mt-1 font-medium flex items-center gap-1.5">
+                          {reg.paymentMethod && (reg.paymentMethod.includes('MTN') || reg.paymentMethod.includes('Telecel') || reg.paymentMethod.includes('AT') || reg.paymentMethod.includes('MoMo')) ? (
+                            <MobileMoneyLogo network={reg.paymentMethod} variant="image" size="xs" className="h-4 w-auto rounded-xs shadow-2xs shrink-0" />
+                          ) : (
+                            <PaystackIcon className="h-2.5 w-2.5 shrink-0" />
+                          )}
                           <span className="truncate max-w-[130px]">{reg.paymentMethod || 'Paystack MoMo'}</span>
-                        </p>
+                        </div>
                         {reg.paystackRef && (
                           <span className="font-mono text-[9px] text-[#88796B] block truncate max-w-[120px]">
                             {reg.paystackRef}

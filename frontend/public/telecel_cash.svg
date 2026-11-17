@@ -1,0 +1,13 @@
+<svg viewBox="0 0 120 68" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="68" rx="12" fill="#ED1C24" />
+  <g transform="translate(24, 34)">
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="21 7" />
+    <circle cx="0" cy="0" r="8" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-dasharray="11 4" />
+    <circle cx="0" cy="0" r="3.2" fill="#FFFFFF" />
+  </g>
+  <text x="47" y="32" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" letter-spacing="-0.4">telecel</text>
+  <g transform="translate(47, 39)">
+    <rect width="48" height="18" rx="9" fill="#FFFFFF" />
+    <text x="24" y="13" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="900" fill="#ED1C24" text-anchor="middle" letter-spacing="0.6">CASH</text>
+  </g>
+</svg>

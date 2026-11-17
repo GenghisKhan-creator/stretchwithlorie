@@ -11,6 +11,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 
 export default function SuccessModal({ booking, onClose, onViewDashboard }) {
@@ -162,10 +163,14 @@ Namaste!
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 PAID • GH₵{amount}.00
               </span>
-              <p className="text-[11px] text-[#88796B] mt-1 font-medium flex items-center justify-end gap-1">
-                <CreditCard className="h-3 w-3 text-[#774929]" />
-                {paymentMethod}
-              </p>
+              <div className="text-[11px] text-[#88796B] mt-1 font-medium flex items-center justify-end gap-1.5">
+                {paymentMethod && (paymentMethod.includes('MTN') || paymentMethod.includes('Telecel') || paymentMethod.includes('Airtel') || paymentMethod.includes('AT') || paymentMethod.includes('MoMo')) ? (
+                  <MobileMoneyLogo network={paymentMethod} variant="image" size="xs" className="h-4.5 w-auto rounded-xs shadow-2xs" />
+                ) : (
+                  <CreditCard className="h-3 w-3 text-[#774929]" />
+                )}
+                <span>{paymentMethod}</span>
+              </div>
             </div>
           </div>
 

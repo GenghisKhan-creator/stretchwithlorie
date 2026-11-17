@@ -1,0 +1,11 @@
+<svg viewBox="0 0 120 68" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="68" rx="12" fill="#002060" />
+  <g transform="translate(24, 35)">
+    <path d="M -9,0 C -9,-8 -3.5,-12.5 4,-12.5 C 11.5,-12.5 16,-8 16,0 L 16,7 L 10.5,7 L 10.5,4 C 8.5,6.8 4.5,8 0.5,8 C -6,8 -9,4.2 -9,0 Z M 10.5,-1.8 C 10.5,-5.5 7.5,-7.5 4,-7.5 C 0.5,-7.5 -2.5,-5.5 -2.5,-1.8 C -2.5,2 0.5,3.8 4,3.8 C 7.5,3.8 10.5,2 10.5,-1.8 Z" fill="#FFFFFF" />
+    <circle cx="4" cy="-1.8" r="3.2" fill="#00A3E0" />
+    <path d="M 21,-18 L 27,-18 L 27,-12 L 34,-12 L 34,-7.5 L 27,-7.5 L 27,2 C 27,4.8 28.8,5.8 32,5.8 L 34,5.8 L 34,10.5 C 31,11 27,11 24.5,9.5 C 22.5,8 21,5.5 21,2 L 21,-7.5 L 17,-7.5 L 17,-12 L 21,-12 Z" fill="#FFFFFF" />
+    <rect x="17" y="-12" width="17" height="4.5" rx="1.5" fill="#E30613" />
+  </g>
+  <text x="66" y="36" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="15" font-weight="800" fill="#00A3E0" letter-spacing="0.2">money</text>
+  <text x="60" y="58" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="6.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" opacity="0.85" letter-spacing="0.8">LIFE IS SIMPLE</text>
+</svg>

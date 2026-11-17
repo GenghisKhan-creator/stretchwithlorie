@@ -363,7 +363,7 @@ export const INITIAL_REGISTRATIONS = [
     amount: 400,
     paymentStatus: "Paid",
     paymentGateway: "Paystack",
-    paymentMethod: "Paystack (AirtelTigo)",
+    paymentMethod: "Paystack (AT Money)",
     locationType: "Studio",
     healthNotes: "Assisted mobility for hips and thoracic spine release.",
     registeredAt: "2026-11-15T14:05:00Z",
