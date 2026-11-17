@@ -9,6 +9,8 @@ import BoutiqueSection from './components/BoutiqueSection';
 import ScrollToTop from './components/ScrollToTop';
 import Toast from './components/Toast';
 import BrandLogo from './components/BrandLogo';
+import WellnessGiftCardModal from './components/WellnessGiftCardModal';
+import WellnessPassHeroCard from './components/WellnessPassHeroCard';
 import { api } from './services/api';
 import { STUDIO_SCHEDULES } from './data/mockData';
 import {
@@ -18,7 +20,9 @@ import {
   ArrowRight,
   ShieldCheck,
   Coffee,
-  Heart
+  Heart,
+  Gift,
+  ChevronDown
 } from 'lucide-react';
 
 export default function App() {
@@ -31,6 +35,15 @@ export default function App() {
   const [successBooking, setSuccessBooking] = useState(null);
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Wellness Gift Card & Subscription Modal State
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [giftModalTab, setGiftModalTab] = useState('subscription'); // 'subscription' | 'gift'
+
+  const handleOpenGiftModal = (tab = 'subscription') => {
+    setGiftModalTab(tab);
+    setIsGiftModalOpen(true);
+  };
 
   const registrationSectionRef = useRef(null);
 
@@ -171,12 +184,36 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F7F4EF] text-[#2B2E31] font-sans antialiased selection:bg-[#EAD3D5] selection:text-[#2B2E31] flex flex-col w-full max-w-full overflow-x-hidden">
 
+      {/* Top Announcement Bar for Signature Special Offer */}
+      <div className="bg-gradient-to-r from-[#2A3628] via-[#384635] to-[#252E23] text-white text-xs px-3.5 sm:px-6 py-2 border-b border-[#C8A253]/35 shrink-0 z-50">
+        <div className="mx-auto max-w-7xl flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#C8A253] text-[#2B2E31] px-2 py-0.5 font-extrabold text-[10px] tracking-wide shadow-2xs">
+              <Sparkles className="h-3 w-3" />
+              SPECIAL OFFER
+            </span>
+            <span className="text-[#F7F4EF] font-medium text-[11px] sm:text-xs">
+              Monthly Studio Subscriptions & Digital Wellness Gift Cards are now available!
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleOpenGiftModal('subscription')}
+            className="inline-flex items-center gap-1 text-[#F7E7C4] hover:text-white font-bold text-[11px] sm:text-xs underline underline-offset-2 transition-colors cursor-pointer"
+          >
+            <span>Buy / Gift Now</span>
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         totalBookings={registrations.length}
         onResetData={handleResetData}
+        onOpenGiftModal={handleOpenGiftModal}
       />
 
       {/* Main Container */}
@@ -186,51 +223,77 @@ export default function App() {
         {activeTab === 'student' && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
 
-            {/* Hero Banner with Botanical Calm & Architectural Warmth */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-6 sm:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
-              <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#5A6952] border border-[#7A8B71]/30 mb-3 shadow-2xs">
-                  <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
-                  stretchwithlorie • Yoga & Fitness
+            {/* Hero Banner with Botanical Calm, Architectural Warmth & Wellness Pass Spotlight */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
+                
+                {/* Left Column: Headline, Story & Quick CTAs (7 cols) */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#5A6952] border border-[#7A8B71]/30 shadow-2xs">
+                    <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
+                    stretchwithlorie • Yoga & Fitness
+                  </div>
+
+                  <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight">
+                    YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
+                  </h1>
+
+                  <p className="text-xs sm:text-base text-[#5C6260] leading-relaxed">
+                    Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
+                  </p>
+
+                  <p className="text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
+                    Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
+                  </p>
+
+                  {/* Studio Highlights Bar */}
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#5A6952] pt-1">
+                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
+                      All Levels Welcome
+                    </span>
+                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                      <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
+                      Complimentary Mat & Teas
+                    </span>
+                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                      <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
+                      Paystack Mobile Money
+                    </span>
+                  </div>
+
+                  {/* Hero Action Buttons */}
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenGiftModal('subscription')}
+                      className="flex items-center gap-2 rounded-xl bg-[#A44A4A] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:bg-[#8f3e3e] transition-all hover:scale-[1.01] cursor-pointer"
+                    >
+                      <Gift className="h-4 w-4" />
+                      <span>Buy Wellness Pass / Gift Card</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+
+                    <a
+                      href="#class-catalog"
+                      className="flex items-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white/80 backdrop-blur-sm px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#2B2E31] hover:bg-white hover:border-[#7A8B71] transition-colors"
+                    >
+                      <span>Explore Single Classes</span>
+                      <ChevronDown className="h-3.5 w-3.5 text-[#7A8B71]" />
+                    </a>
+                  </div>
                 </div>
 
-                <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight">
-                  YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
-                </h1>
-
-                <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#5C6260] max-w-2xl leading-relaxed">
-                  Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
-                </p>
-
-                <p className="mt-2 text-xs sm:text-sm text-[#2B2E31] font-medium max-w-2xl leading-relaxed">
-                  Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
-                </p>
-
-                {/* Studio Highlights Bar */}
-                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#5A6952]">
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                    <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
-                    All Levels Welcome
-                  </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                    <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
-                    Complimentary Mat & Teas
-                  </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                    <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
-                    Paystack Mobile Money
-                  </span>
+                {/* Right Column: Physical VIP Wellness Card Spotlight (5 cols) */}
+                <div className="lg:col-span-5 w-full">
+                  <WellnessPassHeroCard onOpenGiftModal={handleOpenGiftModal} />
                 </div>
+
               </div>
 
               {/* Decorative Subtle Ambient Rings */}
               <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[#C8A253]/15 blur-3xl" />
               <div className="pointer-events-none absolute -bottom-10 right-24 h-64 w-64 rounded-full bg-[#7A8B71]/15 blur-2xl" />
-
-              {/* Logo Lockup on Hero */}
-              <div className="hidden lg:flex absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 items-center justify-center rounded-3xl bg-white/90 backdrop-blur-md border border-white shadow-lg px-6 py-4 ring-4 ring-[#E6E1D8]/70">
-                <BrandLogo variant="image" size="lg" />
-              </div>
             </div>
 
             {/* STUDIO SCHEDULES QUICK BAR */}
@@ -292,7 +355,7 @@ export default function App() {
               <div className="lg:col-span-7 space-y-6 w-full max-w-full">
 
                 {/* Section Header & Filter Pills */}
-                <div className="space-y-3">
+                <div id="class-catalog" className="space-y-3 scroll-mt-24">
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31]">
@@ -410,6 +473,17 @@ export default function App() {
         onViewDashboard={() => {
           setSuccessBooking(null);
           setActiveTab('instructor');
+        }}
+      />
+
+      {/* Signature Wellness Gift Card & Subscription Modal */}
+      <WellnessGiftCardModal
+        isOpen={isGiftModalOpen}
+        initialTab={giftModalTab}
+        onClose={() => setIsGiftModalOpen(false)}
+        onSuccessBooking={(order) => {
+          showToast('success', `${order.title} completed successfully!`);
+          api.getRegistrations().then(setRegistrations);
         }}
       />
 
