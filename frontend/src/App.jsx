@@ -169,7 +169,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC] text-[#201410] font-sans antialiased selection:bg-[#C9B6A5] selection:text-[#201410] flex flex-col">
+    <div className="min-h-screen bg-[#F5F2EC] text-[#201410] font-sans antialiased selection:bg-[#C9B6A5] selection:text-[#201410] flex flex-col w-full max-w-full overflow-x-hidden">
       
       {/* Navigation Header */}
       <Navbar
@@ -180,25 +180,25 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-10">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 pb-28 sm:pb-12 overflow-x-hidden">
         
         {/* VIEW A: STUDENT BOOKING FLOW */}
         {activeTab === 'student' && (
-          <div className="space-y-10 animate-in fade-in duration-300">
+          <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
             
             {/* Hero Banner with Lorie's Exact Welcoming Copy */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-6 sm:p-10 border border-[#E0DFDB] shadow-sm">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-5 sm:p-10 border border-[#E0DFDB] shadow-sm w-full max-w-full">
               <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3">
                   <Sparkles className="h-3.5 w-3.5 text-[#774929]" />
                   stretchwithlorie • Yoga & Fitness
                 </div>
 
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#201410] leading-tight">
+                <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#201410] leading-tight">
                   YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
                 </h1>
 
-                <p className="mt-4 text-sm sm:text-base text-[#88796B] max-w-2xl leading-relaxed">
+                <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#88796B] max-w-2xl leading-relaxed">
                   Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
                 </p>
 
@@ -207,18 +207,18 @@ export default function App() {
                 </p>
 
                 {/* Studio Highlights Bar */}
-                <div className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold text-[#774929]">
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
+                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#774929]">
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
                     <ShieldCheck className="h-3.5 w-3.5 text-[#774929]" />
-                    All Levels & Beginners Welcome
+                    All Levels Welcome
                   </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
                     <Coffee className="h-3.5 w-3.5 text-[#774929]" />
-                    Complimentary Mat & Herbal Teas
+                    Complimentary Mat & Teas
                   </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
                     <Heart className="h-3.5 w-3.5 text-[#774929]" />
-                    Paystack Mobile Money & Card
+                    Paystack Mobile Money
                   </span>
                 </div>
               </div>
@@ -234,7 +234,7 @@ export default function App() {
             </div>
 
             {/* STUDIO SCHEDULES QUICK BAR */}
-            <div className="rounded-3xl border border-[#E0DFDB] bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -251,7 +251,7 @@ export default function App() {
                 </div>
 
                 {/* 3 Schedule Slots */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 md:gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 md:gap-3 w-full md:w-auto">
                   {STUDIO_SCHEDULES.map((sched) => (
                     <button
                       key={sched.id}
@@ -286,10 +286,10 @@ export default function App() {
             </div>
 
             {/* Content Layout: 2 Columns on Desktop */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-12 items-start w-full max-w-full">
               
               {/* Left Column: Offerings & Experiences Selector (7 cols on lg) */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-6 w-full max-w-full">
                 
                 {/* Section Header & Filter Pills */}
                 <div className="space-y-3">
@@ -303,19 +303,19 @@ export default function App() {
                       </p>
                     </div>
 
-                    <span className="text-xs font-semibold text-[#774929] bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-[#774929] bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-1 rounded-full shrink-0">
                       {filteredClasses.length} {filteredClasses.length === 1 ? 'offering' : 'offerings'}
                     </span>
                   </div>
 
                   {/* Filter Pills */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar -mx-1 px-1">
                     {categories.map((cat) => (
                       <button
                         key={cat.id}
                         type="button"
                         onClick={() => setCategoryFilter(cat.id)}
-                        className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap ${
+                        className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${
                           categoryFilter === cat.id
                             ? 'bg-[#774929] text-white shadow-sm'
                             : 'bg-white text-[#88796B] border border-[#E0DFDB] hover:bg-[#F5EBE1] hover:text-[#201410]'
@@ -349,7 +349,7 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full max-w-full">
                     {filteredClasses.map((cls) => (
                       <ClassCard
                         key={cls.id}
@@ -366,7 +366,7 @@ export default function App() {
               {/* Right Column: Registration Form (5 cols on lg, sticky on desktop) */}
               <div
                 ref={registrationSectionRef}
-                className="lg:col-span-5 lg:sticky lg:top-24 space-y-4"
+                className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full max-w-full overflow-hidden"
               >
                 <RegistrationForm
                   selectedClass={selectedClass}

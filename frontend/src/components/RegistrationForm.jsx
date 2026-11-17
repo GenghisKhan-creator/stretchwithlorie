@@ -174,59 +174,64 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     <div className="overflow-hidden rounded-3xl border border-[#E0DFDB] bg-white shadow-xl transition-all">
       
       {/* Top Banner: Selected Class Summary */}
-      <div className="border-b border-[#E0DFDB] bg-[#FAF6F2] p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-xs font-semibold text-[#774929]">
-                {selectedClass.category}
-              </span>
-              <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-[#88796B] border border-[#E0DFDB]">
-                {selectedClass.level}
-              </span>
-              {onCancel && (
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="text-[11px] font-medium text-[#774929] hover:underline"
-                >
-                  Change
-                </button>
-              )}
-            </div>
-            <h2 className="mt-2 font-serif text-xl sm:text-2xl font-bold text-[#201410]">
-              {selectedClass.title}
-            </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-[#88796B]">
-              <span className="flex items-center gap-1.5 font-medium text-[#201410]">
-                <Calendar className="h-3.5 w-3.5 text-[#774929]" />
-                {selectedClass.date}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-[#774929]" />
-                {selectedClass.time} ({selectedClass.duration})
-              </span>
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-[#C9B6A5]" />
-                {selectedClass.room}
-              </span>
-            </div>
+      <div className="border-b border-[#E0DFDB] bg-[#FAF6F2] p-4 sm:p-6 w-full max-w-full overflow-hidden">
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-xs font-semibold text-[#774929]">
+              {selectedClass.category}
+            </span>
+            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-[#88796B] border border-[#E0DFDB]">
+              {selectedClass.level}
+            </span>
           </div>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-xs font-semibold text-[#774929] hover:underline"
+            >
+              Change
+            </button>
+          )}
+        </div>
 
-          <div className="text-right shrink-0">
-            <span className="text-xs text-[#88796B]">Total</span>
-            <p className="text-2xl font-bold text-[#201410]">
+        <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#201410] leading-snug">
+          {selectedClass.title}
+        </h2>
+
+        <div className="mt-2 flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-[#88796B]">
+          <span className="flex items-center gap-1.5 font-medium text-[#201410]">
+            <Calendar className="h-3.5 w-3.5 text-[#774929] shrink-0" />
+            {selectedClass.date}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-[#774929] shrink-0" />
+            {selectedClass.time} ({selectedClass.duration})
+          </span>
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-[#C9B6A5] shrink-0" />
+            {selectedClass.room}
+          </span>
+        </div>
+
+        {/* Dedicated Price & Spots Strip - Always readable, never clipped */}
+        <div className="mt-3.5 pt-3 border-t border-[#EAE4DC] flex items-center justify-between gap-2">
+          <div>
+            <span className="text-[11px] text-[#88796B] uppercase font-semibold block">Total Fee</span>
+            <span className="text-[11px] font-medium text-[#774929]">
+              {spotsLeft > 0 ? `${spotsLeft} spots available` : 'Advance booking'}
+            </span>
+          </div>
+          <div className="text-right">
+            <p className="text-xl sm:text-2xl font-bold text-[#201410]">
               GH₵{currentPrice}.00
-            </p>
-            <p className="text-[11px] font-medium text-[#774929]">
-              {spotsLeft > 0 ? `${spotsLeft} spots available` : 'Book by appointment'}
             </p>
           </div>
         </div>
       </div>
 
       {/* Form Content */}
-      <form onSubmit={handleSubmit} className="p-5 sm:p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="p-4 sm:p-7 space-y-5">
         
         {/* Step 1: Session Preferences (If Mass Yoga or Private One-on-One) */}
         {selectedClass.hasScheduleSlots && (
@@ -234,26 +239,37 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
               Choose Your Weekly Schedule Slot
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
-                { label: 'Wed 7:00 AM', value: 'Wednesdays 7:00 AM' },
-                { label: 'Sat 8:30 AM', value: 'Saturdays 8:30 AM' },
-                { label: 'Sun 6:00 PM', value: 'Sundays 6:00 PM' }
-              ].map((slot) => (
-                <button
-                  key={slot.value}
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: slot.value }))}
-                  className={`rounded-xl p-2.5 text-center border transition-all text-xs font-semibold ${
-                    formData.selectedSlot === slot.value
-                      ? 'border-[#774929] bg-[#FAF6F2] text-[#774929] ring-2 ring-[#774929]/20'
-                      : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
-                  }`}
-                >
-                  <span>{slot.label}</span>
-                  <span className="block text-[10px] text-[#88796B] mt-0.5">GH₵ 200</span>
-                </button>
-              ))}
+                { day: 'Wednesdays', time: '7:00 AM', label: 'Wed 7:00 AM', focus: 'Morning Stretch' },
+                { day: 'Saturdays', time: '8:30 AM', label: 'Sat 8:30 AM', focus: 'Weekend Awakening' },
+                { day: 'Sundays', time: '6:00 PM', label: 'Sun 6:00 PM', focus: 'Sunset Grounding' }
+              ].map((slot) => {
+                const isSelectedSlot = formData.selectedSlot === `${slot.day} ${slot.time}`;
+                return (
+                  <button
+                    key={slot.label}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: `${slot.day} ${slot.time}` }))}
+                    className={`flex sm:flex-col items-center sm:items-start justify-between rounded-2xl p-3 border transition-all text-left ${
+                      isSelectedSlot
+                        ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
+                        : 'border-[#E0DFDB] bg-white hover:bg-[#FAF8F5]'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-[#201410]">
+                        <Calendar className="h-3.5 w-3.5 text-[#774929] shrink-0" />
+                        <span>{slot.label}</span>
+                      </div>
+                      <span className="text-[11px] text-[#88796B] block mt-0.5">{slot.focus}</span>
+                    </div>
+                    <span className="font-bold text-xs text-[#774929] mt-0 sm:mt-1.5 bg-[#F5EBE1] px-2 py-0.5 rounded-lg border border-[#E8D7C8]">
+                      GH₵ 200
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -264,7 +280,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
               Session Location Preference
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setFormData((prev) => ({ ...prev, locationOption: 'studio' }))}
@@ -501,19 +517,19 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           </p>
 
           {/* Paystack Channel Selector: Mobile Money (Primary) vs Card */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             {/* Mobile Money Option (Highlighted as default) */}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'momo' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3.5 border transition-all text-left ${
+              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${
                 formData.paymentChannel === 'momo'
                   ? 'border-[#774929] bg-[#FAF6F2] shadow-sm ring-2 ring-[#774929]/20'
                   : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
               }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
-                <Smartphone className="h-5 w-5" />
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
+                <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
@@ -532,14 +548,14 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'card' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3.5 border transition-all text-left ${
+              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${
                 formData.paymentChannel === 'card'
                   ? 'border-[#774929] bg-[#FAF6F2] shadow-sm ring-2 ring-[#774929]/20'
                   : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
               }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
-                <CreditCard className="h-5 w-5" />
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-[#201410] block">Debit / Credit Card</span>
@@ -552,7 +568,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
 
           {/* Channel Content: Mobile Money Provider & Number */}
           {formData.paymentChannel === 'momo' ? (
-            <div className="rounded-2xl bg-[#FAF8F5] p-4 sm:p-5 border border-[#E0DFDB] space-y-4">
+            <div className="rounded-2xl bg-[#FAF8F5] p-3.5 sm:p-5 border border-[#E0DFDB] space-y-4">
               
               {/* Select MoMo Network */}
               <div>
@@ -564,45 +580,45 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'MTN' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2.5 border transition-all ${
+                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
                       formData.momoNetwork === 'MTN'
                         ? 'border-[#FFCC00] bg-[#FFF9E6] shadow-sm ring-2 ring-[#FFCC00]/40 text-[#201410]'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
                     }`}
                   >
-                    <span className="flex h-3 w-3 rounded-full bg-[#FFCC00] mb-1 ring-1 ring-amber-400"></span>
-                    <span className="text-xs font-bold">MTN MoMo</span>
-                    <span className="text-[10px] text-[#88796B]">Instant prompt</span>
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-[#FFCC00] mb-1 ring-1 ring-amber-400"></span>
+                    <span className="text-[11px] sm:text-xs font-bold">MTN MoMo</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">Instant prompt</span>
                   </button>
 
                   {/* Telecel Cash */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'Telecel' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2.5 border transition-all ${
+                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
                       formData.momoNetwork === 'Telecel'
                         ? 'border-rose-400 bg-rose-50 shadow-sm ring-2 ring-rose-200 text-[#201410]'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
                     }`}
                   >
-                    <span className="flex h-3 w-3 rounded-full bg-rose-500 mb-1 ring-1 ring-rose-300"></span>
-                    <span className="text-xs font-bold">Telecel Cash</span>
-                    <span className="text-[10px] text-[#88796B]">Voda Cash</span>
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 mb-1 ring-1 ring-rose-300"></span>
+                    <span className="text-[11px] sm:text-xs font-bold">Telecel Cash</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">Voda Cash</span>
                   </button>
 
                   {/* AirtelTigo Money */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, momoNetwork: 'AirtelTigo' })}
-                    className={`flex flex-col items-center justify-center rounded-xl p-2.5 border transition-all ${
+                    className={`flex flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all text-center ${
                       formData.momoNetwork === 'AirtelTigo'
                         ? 'border-blue-400 bg-blue-50 shadow-sm ring-2 ring-blue-200 text-[#201410]'
                         : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
                     }`}
                   >
-                    <span className="flex h-3 w-3 rounded-full bg-blue-600 mb-1 ring-1 ring-blue-300"></span>
-                    <span className="text-xs font-bold">AT Money</span>
-                    <span className="text-[10px] text-[#88796B]">AirtelTigo</span>
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-blue-600 mb-1 ring-1 ring-blue-300"></span>
+                    <span className="text-[11px] sm:text-xs font-bold">AT Money</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#88796B]">AirtelTigo</span>
                   </button>
                 </div>
               </div>

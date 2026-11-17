@@ -6,7 +6,7 @@ export default function Toast({ toast, onClose }) {
   const { type = 'success', message } = toast;
 
   return (
-    <div className="fixed bottom-20 right-5 sm:right-6 z-50 flex items-center gap-3 rounded-2xl bg-[#201410] px-4 py-3 text-white shadow-2xl border border-[#422613] animate-in slide-in-from-bottom-5 duration-200">
+    <div className="fixed top-16 right-3 sm:top-20 sm:right-6 z-50 flex items-center gap-3 rounded-2xl bg-[#201410] px-4 py-3 text-white shadow-2xl border border-[#422613] animate-in slide-in-from-top-3 duration-200 max-w-[92vw]">
       {type === 'success' ? (
         <CheckCircle2 className="h-4 w-4 text-[#C9B6A5]" />
       ) : type === 'warning' ? (
