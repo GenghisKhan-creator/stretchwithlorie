@@ -11,7 +11,10 @@ import {
   Clock,
   MapPin,
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  Home,
+  Building2,
+  Sparkles
 } from 'lucide-react';
 
 // Paystack Official Mark Icon
@@ -33,7 +36,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     healthNotes: '',
     paymentChannel: 'momo', // 'momo' (Mobile Money) or 'card'
     momoNetwork: 'MTN', // 'MTN' | 'Telecel' | 'AirtelTigo'
-    momoNumber: ''
+    momoNumber: '',
+    locationOption: 'studio', // 'studio' | 'clientLocation'
+    clientAddress: '',
+    selectedSlot: 'Wednesdays 7:00 AM'
   });
 
   const [errors, setErrors] = useState({});
@@ -62,14 +68,19 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           <Calendar className="h-7 w-7" />
         </div>
         <h3 className="font-serif text-xl font-bold text-[#201410]">
-          Select an Upcoming Class
+          Select an Experience to Book
         </h3>
         <p className="mt-2 text-sm text-[#88796B] max-w-md mx-auto">
-          Choose a yoga session from the schedule on the left to begin your registration. Your reserved mat and props will be prepared upon booking.
+          Choose a group class, 1-on-1 private session, or signature experience from the catalog to begin your reservation.
         </p>
       </div>
     );
   }
+
+  // Calculate dynamic price (handles studio Gh 300 vs client location Gh 500 for private sessions)
+  const currentPrice = selectedClass.locationPricing
+    ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
+    : selectedClass.price;
 
   // Form validation rules
   const validate = () => {
@@ -90,6 +101,12 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
       errs.phone = 'Please provide a phone / WhatsApp number.';
     } else if (formData.phone.trim().length < 7) {
       errs.phone = 'Please provide a valid phone number.';
+    }
+
+    if (selectedClass.locationPricing && formData.locationOption === 'clientLocation') {
+      if (!formData.clientAddress.trim()) {
+        errs.clientAddress = 'Please specify your location or address in Accra.';
+      }
     }
 
     if (formData.paymentChannel === 'momo') {
@@ -123,7 +140,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     e.preventDefault();
     const currentErrors = validate();
     setErrors(currentErrors);
-    setTouched({ fullName: true, email: true, phone: true, momoNumber: true });
+    setTouched({ fullName: true, email: true, phone: true, momoNumber: true, clientAddress: true });
 
     if (Object.keys(currentErrors).length === 0) {
       const paymentMethodName =
@@ -131,10 +148,22 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           ? `Paystack (${formData.momoNetwork} MoMo)`
           : 'Paystack (Card)';
 
+      const sessionTitle = selectedClass.hasScheduleSlots
+        ? `${selectedClass.title} (${formData.selectedSlot})`
+        : selectedClass.title;
+
       await onSubmitBooking({
         ...formData,
+        amount: currentPrice,
+        price: currentPrice,
         paymentMethod: paymentMethodName,
-        classId: selectedClass.id
+        classTitle: sessionTitle,
+        classId: selectedClass.id,
+        locationType: selectedClass.locationPricing
+          ? formData.locationOption === 'clientLocation'
+            ? `Client Location (${formData.clientAddress.trim()})`
+            : 'Studio Sanctuary'
+          : 'Studio Sanctuary'
       });
     }
   };
@@ -187,10 +216,10 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           <div className="text-right shrink-0">
             <span className="text-xs text-[#88796B]">Total</span>
             <p className="text-2xl font-bold text-[#201410]">
-              GH₵{selectedClass.price}.00
+              GH₵{currentPrice}.00
             </p>
             <p className="text-[11px] font-medium text-[#774929]">
-              {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
+              {spotsLeft > 0 ? `${spotsLeft} spots available` : 'Book by appointment'}
             </p>
           </div>
         </div>
@@ -199,13 +228,132 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-5 sm:p-8 space-y-6">
         
-        {/* Step 1: Student Information */}
+        {/* Step 1: Session Preferences (If Mass Yoga or Private One-on-One) */}
+        {selectedClass.hasScheduleSlots && (
+          <div className="space-y-2.5 pb-4 border-b border-[#EAE6DF]">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
+              Choose Your Weekly Schedule Slot
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Wed 7:00 AM', value: 'Wednesdays 7:00 AM' },
+                { label: 'Sat 8:30 AM', value: 'Saturdays 8:30 AM' },
+                { label: 'Sun 6:00 PM', value: 'Sundays 6:00 PM' }
+              ].map((slot) => (
+                <button
+                  key={slot.value}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: slot.value }))}
+                  className={`rounded-xl p-2.5 text-center border transition-all text-xs font-semibold ${
+                    formData.selectedSlot === slot.value
+                      ? 'border-[#774929] bg-[#FAF6F2] text-[#774929] ring-2 ring-[#774929]/20'
+                      : 'border-[#E0DFDB] bg-white text-[#88796B] hover:bg-[#FAF8F5]'
+                  }`}
+                >
+                  <span>{slot.label}</span>
+                  <span className="block text-[10px] text-[#88796B] mt-0.5">GH₵ 200</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Private Yoga: Choose Studio (Gh 300) vs Client Location (Gh 500) */}
+        {selectedClass.locationPricing && (
+          <div className="space-y-3 pb-4 border-b border-[#EAE6DF]">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
+              Session Location Preference
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, locationOption: 'studio' }))}
+                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${
+                  formData.locationOption === 'studio'
+                    ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
+                    : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
+                }`}
+              >
+                <Building2 className="h-5 w-5 text-[#774929] shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-xs font-bold text-[#201410] block">In Studio Sanctuary</span>
+                  <span className="text-[11px] font-bold text-[#774929]">GH₵ 300</span>
+                  <p className="text-[10px] text-[#88796B] mt-0.5">Fully equipped props & mat provided</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, locationOption: 'clientLocation' }))}
+                className={`flex items-start gap-2.5 rounded-2xl p-3.5 border transition-all text-left ${
+                  formData.locationOption === 'clientLocation'
+                    ? 'border-[#774929] bg-[#FAF6F2] ring-2 ring-[#774929]/20'
+                    : 'border-[#E0DFDB] bg-[#FAF8F5] hover:bg-white'
+                }`}
+              >
+                <Home className="h-5 w-5 text-[#774929] shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-xs font-bold text-[#201410] block">At Your Location</span>
+                  <span className="text-[11px] font-bold text-[#774929]">GH₵ 500</span>
+                  <p className="text-[10px] text-[#88796B] mt-0.5">Lorie travels to your home or space</p>
+                </div>
+              </button>
+            </div>
+
+            {formData.locationOption === 'clientLocation' && (
+              <div className="pt-2 animate-in fade-in duration-200">
+                <label className="block text-xs font-semibold text-[#382823] mb-1">
+                  Your Address / Neighborhood in Accra <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#88796B]">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="text"
+                    name="clientAddress"
+                    placeholder="e.g. Cantonments, Airport Residential, East Legon, Labone..."
+                    value={formData.clientAddress}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={isSubmitting}
+                    className={`w-full rounded-2xl border bg-white py-2.5 pl-10 pr-4 text-sm text-[#201410] outline-none transition-all ${
+                      touched.clientAddress && errors.clientAddress
+                        ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
+                        : 'border-[#E0DFDB] focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20'
+                    }`}
+                  />
+                </div>
+                {touched.clientAddress && errors.clientAddress && (
+                  <p className="mt-1 text-xs text-rose-600 font-medium">
+                    {errors.clientAddress}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Signature Experience Highlight Note for Yoga & Champagne */}
+        {selectedClass.id === 'cls-champagne' && (
+          <div className="rounded-2xl bg-[#F5EBE1] border border-[#E8D7C8] p-4 text-xs space-y-1.5">
+            <span className="inline-flex items-center gap-1 font-bold text-[#774929]">
+              <Sparkles className="h-4 w-4 text-[#774929]" />
+              Our Signature Monthly Experience • Last Sunday of Every Month
+            </span>
+            <p className="text-[#88796B] leading-relaxed">
+              Includes our signature uplifting stretch session, relaxing music, mindful connection, and complimentary celebratory champagne.
+            </p>
+          </div>
+        )}
+
+        {/* Student Contact Information Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#EAE6DF]">
           <h3 className="font-serif text-base sm:text-lg font-bold text-[#201410] flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#774929] text-white text-xs font-semibold">
               1
             </span>
-            Student Information
+            Your Details
           </h3>
           <span className="text-xs text-[#88796B]">
             * Required fields
@@ -224,7 +372,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <input
               type="text"
               name="fullName"
-              placeholder="e.g. Maya Lin"
+              placeholder="e.g. Adjoa Mensah"
               value={formData.fullName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -257,7 +405,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               <input
                 type="email"
                 name="email"
-                placeholder="you@example.com"
+                placeholder="adjoa@example.com"
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -288,7 +436,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               <input
                 type="tel"
                 name="phone"
-                placeholder="e.g. 024 123 4567 or +233..."
+                placeholder="024 123 4567"
                 value={formData.phone}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -312,7 +460,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#382823]">
-              Health, Injuries & Pregnancy Notes
+              Health, Goals, Injuries or Pregnancy Notes
             </label>
             <span className="text-[11px] text-[#88796B]">Optional</span>
           </div>
@@ -320,7 +468,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             <textarea
               name="healthNotes"
               rows={2}
-              placeholder="E.g., tight hamstrings, mild lower back sensitivity, pregnancy, or recent surgery so Lorie can offer tailored modifications..."
+              placeholder="E.g., tight hamstrings, lower back sensitivity, goals for splits, or recent surgery so Lorie can offer personalized guidance..."
               value={formData.healthNotes}
               onChange={handleChange}
               disabled={isSubmitting}
@@ -329,7 +477,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           </div>
           <p className="mt-1.5 text-[11px] text-[#88796B] flex items-center gap-1">
             <HeartPulse className="h-3.5 w-3.5 text-[#774929]" />
-            Shared privately with your instructor {selectedClass.instructor.name} before class.
+            Shared privately with Lorie before your session.
           </p>
         </div>
 
@@ -349,7 +497,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           </div>
 
           <p className="text-xs text-[#88796B]">
-            Pay quickly and securely. All payments are processed through Paystack, supporting instant <strong>Mobile Money prompts</strong> and bank cards.
+            All transactions are powered securely by Paystack. Choose <strong>Mobile Money</strong> for an instant prompt on your phone or pay by card.
           </p>
 
           {/* Paystack Channel Selector: Mobile Money (Primary) vs Card */}
@@ -424,7 +572,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                   >
                     <span className="flex h-3 w-3 rounded-full bg-[#FFCC00] mb-1 ring-1 ring-amber-400"></span>
                     <span className="text-xs font-bold">MTN MoMo</span>
-                    <span className="text-[10px] text-[#88796B]">Prompt push</span>
+                    <span className="text-[10px] text-[#88796B]">Instant prompt</span>
                   </button>
 
                   {/* Telecel Cash */}
@@ -471,7 +619,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                       onClick={() => setFormData((prev) => ({ ...prev, momoNumber: prev.phone }))}
                       className="text-[11px] font-medium text-[#774929] hover:underline"
                     >
-                      Use Contact Phone
+                      Use WhatsApp Phone
                     </button>
                   )}
                 </div>
@@ -482,7 +630,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                   <input
                     type="tel"
                     name="momoNumber"
-                    placeholder="Enter phone number to receive approval prompt"
+                    placeholder="Enter phone number to receive authorization prompt"
                     value={formData.momoNumber || formData.phone}
                     onChange={handleChange}
                     onBlur={handleBlur}
@@ -527,14 +675,14 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 <span className="text-[11px] text-[#88796B]">3D-Secure Protected</span>
               </div>
               <p className="text-[11px] text-[#88796B]">
-                Your card will be securely charged via Paystack's PCI-DSS compliant checkout window.
+                Your card will be securely charged in Ghana Cedis (GHS) via Paystack's PCI-DSS compliant checkout window.
               </p>
             </div>
           )}
 
           {/* Included perks reminder */}
           <div className="rounded-xl bg-[#FAF8F5] px-4 py-2.5 border border-[#E0DFDB] flex items-center justify-between text-xs text-[#88796B]">
-            <span>Complimentary Manduka Mat & Infused Tea</span>
+            <span>Complimentary Manduka Mat, Props & Infused Tea</span>
             <span className="text-[#774929] font-bold">Included</span>
           </div>
 
@@ -601,7 +749,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               <>
                 <Lock className="h-4 w-4" />
                 <span>
-                  Pay GH₵{selectedClass.price}.00 with Paystack
+                  Pay GH₵{currentPrice}.00 with Paystack
                 </span>
               </>
             )}
@@ -614,7 +762,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               Secured by Paystack • PCI-DSS Certified
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Free cancellation up to 12 hours before class</span>
+            <span>Advance booking reservation</span>
           </div>
         </div>
 

@@ -4,14 +4,21 @@ import ClassCard from './components/ClassCard';
 import RegistrationForm from './components/RegistrationForm';
 import SuccessModal from './components/SuccessModal';
 import InstructorDashboard from './components/InstructorDashboard';
+import SpecialOccasionsSection from './components/SpecialOccasionsSection';
+import BoutiqueSection from './components/BoutiqueSection';
+import ScrollToTop from './components/ScrollToTop';
 import Toast from './components/Toast';
 import BrandLogo from './components/BrandLogo';
 import { api } from './services/api';
+import { STUDIO_SCHEDULES } from './data/mockData';
 import {
   Sparkles,
-  Heart,
+  Calendar,
+  Clock,
+  ArrowRight,
   ShieldCheck,
-  Coffee
+  Coffee,
+  Heart
 } from 'lucide-react';
 
 export default function App() {
@@ -44,12 +51,9 @@ export default function App() {
         setClasses(fetchedClasses);
         setRegistrations(fetchedRegistrations);
 
-        // Pre-select first available class for great preview
+        // Pre-select first class
         if (fetchedClasses && fetchedClasses.length > 0) {
-          const firstAvailable = fetchedClasses.find(
-            (c) => c.maxCapacity - c.bookedCount > 0
-          );
-          setSelectedClass(firstAvailable || fetchedClasses[0]);
+          setSelectedClass(fetchedClasses[0]);
         }
       } catch (err) {
         console.error('Failed to load initial data:', err);
@@ -76,7 +80,21 @@ export default function App() {
     }
   };
 
-  // Handle mock booking and payment submit
+  // 1-Click Select Studio Schedule Slot (Wed 7am, Sat 8.30am, Sun 6pm)
+  const handleSelectScheduleSlot = (schedule) => {
+    const massClass = classes.find((c) => c.id === 'cls-mass') || classes[0];
+    setSelectedClass(massClass);
+
+    if (registrationSectionRef.current) {
+      registrationSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+    showToast('info', `Selected ${schedule.label} (GH₵ ${schedule.price})`);
+  };
+
+  // Handle booking and Paystack payment submit
   const handleBookingSubmit = async (formData) => {
     try {
       setIsSubmitting(true);
@@ -91,7 +109,7 @@ export default function App() {
 
       // Trigger success screen
       setSuccessBooking(result.registration);
-      showToast('success', `Payment authorized! Reservation ${result.registration.bookingRef} confirmed.`);
+      showToast('success', `Payment authorized via Paystack! Reservation ${result.registration.bookingRef} confirmed.`);
     } catch (err) {
       console.error('Booking error:', err);
       showToast('warning', err.message || 'Payment simulation failed.');
@@ -105,7 +123,7 @@ export default function App() {
     try {
       const created = await api.createClass(newClassData);
       setClasses((prev) => [created, ...prev]);
-      showToast('success', `Class "${created.title}" published to student schedule!`);
+      showToast('success', `Session "${created.title}" published to schedule!`);
     } catch {
       showToast('warning', 'Failed to create new class.');
     }
@@ -141,7 +159,14 @@ export default function App() {
     return cls.category.toLowerCase() === categoryFilter.toLowerCase();
   });
 
-  const categories = ['ALL', 'Vinyasa', 'Restorative', 'Yin', 'Power', 'Hatha', 'Pranayama'];
+  const categories = [
+    { id: 'ALL', label: 'All Experiences' },
+    { id: 'Yoga Classes', label: 'Yoga Classes' },
+    { id: 'Private Bookings', label: 'Private Bookings' },
+    { id: 'Masterclass', label: 'Flexibility Masterclass' },
+    { id: 'Therapeutic', label: 'Therapeutic' },
+    { id: 'Special Experiences', label: 'Special Experiences' }
+  ];
 
   return (
     <div className="min-h-screen bg-[#F5F2EC] text-[#201410] font-sans antialiased selection:bg-[#C9B6A5] selection:text-[#201410] flex flex-col">
@@ -155,39 +180,45 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-10">
         
         {/* VIEW A: STUDENT BOOKING FLOW */}
         {activeTab === 'student' && (
-          <div className="space-y-8 animate-in fade-in duration-300">
+          <div className="space-y-10 animate-in fade-in duration-300">
             
-            {/* Calming Studio Hero Banner in Warm Luxury Palette */}
+            {/* Hero Banner with Lorie's Exact Welcoming Copy */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-6 sm:p-10 border border-[#E0DFDB] shadow-sm">
               <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3.5">
                   <Sparkles className="h-3.5 w-3.5 text-[#774929]" />
-                  stretchwithlorie • Yoga, Mobility & Movement
+                  stretchwithlorie • Yoga & Fitness
                 </div>
+
                 <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#201410] leading-tight">
-                  Stretch Deeply. Move Freely. Reserve Your Mat.
+                  YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
                 </h1>
-                <p className="mt-3 text-sm sm:text-base text-[#88796B] max-w-2xl leading-relaxed">
-                  Join Lorie and guest teachers for intimate, body-positive yoga and stretch sessions. All reservations include premium organic mats, support props, and herbal teas.
+
+                <p className="mt-4 text-sm sm:text-base text-[#88796B] max-w-2xl leading-relaxed">
+                  Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
+                </p>
+
+                <p className="mt-2 text-xs sm:text-sm text-[#382823] font-medium max-w-2xl leading-relaxed">
+                  Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
                 </p>
 
                 {/* Studio Highlights Bar */}
-                <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-[#774929]">
+                <div className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold text-[#774929]">
                   <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
                     <ShieldCheck className="h-3.5 w-3.5 text-[#774929]" />
-                    Clean Heated Air Filtration
+                    All Levels & Beginners Welcome
                   </span>
                   <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
                     <Coffee className="h-3.5 w-3.5 text-[#774929]" />
-                    Herbal Tea Lounge
+                    Complimentary Mat & Herbal Teas
                   </span>
                   <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-3 py-1.5 border border-[#E0DFDB]">
                     <Heart className="h-3.5 w-3.5 text-[#774929]" />
-                    Trauma-Informed & All Bodies Welcome
+                    Paystack Mobile Money & Card
                   </span>
                 </div>
               </div>
@@ -202,10 +233,62 @@ export default function App() {
               </div>
             </div>
 
+            {/* STUDIO SCHEDULES QUICK BAR */}
+            <div className="rounded-3xl border border-[#E0DFDB] bg-white p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#774929]">
+                      Regular Group Timetable
+                    </span>
+                  </div>
+                  <h3 className="font-serif text-lg sm:text-xl font-bold text-[#201410] mt-1">
+                    STUDIO SCHEDULES
+                  </h3>
+                  <p className="text-xs text-[#88796B]">
+                    Join our weekly group yoga sessions at the Studio Sanctuary.
+                  </p>
+                </div>
+
+                {/* 3 Schedule Slots */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 md:gap-3">
+                  {STUDIO_SCHEDULES.map((sched) => (
+                    <button
+                      key={sched.id}
+                      type="button"
+                      onClick={() => handleSelectScheduleSlot(sched)}
+                      className="group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border border-[#E0DFDB] bg-[#FAF8F5] p-3 text-left hover:border-[#774929] hover:bg-[#FAF6F2] transition-all hover:shadow-sm"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#201410] group-hover:text-[#774929] transition-colors">
+                          <Calendar className="h-3.5 w-3.5 text-[#774929]" />
+                          <span>{sched.day}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[11px] text-[#88796B] mt-0.5">
+                          <Clock className="h-3 w-3 text-[#774929]" />
+                          <span>{sched.time}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 sm:mt-2 sm:w-full sm:justify-between pt-1 border-t sm:border-[#EAE6DF]">
+                        <span className="font-bold text-xs text-[#201410]">
+                          Gh {sched.price}
+                        </span>
+                        <span className="text-[10px] font-semibold text-[#774929] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                          <span>Book Slot</span>
+                          <ArrowRight className="h-2.5 w-2.5" />
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Content Layout: 2 Columns on Desktop */}
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
               
-              {/* Left Column: Class Selector (7 cols on lg) */}
+              {/* Left Column: Offerings & Experiences Selector (7 cols on lg) */}
               <div className="lg:col-span-7 space-y-6">
                 
                 {/* Section Header & Filter Pills */}
@@ -213,15 +296,15 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#201410]">
-                        Upcoming Sessions
+                        Choose Your Experience
                       </h2>
                       <p className="text-xs sm:text-sm text-[#88796B]">
-                        Select a session below to reserve your space on the floor.
+                        Select a class or private session below to reserve your space.
                       </p>
                     </div>
 
                     <span className="text-xs font-semibold text-[#774929] bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-1 rounded-full">
-                      {filteredClasses.length} {filteredClasses.length === 1 ? 'class' : 'classes'} available
+                      {filteredClasses.length} {filteredClasses.length === 1 ? 'offering' : 'offerings'}
                     </span>
                   </div>
 
@@ -229,16 +312,16 @@ export default function App() {
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar">
                     {categories.map((cat) => (
                       <button
-                        key={cat}
+                        key={cat.id}
                         type="button"
-                        onClick={() => setCategoryFilter(cat)}
+                        onClick={() => setCategoryFilter(cat.id)}
                         className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap ${
-                          categoryFilter === cat
+                          categoryFilter === cat.id
                             ? 'bg-[#774929] text-white shadow-sm'
                             : 'bg-white text-[#88796B] border border-[#E0DFDB] hover:bg-[#F5EBE1] hover:text-[#201410]'
                         }`}
                       >
-                        {cat === 'ALL' ? 'All Practices' : cat}
+                        {cat.label}
                       </button>
                     ))}
                   </div>
@@ -248,21 +331,21 @@ export default function App() {
                 {isLoading ? (
                   <div className="py-12 text-center text-[#88796B]">
                     <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#774929] border-t-transparent" />
-                    <p className="mt-3 text-xs font-semibold">Loading sanctuary schedule...</p>
+                    <p className="mt-3 text-xs font-semibold">Loading experiences...</p>
                   </div>
                 ) : filteredClasses.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-[#E0DFDB] bg-white p-8 text-center">
                     <p className="font-serif text-lg font-bold text-[#201410]">
-                      No classes found for this style
+                      No sessions found for this category
                     </p>
                     <p className="text-xs text-[#88796B] mt-1">
-                      Try selecting "All Practices" to view the complete schedule.
+                      Try selecting "All Experiences" to browse everything.
                     </p>
                     <button
                       onClick={() => setCategoryFilter('ALL')}
                       className="mt-3 text-xs font-semibold text-[#774929] underline"
                     >
-                      Show All Classes
+                      Show All Experiences
                     </button>
                   </div>
                 ) : (
@@ -294,6 +377,12 @@ export default function App() {
               </div>
 
             </div>
+
+            {/* SPECIAL OCCASION BOOKINGS & PRIVATE EVENTS SECTION */}
+            <SpecialOccasionsSection />
+
+            {/* STUDIO BOUTIQUE / ITEMS AVAILABLE FOR SALE */}
+            <BoutiqueSection />
 
           </div>
         )}
@@ -328,17 +417,28 @@ export default function App() {
       {/* Toast Notification */}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
+      {/* Floating Back to Top Button */}
+      <ScrollToTop />
+
       {/* Earthy Footer */}
       <footer className="mt-16 border-t border-[#E7DFD5] bg-[#FAF8F5] py-8 text-center text-xs text-[#7C887E]">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <BrandLogo variant="image" size="sm" />
-            <span className="hidden sm:inline text-[#5A655E]">• Movement & Stretch Sanctuary</span>
+            <span className="hidden sm:inline text-[#5A655E]">• Yoga Classes, Private Bookings & Special Experiences</span>
           </div>
           <div className="flex items-center gap-4 text-[#5A655E]">
-            <span>Hours: Mon - Sun 06:30 AM - 08:30 PM</span>
+            <span>Accra, Ghana • Studio Sanctuary & Client Locations</span>
             <span className="hidden sm:inline">•</span>
-            <span className="text-[#58875B] font-medium">SPA Frontend Ready for Backend Integration</span>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="hover:text-[#774929] hover:underline font-semibold transition-colors"
+            >
+              Back to top ↑
+            </button>
+            <span className="hidden sm:inline">•</span>
+            <span className="text-[#774929] font-medium">Secured by Paystack</span>
           </div>
         </div>
       </footer>

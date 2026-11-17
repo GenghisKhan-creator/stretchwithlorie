@@ -13,7 +13,10 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
     level,
     room,
     category,
-    description
+    description,
+    tagline,
+    locationPricing,
+    badge
   } = yogaClass;
 
   const spotsLeft = Math.max(0, maxCapacity - bookedCount);
@@ -41,6 +44,11 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-1 text-xs font-semibold text-[#774929]">
             {category}
           </span>
+          {badge && (
+            <span className="rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2.5 py-0.5 text-[11px] font-bold text-[#0288D1]">
+              {badge}
+            </span>
+          )}
           <span className="rounded-full bg-[#FAF8F5] border border-[#E0DFDB] px-2.5 py-1 text-[11px] font-medium text-[#88796B]">
             {level}
           </span>
@@ -63,12 +71,17 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
         )}
       </div>
 
-      {/* Class Title & Description */}
+      {/* Class Title, Tagline & Description */}
       <div className="mb-4">
         <h3 className="font-serif text-lg font-bold text-[#201410] group-hover:text-[#774929] transition-colors sm:text-xl">
           {title}
         </h3>
-        <p className="mt-1.5 text-xs sm:text-sm text-[#88796B] line-clamp-2 leading-relaxed">
+        {tagline && (
+          <p className="mt-1 text-xs font-serif italic text-[#774929]">
+            "{tagline}"
+          </p>
+        )}
+        <p className="mt-1.5 text-xs sm:text-sm text-[#88796B] line-clamp-3 leading-relaxed">
           {description}
         </p>
       </div>
@@ -82,9 +95,9 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-[#774929] shrink-0" />
-            <span>{time}</span>
+            <span className="truncate">{time}</span>
           </div>
-          <span className="rounded-lg bg-white px-2 py-0.5 text-[11px] font-medium text-[#88796B] border border-[#E0DFDB]">
+          <span className="rounded-lg bg-white px-2 py-0.5 text-[11px] font-medium text-[#88796B] border border-[#E0DFDB] shrink-0">
             {duration}
           </span>
         </div>
@@ -117,11 +130,26 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
       {/* Bottom Footer: Price & Selection Status */}
       <div className="flex items-center justify-between pt-2 border-t border-[#EAE6DF]">
         <div>
-          <span className="text-xs text-[#88796B]">Price</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold text-[#201410]">GH₵{price}</span>
-            <span className="text-xs text-[#88796B]">/ class</span>
-          </div>
+          {locationPricing ? (
+            <div>
+              <span className="text-[10px] text-[#88796B] uppercase font-semibold">Pricing</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-[#201410]">GH₵{locationPricing.studio}</span>
+                <span className="text-[10px] text-[#88796B]">studio</span>
+                <span className="text-[10px] text-[#88796B]">•</span>
+                <span className="text-sm font-bold text-[#774929]">GH₵{locationPricing.clientLocation}</span>
+                <span className="text-[10px] text-[#88796B]">location</span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <span className="text-xs text-[#88796B]">Price</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold text-[#201410]">GH₵{price}</span>
+                <span className="text-xs text-[#88796B]">/ session</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
@@ -143,7 +171,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               type="button"
               className="rounded-xl border border-[#E0DFDB] bg-[#F5EBE1]/70 px-3.5 py-2 text-xs font-semibold text-[#774929] transition-colors group-hover:bg-[#774929] group-hover:text-white"
             >
-              Select Class
+              Select Experience
             </button>
           )}
         </div>
