@@ -5,17 +5,18 @@ import {
   TrendingUp,
   Calendar,
   Search,
-  Download,
   Plus,
   CheckCircle2,
   HeartPulse,
   Eye,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import AddClassModal from './AddClassModal';
 import StudentDetailsModal from './StudentDetailsModal';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
+import { exportAttendeesToPDF } from '../utils/pdfExport';
 
 export default function InstructorDashboard({
   classes,
@@ -76,82 +77,36 @@ export default function InstructorDashboard({
     });
   }, [registrations, searchTerm, selectedClassFilter, attendanceFilter]);
 
-  // CSV Export Trigger
-  const handleExportCSV = () => {
-    if (registrations.length === 0) {
-      alert('No registrations available to export.');
+  // PDF Export Trigger (Well-organized branded table)
+  const handleExportPDF = () => {
+    const targetList = filteredRegistrations.length > 0 ? filteredRegistrations : registrations;
+    if (targetList.length === 0) {
+      alert('No attendee records available to export.');
       return;
     }
 
-    // Prepare CSV rows
-    const headers = [
-      'Booking Reference',
-      'Paystack Reference',
-      'Student Name',
-      'Email',
-      'Phone / WhatsApp',
-      'Class Name',
-      'Class Date',
-      'Class Time',
-      'Instructor',
-      'Amount Paid (GH₵)',
-      'Payment Gateway',
-      'Payment Method',
-      'Payment Status',
-      'Checked In',
-      'Health & Injury Notes',
-      'Registration Timestamp'
-    ];
-
-    const targetList = filteredRegistrations.length > 0 ? filteredRegistrations : registrations;
-
-    const csvRows = [
-      headers.join(','),
-      ...targetList.map((r) =>
-        [
-          `"${r.bookingRef}"`,
-          `"${r.paystackRef || 'pstk_mock_tr'}"`,
-          `"${r.studentName.replace(/"/g, '""')}"`,
-          `"${r.email}"`,
-          `"${r.phone}"`,
-          `"${r.className.replace(/"/g, '""')}"`,
-          `"${r.classDate}"`,
-          `"${r.classTime}"`,
-          `"${r.instructor}"`,
-          r.amount,
-          `"Paystack"`,
-          `"${r.paymentMethod || 'Paystack (MTN MoMo)'}"`,
-          `"${r.paymentStatus}"`,
-          r.checkedIn ? 'Yes' : 'No',
-          `"${(r.healthNotes || '').replace(/"/g, '""')}"`,
-          `"${r.registeredAt}"`
-        ].join(',')
-      )
-    ];
-
-    const csvContent = csvRows.join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const dateStr = new Date().toISOString().split('T')[0];
-    link.setAttribute('download', `StretchWithLorie_Paystack_Attendees_${dateStr}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setExportNotice(`Exported ${targetList.length} attendee records to CSV!`);
-    setTimeout(() => setExportNotice(null), 4000);
+    try {
+      const result = exportAttendeesToPDF(targetList, {
+        filterClass: selectedClassFilter,
+        filterAttendance: attendanceFilter,
+        searchTerm
+      });
+      setExportNotice(`Exported ${result.count} attendee records to organized PDF table (${result.revenue})!`);
+      setTimeout(() => setExportNotice(null), 4500);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
 
       {/* Top Banner & Quick Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E0DFDB] pb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E6E1D8] pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-xs font-semibold text-[#774929]">
+            <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-xs font-semibold text-[#5A6952]">
               Instructor Control Center
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2 py-0.5 text-[11px] font-bold text-[#0288D1]">
@@ -159,10 +114,10 @@ export default function InstructorDashboard({
               Paystack Live
             </span>
           </div>
-          <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#201410]">
+          <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
             Studio Operations & Rosters
           </h1>
-          <p className="text-xs sm:text-sm text-[#88796B] mt-0.5">
+          <p className="text-xs sm:text-sm text-[#5C6260] mt-0.5">
             Monitor real-time class capacities, student medical notes, and verified Paystack Mobile Money payments.
           </p>
         </div>
@@ -174,7 +129,7 @@ export default function InstructorDashboard({
               type="button"
               onClick={onRefreshData}
               title="Refresh Roster Data"
-              className="flex items-center gap-1.5 rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2.5 text-xs font-semibold text-[#88796B] hover:bg-[#FAF8F5] hover:text-[#201410] transition-all shadow-sm"
+              className="flex items-center gap-1.5 rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs font-semibold text-[#5C6260] hover:bg-[#FAF8F5] hover:text-[#2B2E31] transition-all shadow-sm"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Refresh</span>
@@ -183,17 +138,18 @@ export default function InstructorDashboard({
 
           <button
             type="button"
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 rounded-2xl border border-[#E0DFDB] bg-white px-4 py-2.5 text-xs font-semibold text-[#201410] hover:bg-[#FAF8F5] transition-all shadow-sm"
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 rounded-2xl border border-[#E6E1D8] bg-white px-4 py-2.5 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] hover:border-[#7A8B71]/40 transition-all shadow-sm"
+            title="Download well-organized PDF table of attendees and verified Paystack payments"
           >
-            <Download className="h-4 w-4 text-[#774929]" />
-            <span>Export Attendee CSV</span>
+            <FileText className="h-4 w-4 text-[#7A8B71]" />
+            <span>Export Attendee PDF</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 rounded-2xl bg-[#774929] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#663D21] transition-all"
+            className="flex items-center gap-2 rounded-2xl bg-[#A44A4A] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#8C3E3E] transition-all"
           >
             <Plus className="h-4 w-4" />
             <span>Add New Class</span>
@@ -203,8 +159,8 @@ export default function InstructorDashboard({
 
       {/* Export notification badge */}
       {exportNotice && (
-        <div className="rounded-2xl bg-[#F5EBE1] border border-[#E8D7C8] p-3 text-xs font-semibold text-[#774929] flex items-center gap-2 shadow-sm">
-          <CheckCircle2 className="h-4 w-4 text-[#774929]" />
+        <div className="rounded-2xl bg-[#E5ECE2] border border-[#DCE4D9] p-3 text-xs font-semibold text-[#5A6952] flex items-center gap-2 shadow-sm">
+          <CheckCircle2 className="h-4 w-4 text-[#5A6952]" />
           <span>{exportNotice}</span>
         </div>
       )}
@@ -212,80 +168,80 @@ export default function InstructorDashboard({
       {/* Key Metric Stat Cards */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
         {/* Total Bookings */}
-        <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#88796B]">
+            <span className="text-xs font-semibold text-[#5C6260]">
               Total Bookings
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E5ECE2] text-[#5A6952]">
               <Users className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#201410]">
+            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
               {stats.totalBookings}
             </span>
-            <span className="text-[11px] font-medium text-[#774929]">
+            <span className="text-[11px] font-medium text-[#5A6952]">
               yogis enrolled
             </span>
           </div>
         </div>
 
         {/* Total Revenue */}
-        <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#88796B]">
+            <span className="text-xs font-semibold text-[#5C6260]">
               Paystack Revenue
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F5EBE1] text-[#774929]">
-              <DollarSign className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAF5EB] text-[#8C6D23] border border-[#E8D7B0]">
+              <DollarSign className="h-4 w-4 text-[#C8A253]" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#201410]">
+            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
               GH₵{stats.totalRevenue.toLocaleString()}
             </span>
-            <span className="text-[11px] font-medium text-[#774929]">
+            <span className="text-[11px] font-medium text-[#8C6D23]">
               collected
             </span>
           </div>
         </div>
 
         {/* Fill Rate */}
-        <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#88796B]">
+            <span className="text-xs font-semibold text-[#5C6260]">
               Capacity Fill Rate
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAF8F5] border border-[#E0DFDB] text-[#774929]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F1F4EF] border border-[#E6E1D8] text-[#5A6952]">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#201410]">
+            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
               {stats.fillRate}%
             </span>
-            <span className="text-[11px] font-medium text-[#774929]">
+            <span className="text-[11px] font-medium text-[#5A6952]">
               avg occupancy
             </span>
           </div>
         </div>
 
         {/* Active Classes */}
-        <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#88796B]">
+            <span className="text-xs font-semibold text-[#5C6260]">
               Active Sessions
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAF8F5] border border-[#E0DFDB] text-[#774929]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAF8F5] border border-[#E6E1D8] text-[#5A6952]">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#201410]">
+            <span className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
               {stats.activeClasses}
             </span>
-            <span className="text-[11px] font-medium text-[#88796B]">
+            <span className="text-[11px] font-medium text-[#5C6260]">
               scheduled
             </span>
           </div>
@@ -296,17 +252,17 @@ export default function InstructorDashboard({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-lg sm:text-xl font-bold text-[#201410]">
+            <h2 className="font-serif text-lg sm:text-xl font-bold text-[#2B2E31]">
               Class Capacity Overview
             </h2>
-            <p className="text-xs text-[#88796B]">
+            <p className="text-xs text-[#5C6260]">
               Signups vs maximum room capacities for each upcoming session.
             </p>
           </div>
           {selectedClassFilter !== 'ALL' && (
             <button
               onClick={() => setSelectedClassFilter('ALL')}
-              className="text-xs font-semibold text-[#774929] hover:underline"
+              className="text-xs font-semibold text-[#7A8B71] hover:underline"
             >
               Clear Class Filter
             </button>
@@ -326,13 +282,13 @@ export default function InstructorDashboard({
                 key={cls.id}
                 className={`relative flex flex-col justify-between rounded-3xl p-5 border transition-all duration-200 ${
                   isFilterActive
-                    ? 'border-[#774929] bg-[#FAF6F2] shadow-md ring-2 ring-[#774929]/20'
-                    : 'border-[#E0DFDB] bg-white hover:shadow-md'
+                    ? 'border-[#7A8B71] bg-[#F1F4EF] shadow-md ring-2 ring-[#7A8B71]/20'
+                    : 'border-[#E6E1D8] bg-white hover:shadow-md'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2 py-0.5 text-[11px] font-bold text-[#774929]">
+                    <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2 py-0.5 text-[11px] font-bold text-[#5A6952]">
                       {cls.category}
                     </span>
                     <span
@@ -341,30 +297,30 @@ export default function InstructorDashboard({
                           ? 'text-stone-500'
                           : spotsRemaining <= 2
                           ? 'text-amber-800'
-                          : 'text-[#774929]'
+                          : 'text-[#5A6952]'
                       }`}
                     >
                       {spotsRemaining === 0 ? 'Full' : `${spotsRemaining} spots left`}
                     </span>
                   </div>
 
-                  <h3 className="font-serif text-base font-bold text-[#201410]">
+                  <h3 className="font-serif text-base font-bold text-[#2B2E31]">
                     {cls.title}
                   </h3>
-                  <p className="text-xs text-[#88796B] mt-0.5">
+                  <p className="text-xs text-[#5C6260] mt-0.5">
                     {cls.instructor.name} • {cls.room}
                   </p>
-                  <p className="text-[11px] text-[#88796B] mt-1">
+                  <p className="text-[11px] text-[#5C6260] mt-1">
                     {cls.date} • {cls.time}
                   </p>
 
                   {/* Visual Progress Bar */}
                   <div className="mt-4 space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-[#382823]">
+                      <span className="text-[#2B2E31]">
                         {booked} / {max} Mats Reserved
                       </span>
-                      <span className="text-[#774929]">
+                      <span className="text-[#5A6952]">
                         {percentage}%
                       </span>
                     </div>
@@ -372,10 +328,8 @@ export default function InstructorDashboard({
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           percentage >= 100
-                            ? 'bg-[#382823]'
-                            : percentage >= 80
-                            ? 'bg-[#774929]'
-                            : 'bg-[#774929]'
+                            ? 'bg-[#2B2E31]'
+                            : 'bg-[#7A8B71]'
                         }`}
                         style={{ width: `${percentage}%` }}
                       />
@@ -384,8 +338,8 @@ export default function InstructorDashboard({
                 </div>
 
                 {/* Filter Quick Action */}
-                <div className="mt-4 pt-3 border-t border-[#EAE6DF] flex items-center justify-between">
-                  <span className="text-xs text-[#88796B]">
+                <div className="mt-4 pt-3 border-t border-[#E6E1D8] flex items-center justify-between">
+                  <span className="text-xs text-[#5C6260]">
                     GH₵{cls.price} / ticket
                   </span>
                   <button
@@ -395,8 +349,8 @@ export default function InstructorDashboard({
                     }
                     className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                       isFilterActive
-                        ? 'bg-[#774929] text-white'
-                        : 'bg-[#F5EBE1] text-[#774929] hover:bg-[#E8D7C8]'
+                        ? 'bg-[#7A8B71] text-white'
+                        : 'bg-[#E5ECE2] text-[#5A6952] hover:bg-[#DCE4D9]'
                     }`}
                   >
                     {isFilterActive ? 'Viewing Attendees' : 'Filter Roster'}
@@ -409,25 +363,25 @@ export default function InstructorDashboard({
       </div>
 
       {/* Live Registrations Table Section */}
-      <div className="rounded-3xl border border-[#E0DFDB] bg-white shadow-sm overflow-hidden">
+      <div className="rounded-3xl border border-[#E6E1D8] bg-white shadow-sm overflow-hidden">
 
         {/* Table Controls Bar */}
-        <div className="p-5 sm:p-6 border-b border-[#E0DFDB] bg-[#FAF8F5]/80 space-y-4">
+        <div className="p-5 sm:p-6 border-b border-[#E6E1D8] bg-[#FAF8F5]/80 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#201410] flex items-center gap-2">
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#2B2E31] flex items-center gap-2">
                 <span>Live Registrations & Attendee Roster</span>
-                <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-xs font-bold text-[#774929]">
+                <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-xs font-bold text-[#5A6952]">
                   {filteredRegistrations.length}
                 </span>
               </h2>
-              <p className="text-xs text-[#88796B]">
+              <p className="text-xs text-[#5C6260]">
                 Real-time Paystack booking transactions, MoMo approvals, and student injury notes.
               </p>
             </div>
 
             {/* Quick stats on filtered set */}
-            <div className="text-xs text-[#88796B]">
+            <div className="text-xs text-[#5C6260]">
               Showing {filteredRegistrations.length} of {registrations.length} bookings
             </div>
           </div>
@@ -437,7 +391,7 @@ export default function InstructorDashboard({
 
             {/* Search input */}
             <div className="sm:col-span-6 relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#88796B]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
                 <Search className="h-4 w-4" />
               </div>
               <input
@@ -445,7 +399,7 @@ export default function InstructorDashboard({
                 placeholder="Search student, phone, booking ID, or Paystack ref..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20"
               />
             </div>
 
@@ -454,7 +408,7 @@ export default function InstructorDashboard({
               <select
                 value={selectedClassFilter}
                 onChange={(e) => setSelectedClassFilter(e.target.value)}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2.5 text-base sm:text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-base sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="ALL">All Classes (Full Schedule)</option>
                 {classes.map((c) => (
@@ -470,7 +424,7 @@ export default function InstructorDashboard({
               <select
                 value={attendanceFilter}
                 onChange={(e) => setAttendanceFilter(e.target.value)}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2.5 text-xs sm:text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="ALL">All Attendance</option>
                 <option value="CHECKED_IN">Checked In Only</option>
@@ -485,7 +439,7 @@ export default function InstructorDashboard({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-[#E0DFDB] bg-[#F3EFE9] text-[11px] font-semibold uppercase tracking-wider text-[#88796B]">
+              <tr className="border-b border-[#E6E1D8] bg-[#F1F4EF] text-[11px] font-semibold uppercase tracking-wider text-[#5C6260]">
                 <th className="py-3.5 px-4 sm:px-6">Student & Reference</th>
                 <th className="py-3.5 px-4">Class Session</th>
                 <th className="py-3.5 px-4">Contact Info</th>
@@ -496,14 +450,14 @@ export default function InstructorDashboard({
                 <th className="py-3.5 px-4 sm:px-6 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE6DF]">
+            <tbody className="divide-y divide-[#E6E1D8]">
               {filteredRegistrations.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#88796B]">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F5EBE1]">
-                      <Search className="h-5 w-5 text-[#774929]" />
+                  <td colSpan={8} className="py-12 text-center text-[#5C6260]">
+                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E5ECE2]">
+                      <Search className="h-5 w-5 text-[#5A6952]" />
                     </div>
-                    <p className="font-semibold text-sm text-[#201410]">
+                    <p className="font-semibold text-sm text-[#2B2E31]">
                       No matching registrations found
                     </p>
                     <p className="text-xs mt-1">
@@ -516,7 +470,7 @@ export default function InstructorDashboard({
                         setSelectedClassFilter('ALL');
                         setAttendanceFilter('ALL');
                       }}
-                      className="mt-3 text-xs font-semibold text-[#774929] underline"
+                      className="mt-3 text-xs font-semibold text-[#7A8B71] underline"
                     >
                       Reset All Filters
                     </button>
@@ -537,14 +491,14 @@ export default function InstructorDashboard({
                       {/* Student Name & Reference */}
                       <td className="py-4 px-4 sm:px-6">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5EBE1] text-[#774929] font-bold text-xs">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] font-bold text-xs">
                             {reg.studentName.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-semibold text-[#201410]">
+                            <p className="font-semibold text-[#2B2E31]">
                               {reg.studentName}
                             </p>
-                            <span className="font-mono text-[11px] text-[#88796B]">
+                            <span className="font-mono text-[11px] text-[#5C6260]">
                               {reg.bookingRef}
                             </span>
                           </div>
@@ -553,24 +507,24 @@ export default function InstructorDashboard({
 
                       {/* Class Enrolled */}
                       <td className="py-4 px-4">
-                        <p className="font-medium text-[#201410] truncate max-w-[180px]">
+                        <p className="font-medium text-[#2B2E31] truncate max-w-[180px]">
                           {reg.className}
                         </p>
-                        <p className="text-[11px] text-[#88796B]">
+                        <p className="text-[11px] text-[#5C6260]">
                           {reg.classDate.split(',')[0]} • {reg.classTime.split('-')[0]}
                         </p>
                       </td>
 
                       {/* Contact Info */}
                       <td className="py-4 px-4">
-                        <p className="text-xs text-[#201410] truncate max-w-[180px]">
+                        <p className="text-xs text-[#2B2E31] truncate max-w-[180px]">
                           {reg.email}
                         </p>
                         <a
                           href={`https://wa.me/${reg.phone.replace(/[^0-9]/g, '')}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[11px] text-[#774929] hover:underline"
+                          className="text-[11px] text-[#7A8B71] hover:underline"
                         >
                           {reg.phone}
                         </a>
@@ -588,7 +542,7 @@ export default function InstructorDashboard({
                             <span className="truncate">{reg.healthNotes}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-[#A89E96]">
+                          <span className="text-xs text-[#88908D]">
                             None
                           </span>
                         )}
@@ -600,7 +554,7 @@ export default function InstructorDashboard({
                           <CheckCircle2 className="h-3 w-3" />
                           Paid (GH₵{reg.amount})
                         </span>
-                        <div className="text-[10px] text-[#382823] mt-1 font-medium flex items-center gap-1.5">
+                        <div className="text-[10px] text-[#2B2E31] mt-1 font-medium flex items-center gap-1.5">
                           {reg.paymentMethod && (reg.paymentMethod.includes('MTN') || reg.paymentMethod.includes('Telecel') || reg.paymentMethod.includes('AT') || reg.paymentMethod.includes('MoMo')) ? (
                             <MobileMoneyLogo network={reg.paymentMethod} variant="image" size="xs" className="h-4 w-auto rounded-xs shadow-2xs shrink-0" />
                           ) : (
@@ -609,14 +563,14 @@ export default function InstructorDashboard({
                           <span className="truncate max-w-[130px]">{reg.paymentMethod || 'Paystack MoMo'}</span>
                         </div>
                         {reg.paystackRef && (
-                          <span className="font-mono text-[9px] text-[#88796B] block truncate max-w-[120px]">
+                          <span className="font-mono text-[9px] text-[#5C6260] block truncate max-w-[120px]">
                             {reg.paystackRef}
                           </span>
                         )}
                       </td>
 
                       {/* Booked Timestamp */}
-                      <td className="py-4 px-4 text-xs text-[#88796B]">
+                      <td className="py-4 px-4 text-xs text-[#5C6260]">
                         {reg.formattedTime || 'Recent'}
                       </td>
 
@@ -627,8 +581,8 @@ export default function InstructorDashboard({
                           onClick={() => onToggleCheckIn(reg.id)}
                           className={`inline-flex items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
                             reg.checkedIn
-                              ? 'bg-[#774929] text-white shadow-sm'
-                              : 'bg-[#F5EBE1] text-[#774929] hover:bg-[#E8D7C8]'
+                              ? 'bg-[#5A6952] text-white shadow-sm'
+                              : 'bg-[#E5ECE2] text-[#5A6952] hover:bg-[#DCE4D9]'
                           }`}
                         >
                           <CheckCircle2 className="h-3 w-3" />
@@ -641,7 +595,7 @@ export default function InstructorDashboard({
                         <button
                           type="button"
                           onClick={() => setSelectedStudentForModal(reg)}
-                          className="rounded-xl border border-[#E0DFDB] p-1.5 text-[#88796B] hover:bg-[#FAF8F5] hover:text-[#201410] transition-colors"
+                          className="rounded-xl border border-[#E6E1D8] p-1.5 text-[#5C6260] hover:bg-[#FAF8F5] hover:text-[#2B2E31] transition-colors"
                           title="View Student Details"
                         >
                           <Eye className="h-4 w-4" />

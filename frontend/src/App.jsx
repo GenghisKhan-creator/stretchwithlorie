@@ -169,7 +169,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC] text-[#201410] font-sans antialiased selection:bg-[#C9B6A5] selection:text-[#201410] flex flex-col w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#F7F4EF] text-[#2B2E31] font-sans antialiased selection:bg-[#EAD3D5] selection:text-[#2B2E31] flex flex-col w-full max-w-full overflow-x-hidden">
 
       {/* Navigation Header */}
       <Navbar
@@ -186,66 +186,66 @@ export default function App() {
         {activeTab === 'student' && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
 
-            {/* Hero Banner with Lorie's Exact Welcoming Copy */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-6 sm:p-10 border border-[#E0DFDB] shadow-sm w-full max-w-full">
+            {/* Hero Banner with Botanical Calm & Architectural Warmth */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-6 sm:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
               <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3">
-                  <Sparkles className="h-3.5 w-3.5 text-[#774929]" />
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#5A6952] border border-[#7A8B71]/30 mb-3 shadow-2xs">
+                  <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
                   stretchwithlorie • Yoga & Fitness
                 </div>
 
-                <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#201410] leading-tight">
+                <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight">
                   YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
                 </h1>
 
-                <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#88796B] max-w-2xl leading-relaxed">
+                <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#5C6260] max-w-2xl leading-relaxed">
                   Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
                 </p>
 
-                <p className="mt-2 text-xs sm:text-sm text-[#382823] font-medium max-w-2xl leading-relaxed">
+                <p className="mt-2 text-xs sm:text-sm text-[#2B2E31] font-medium max-w-2xl leading-relaxed">
                   Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
                 </p>
 
                 {/* Studio Highlights Bar */}
-                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#774929]">
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
-                    <ShieldCheck className="h-3.5 w-3.5 text-[#774929]" />
+                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#5A6952]">
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                    <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
                     All Levels Welcome
                   </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
-                    <Coffee className="h-3.5 w-3.5 text-[#774929]" />
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                    <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
                     Complimentary Mat & Teas
                   </span>
-                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E0DFDB]">
-                    <Heart className="h-3.5 w-3.5 text-[#774929]" />
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                    <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
                     Paystack Mobile Money
                   </span>
                 </div>
               </div>
 
               {/* Decorative Subtle Ambient Rings */}
-              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[#C9B6A5]/25 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-10 right-24 h-64 w-64 rounded-full bg-[#774929]/10 blur-2xl" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[#C8A253]/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-10 right-24 h-64 w-64 rounded-full bg-[#7A8B71]/15 blur-2xl" />
 
               {/* Logo Lockup on Hero */}
-              <div className="hidden lg:flex absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 items-center justify-center rounded-3xl bg-white/85 backdrop-blur-md border border-white shadow-lg px-6 py-4 ring-4 ring-[#E0DFDB]/60">
+              <div className="hidden lg:flex absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 items-center justify-center rounded-3xl bg-white/90 backdrop-blur-md border border-white shadow-lg px-6 py-4 ring-4 ring-[#E6E1D8]/70">
                 <BrandLogo variant="image" size="lg" />
               </div>
             </div>
 
             {/* STUDIO SCHEDULES QUICK BAR */}
-            <div className="rounded-3xl border border-[#E0DFDB] bg-white p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
+            <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#774929]">
+                    <span className="rounded-full bg-[#F1F4EF] border border-[#DDE4DA] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#5A6952]">
                       Regular Group Timetable
                     </span>
                   </div>
-                  <h3 className="font-serif text-lg sm:text-xl font-bold text-[#201410] mt-1">
+                  <h3 className="font-serif text-lg sm:text-xl font-bold text-[#2B2E31] mt-1">
                     STUDIO SCHEDULES
                   </h3>
-                  <p className="text-xs text-[#88796B]">
+                  <p className="text-xs text-[#5C6260]">
                     Join our weekly group yoga sessions at the Studio Sanctuary.
                   </p>
                 </div>
@@ -257,24 +257,24 @@ export default function App() {
                       key={sched.id}
                       type="button"
                       onClick={() => handleSelectScheduleSlot(sched)}
-                      className="group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border border-[#E0DFDB] bg-[#FAF8F5] p-3 text-left hover:border-[#774929] hover:bg-[#FAF6F2] transition-all hover:shadow-sm"
+                      className="group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] p-3 text-left hover:border-[#7A8B71] hover:bg-[#F1F4EF] transition-all hover:shadow-sm"
                     >
                       <div>
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#201410] group-hover:text-[#774929] transition-colors">
-                          <Calendar className="h-3.5 w-3.5 text-[#774929]" />
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#2B2E31] group-hover:text-[#5A6952] transition-colors">
+                          <Calendar className="h-3.5 w-3.5 text-[#7A8B71]" />
                           <span>{sched.day}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-[11px] text-[#88796B] mt-0.5">
-                          <Clock className="h-3 w-3 text-[#774929]" />
+                        <div className="flex items-center gap-1 text-[11px] text-[#5C6260] mt-0.5">
+                          <Clock className="h-3 w-3 text-[#7A8B71]" />
                           <span>{sched.time}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 sm:mt-2 sm:w-full sm:justify-between pt-1 border-t sm:border-[#EAE6DF]">
-                        <span className="font-bold text-xs text-[#201410]">
+                      <div className="flex items-center gap-2 sm:mt-2 sm:w-full sm:justify-between pt-1 border-t sm:border-[#EDE8E0]">
+                        <span className="font-bold text-xs text-[#2B2E31]">
                           Gh {sched.price}
                         </span>
-                        <span className="text-[10px] font-semibold text-[#774929] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                        <span className="text-[10px] font-semibold text-[#A44A4A] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                           <span>Book Slot</span>
                           <ArrowRight className="h-2.5 w-2.5" />
                         </span>
@@ -295,15 +295,15 @@ export default function App() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#201410]">
+                      <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31]">
                         Choose Your Experience
                       </h2>
-                      <p className="text-xs sm:text-sm text-[#88796B]">
+                      <p className="text-xs sm:text-sm text-[#5C6260]">
                         Select a class or private session below to reserve your space.
                       </p>
                     </div>
 
-                    <span className="text-xs font-semibold text-[#774929] bg-[#F5EBE1] border border-[#E8D7C8] px-2.5 py-1 rounded-full shrink-0">
+                    <span className="text-xs font-semibold text-[#5A6952] bg-[#F1F4EF] border border-[#DDE4DA] px-2.5 py-1 rounded-full shrink-0">
                       {filteredClasses.length} {filteredClasses.length === 1 ? 'offering' : 'offerings'}
                     </span>
                   </div>
@@ -316,8 +316,8 @@ export default function App() {
                         type="button"
                         onClick={() => setCategoryFilter(cat.id)}
                         className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${categoryFilter === cat.id
-                          ? 'bg-[#774929] text-white shadow-sm'
-                          : 'bg-white text-[#88796B] border border-[#E0DFDB] hover:bg-[#F5EBE1] hover:text-[#201410]'
+                          ? 'bg-[#7A8B71] text-white shadow-sm'
+                          : 'bg-white text-[#5C6260] border border-[#E6E1D8] hover:bg-[#F1F4EF] hover:text-[#2B2E31]'
                           }`}
                       >
                         {cat.label}
@@ -328,21 +328,21 @@ export default function App() {
 
                 {/* Class Cards Grid */}
                 {isLoading ? (
-                  <div className="py-12 text-center text-[#88796B]">
-                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#774929] border-t-transparent" />
+                  <div className="py-12 text-center text-[#5C6260]">
+                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent" />
                     <p className="mt-3 text-xs font-semibold">Loading experiences...</p>
                   </div>
                 ) : filteredClasses.length === 0 ? (
-                  <div className="rounded-3xl border border-dashed border-[#E0DFDB] bg-white p-8 text-center">
-                    <p className="font-serif text-lg font-bold text-[#201410]">
+                  <div className="rounded-3xl border border-dashed border-[#E6E1D8] bg-white p-8 text-center">
+                    <p className="font-serif text-lg font-bold text-[#2B2E31]">
                       No sessions found for this category
                     </p>
-                    <p className="text-xs text-[#88796B] mt-1">
+                    <p className="text-xs text-[#5C6260] mt-1">
                       Try selecting "All Experiences" to browse everything.
                     </p>
                     <button
                       onClick={() => setCategoryFilter('ALL')}
-                      className="mt-3 text-xs font-semibold text-[#774929] underline"
+                      className="mt-3 text-xs font-semibold text-[#7A8B71] underline"
                     >
                       Show All Experiences
                     </button>
@@ -419,14 +419,14 @@ export default function App() {
       {/* Floating Back to Top Button */}
       <ScrollToTop />
 
-      {/* Earthy Footer */}
-      <footer className="mt-16 border-t border-[#E7DFD5] bg-[#FAF8F5] py-8 text-center text-xs text-[#7C887E]">
+      {/* Earthy Botanical Footer */}
+      <footer className="mt-16 border-t border-[#E6E1D8] bg-[#F1F4EF]/70 py-8 text-center text-xs text-[#5C6260]">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <BrandLogo variant="image" size="sm" />
-            <span className="hidden sm:inline text-[#5A655E]">• Yoga Classes, Private Bookings & Special Experiences</span>
+            <span className="hidden sm:inline text-[#2B2E31] font-medium">• Yoga Classes, Private Bookings & Special Experiences</span>
           </div>
-          <div className="flex items-center gap-4 text-[#5A655E]">
+          <div className="flex items-center gap-4 text-[#5C6260]">
             <span>Accra, Ghana • Studio Sanctuary & Client Locations</span>
           </div>
         </div>

@@ -71,22 +71,22 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-[#201410]/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl rounded-3xl bg-[#FAF8F5] p-6 sm:p-8 shadow-2xl border border-[#E0DFDB]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-[#2B2E31]/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl rounded-3xl bg-[#FAF8F5] p-6 sm:p-8 shadow-2xl border border-[#E6E1D8]">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#EAE6DF]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E6E1D8]">
           <div>
-            <span className="text-xs font-semibold text-[#774929] uppercase tracking-wider">
+            <span className="text-xs font-semibold text-[#7A8B71] uppercase tracking-wider">
               Instructor Studio Manager
             </span>
-            <h2 className="font-serif text-2xl font-bold text-[#201410]">
+            <h2 className="font-serif text-2xl font-bold text-[#2B2E31]">
               Create New Yoga Class
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-[#88796B] hover:bg-[#EAE4DC] hover:text-[#201410] transition-colors"
+            className="rounded-full p-2 text-[#5C6260] hover:bg-[#EAE4DC] hover:text-[#2B2E31] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -97,7 +97,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
           
           {/* Class Title */}
           <div>
-            <label className="block text-xs font-semibold text-[#382823] mb-1">
+            <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
               Class Title *
             </label>
             <input
@@ -106,7 +106,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
               placeholder="e.g. Candlelight Sound Healing & Yin"
               value={formData.title}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2.5 text-sm text-[#201410] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
+              className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20"
             />
             {errors.title && <p className="text-xs text-rose-500 mt-1">{errors.title}</p>}
           </div>
@@ -114,14 +114,14 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
           {/* Instructor & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Instructor *
               </label>
               <select
                 name="instructorName"
                 value={formData.instructorName}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2.5 text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 {INSTRUCTORS_LIST.map((inst) => (
                   <option key={inst.name} value={inst.name}>
@@ -132,14 +132,14 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Category & Style
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2.5 text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="Vinyasa">Vinyasa Flow</option>
                 <option value="Restorative">Restorative & Sound</option>
@@ -154,7 +154,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
           {/* Date & Time */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Date Display *
               </label>
               <input
@@ -163,12 +163,12 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 placeholder="e.g. Monday, Nov 23, 2026"
                 value={formData.date}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2.5 text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Time & Duration *
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -178,7 +178,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                   placeholder="08:00 AM - 09:15 AM"
                   value={formData.time}
                   onChange={handleChange}
-                  className="rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none focus:border-[#774929]"
+                  className="rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
                 />
                 <input
                   type="text"
@@ -186,7 +186,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                   placeholder="75 min"
                   value={formData.duration}
                   onChange={handleChange}
-                  className="rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none focus:border-[#774929]"
+                  className="rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
           {/* Price, Capacity, Room */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Price (GH₵) *
               </label>
               <input
@@ -204,12 +204,12 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 min="10"
                 value={formData.price}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2 text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Max Spots *
               </label>
               <input
@@ -219,19 +219,19 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 max="40"
                 value={formData.maxCapacity}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3.5 py-2 text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Studio Room
               </label>
               <select
                 name="room"
                 value={formData.room}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-2 py-2 text-xs text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-2 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="Sun Studio">Sun Studio</option>
                 <option value="Moon Sanctuary">Moon Sanctuary</option>
@@ -244,14 +244,14 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
           {/* Level */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Level
               </label>
               <select
                 name="level"
                 value={formData.level}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="All Levels">All Levels</option>
                 <option value="Beginner Friendly">Beginner Friendly</option>
@@ -261,14 +261,14 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#382823] mb-1">
+              <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
                 Intensity
               </label>
               <select
                 name="intensity"
                 value={formData.intensity}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
                 <option value="Gentle">Gentle</option>
                 <option value="Moderate">Moderate</option>
@@ -279,7 +279,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-[#382823] mb-1">
+            <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
               Class Description *
             </label>
             <textarea
@@ -288,23 +288,23 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
               placeholder="Brief description of the practice, sequence, props, and benefits..."
               value={formData.description}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-[#E0DFDB] bg-white p-3 text-xs sm:text-sm text-[#201410] outline-none focus:border-[#774929]"
+              className="w-full rounded-2xl border border-[#E6E1D8] bg-white p-3 text-xs sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
             />
             {errors.description && <p className="text-xs text-rose-500 mt-1">{errors.description}</p>}
           </div>
 
           {/* Action buttons */}
-          <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#EAE6DF]">
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E6E1D8]">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-2xl border border-[#E0DFDB] bg-white px-4 py-2.5 text-xs font-semibold text-[#88796B] hover:bg-[#FAF8F5]"
+              className="rounded-2xl border border-[#E6E1D8] bg-white px-4 py-2.5 text-xs font-semibold text-[#5C6260] hover:bg-[#FAF8F5]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-2xl bg-[#774929] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#663D21] transition-all"
+              className="flex items-center gap-2 rounded-2xl bg-[#A44A4A] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#8C3E3E] transition-all"
             >
               <Plus className="h-4 w-4" />
               <span>Publish Class</span>

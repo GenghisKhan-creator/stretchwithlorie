@@ -72,7 +72,7 @@ export default function MobileMoneyLogo({
   // Framed badge variant
   return (
     <div
-      className={`inline-flex items-center justify-center rounded-lg border border-[#E0DFDB] shadow-2xs overflow-hidden ${bgClass} ${currentSize.badge} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg border border-[#E6E1D8] shadow-2xs overflow-hidden ${bgClass} ${currentSize.badge} ${className}`}
       title={alt}
     >
       <img
