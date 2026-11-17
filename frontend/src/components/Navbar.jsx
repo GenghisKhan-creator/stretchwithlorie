@@ -3,8 +3,8 @@ import BrandLogo from './BrandLogo';
 
 export default function Navbar({ activeTab, setActiveTab, totalBookings, onResetData }) {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#E0DFDB] bg-[#F5F2EC]/90 backdrop-blur-md transition-all">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full border-b border-[#E0DFDB] bg-[#F5F2EC]/95 backdrop-blur-md transition-all pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8">
         
         {/* Brand identity with official lockup placement */}
         <div 

@@ -180,14 +180,14 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 pb-28 sm:pb-12 overflow-x-hidden">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 overflow-x-hidden">
         
         {/* VIEW A: STUDENT BOOKING FLOW */}
         {activeTab === 'student' && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
             
             {/* Hero Banner with Lorie's Exact Welcoming Copy */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-5 sm:p-10 border border-[#E0DFDB] shadow-sm w-full max-w-full">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-6 sm:p-10 border border-[#E0DFDB] shadow-sm w-full max-w-full">
               <div className="relative z-10 max-w-3xl">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#774929] border border-[#C9B6A5] mb-3">
                   <Sparkles className="h-3.5 w-3.5 text-[#774929]" />
@@ -366,7 +366,7 @@ export default function App() {
               {/* Right Column: Registration Form (5 cols on lg, sticky on desktop) */}
               <div
                 ref={registrationSectionRef}
-                className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full max-w-full overflow-hidden"
+                className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full max-w-full overflow-hidden scroll-mt-20 sm:scroll-mt-24"
               >
                 <RegistrationForm
                   selectedClass={selectedClass}
