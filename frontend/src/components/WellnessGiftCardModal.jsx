@@ -271,8 +271,9 @@ export default function WellnessGiftCardModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 sm:py-6 overflow-y-auto bg-[#181B1C]/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-[#F7F4EF] border border-[#E6E1D8] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col text-[#2B2E31]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#181B1C]/75 backdrop-blur-md p-2.5 sm:p-4 sm:py-6 overscroll-contain animate-in fade-in duration-200">
+      <div className="flex min-h-full items-center justify-center py-2 sm:py-4">
+        <div className="relative w-full max-w-2xl rounded-3xl bg-[#F7F4EF] border border-[#E6E1D8] shadow-2xl overflow-hidden my-auto max-h-[92dvh] sm:max-h-[90vh] flex flex-col text-[#2B2E31]">
         
         {/* MODAL HEADER */}
         <div className="relative bg-gradient-to-r from-[#2A3628] via-[#384635] to-[#252E23] p-5 sm:p-6 text-white shrink-0 border-b border-[#C8A253]/30">
@@ -1198,5 +1199,6 @@ export default function WellnessGiftCardModal({
 
       </div>
     </div>
+  </div>
   );
 }

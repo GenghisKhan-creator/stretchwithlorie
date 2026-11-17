@@ -71,8 +71,9 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-[#2B2E31]/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl rounded-3xl bg-[#FAF8F5] p-6 sm:p-8 shadow-2xl border border-[#E6E1D8]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#2B2E31]/75 backdrop-blur-sm p-3.5 sm:p-6 overscroll-contain animate-in fade-in duration-200">
+      <div className="flex min-h-full items-center justify-center py-4 sm:py-6">
+        <div className="relative w-full max-w-xl rounded-3xl bg-[#FAF8F5] p-5 sm:p-8 shadow-2xl border border-[#E6E1D8] my-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E6E1D8]">
@@ -315,5 +316,6 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
 
       </div>
     </div>
+  </div>
   );
 }

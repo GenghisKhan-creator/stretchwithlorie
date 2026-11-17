@@ -5,17 +5,19 @@ export default function StudentDetailsModal({ registration, onClose, onToggleChe
   if (!registration) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-[#2B2E31]/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] p-6 sm:p-7 shadow-2xl border border-[#E6E1D8]">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-2 text-[#5C6260] hover:bg-[#EAE4DC] hover:text-[#2B2E31] transition-colors"
-          title="Close details"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#2B2E31]/75 backdrop-blur-sm p-3.5 sm:p-6 overscroll-contain animate-in fade-in duration-200">
+      <div className="flex min-h-full items-center justify-center py-4 sm:py-6">
+        <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] p-4.5 sm:p-7 shadow-2xl border border-[#E6E1D8] my-auto">
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 rounded-full p-2 text-[#5C6260] bg-white/90 hover:bg-[#EAE4DC] hover:text-[#2B2E31] border border-[#E6E1D8] shadow-2xs transition-colors"
+            title="Close details"
+            aria-label="Close"
+          >
+            <X className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+          </button>
 
         {/* Header */}
         <div className="flex items-center gap-3.5 pb-4 border-b border-[#E6E1D8]">
@@ -246,5 +248,6 @@ export default function StudentDetailsModal({ registration, onClose, onToggleChe
 
       </div>
     </div>
+  </div>
   );
 }
