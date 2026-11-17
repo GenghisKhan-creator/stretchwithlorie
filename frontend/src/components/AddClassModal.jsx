@@ -7,8 +7,8 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
     title: '',
     instructorName: INSTRUCTORS_LIST[0].name,
     date: 'Monday, Nov 23, 2026',
-    time: '08:00 AM - 09:15 AM',
-    duration: '75 min',
+    time: '08:00 AM - 09:00 AM',
+    duration: '60 min',
     price: 160,
     maxCapacity: 12,
     room: 'Sun Studio',
@@ -175,7 +175,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 <input
                   type="text"
                   name="time"
-                  placeholder="08:00 AM - 09:15 AM"
+                  placeholder="08:00 AM - 09:00 AM"
                   value={formData.time}
                   onChange={handleChange}
                   className="rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
@@ -183,7 +183,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 <input
                   type="text"
                   name="duration"
-                  placeholder="75 min"
+                  placeholder="60 min"
                   value={formData.duration}
                   onChange={handleChange}
                   className="rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"

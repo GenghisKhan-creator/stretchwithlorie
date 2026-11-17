@@ -153,10 +153,19 @@ export function exportAttendeesToPDF(registrations, options = {}) {
     // Check-in status
     const statusCell = r.checkedIn ? 'CHECKED IN' : 'PENDING';
 
-    // Health / Injury notes
-    const notesCell = (r.healthNotes && r.healthNotes !== 'None' && r.healthNotes !== 'None reported')
-      ? r.healthNotes
-      : 'None reported (All clear)';
+    // Health / Injury & Intake Questionnaire notes
+    let notesCell = 'None reported (All clear)';
+    if (r.intake) {
+      const parts = [];
+      if (r.intake.experienceLevel) parts.push(`Lvl: ${r.intake.experienceLevel}`);
+      if (r.intake.mainGoal) parts.push(`Goal: ${r.intake.customGoal || r.intake.mainGoal}`);
+      if (r.intake.hasInjuries === 'Yes' && r.intake.injuriesDetails) parts.push(`Injuries: ${r.intake.injuriesDetails}`);
+      if (r.intake.pregnancyStatus && r.intake.pregnancyStatus !== 'No') parts.push(`Pregnancy: ${r.intake.pregnancyStatus}`);
+      if (r.intake.instructorNotes) parts.push(`Note: ${r.intake.instructorNotes}`);
+      notesCell = parts.join(' • ') || (r.healthNotes || 'None reported');
+    } else if (r.healthNotes && r.healthNotes !== 'None' && r.healthNotes !== 'None reported') {
+      notesCell = r.healthNotes;
+    }
 
     return [
       (index + 1).toString(),

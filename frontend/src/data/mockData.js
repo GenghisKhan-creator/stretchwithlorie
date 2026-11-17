@@ -22,7 +22,7 @@ export const STUDIO_SCHEDULES = [
     id: "sched-sat",
     day: "Saturdays",
     time: "8:30 AM",
-    fullTime: "08:30 AM - 09:45 AM",
+    fullTime: "08:30 AM - 09:30 AM",
     price: 200,
     label: "Saturdays 8:30 AM",
     focus: "Weekend Awakening & Mobility",
@@ -32,7 +32,7 @@ export const STUDIO_SCHEDULES = [
     id: "sched-sun",
     day: "Sundays",
     time: "6:00 PM",
-    fullTime: "06:00 PM - 07:15 PM",
+    fullTime: "06:00 PM - 07:00 PM",
     price: 200,
     label: "Sundays 6:00 PM",
     focus: "Sunset Grounding & Unwind",
@@ -105,7 +105,7 @@ export const INITIAL_CLASSES = [
     date: "Wednesdays, Saturdays & Sundays",
     rawDate: "2026-11-18",
     time: "Wed 7am • Sat 8:30am • Sun 6pm",
-    duration: "60-75 min",
+    duration: "60 min",
     price: 200,
     maxCapacity: 15,
     bookedCount: 11, // 4 spots left
@@ -136,7 +136,7 @@ export const INITIAL_CLASSES = [
     date: "Flexible Scheduling (Daily)",
     rawDate: "2026-11-19",
     time: "By Appointment (Morning / Afternoon / Evening)",
-    duration: "60-75 min",
+    duration: "60 min",
     price: 300, // studio price; client's location is 500
     locationPricing: {
       studio: 300,
@@ -165,8 +165,8 @@ export const INITIAL_CLASSES = [
     },
     date: "Saturday Intensive Session",
     rawDate: "2026-11-21",
-    time: "10:30 AM - 12:00 PM",
-    duration: "90 min",
+    time: "10:30 AM - 11:30 AM",
+    duration: "60 min",
     price: 250,
     maxCapacity: 12,
     bookedCount: 9, // 3 spots left
@@ -192,7 +192,7 @@ export const INITIAL_CLASSES = [
     date: "By Appointment (Studio)",
     rawDate: "2026-11-20",
     time: "Flexible Studio Time Slots",
-    duration: "75 min",
+    duration: "60 min",
     price: 400,
     maxCapacity: 2,
     bookedCount: 1, // 1 spot left
@@ -217,7 +217,7 @@ export const INITIAL_CLASSES = [
     date: "Private Booking for Two",
     rawDate: "2026-11-22",
     time: "Selected by Appointment",
-    duration: "75 min",
+    duration: "60 min",
     price: 500,
     maxCapacity: 4, // 2 couples
     bookedCount: 2,
@@ -241,8 +241,8 @@ export const INITIAL_CLASSES = [
     },
     date: "Last Sunday of Every Month",
     rawDate: "2026-11-29",
-    time: "04:30 PM - 06:30 PM",
-    duration: "120 min",
+    time: "04:30 PM - 05:30 PM",
+    duration: "60 min",
     price: 350,
     maxCapacity: 20,
     bookedCount: 14, // 6 spots left

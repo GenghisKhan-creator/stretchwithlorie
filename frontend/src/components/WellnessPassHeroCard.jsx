@@ -11,9 +11,9 @@ export default function WellnessPassHeroCard({ onOpenGiftModal }) {
       {/* Subtle Metallic Card Header */}
       <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/15">
         <div className="flex items-center gap-2">
-          {/* <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C8A253]/25 border border-[#C8A253]/60 text-[#F7E7C4]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C8A253]/25 border border-[#C8A253]/60 text-[#F7E7C4]">
             <Sparkles className="h-4 w-4 text-[#C8A253]" />
-          </div> */}
+          </div>
           <div>
             <span className="font-serif tracking-widest text-[11px] sm:text-xs uppercase font-bold text-[#F7F4EF]">
               Stretch with Lorie
@@ -25,7 +25,7 @@ export default function WellnessPassHeroCard({ onOpenGiftModal }) {
         </div>
 
         <div className="inline-flex items-center gap-1 rounded-full bg-[#C8A253] px-2.5 py-0.5 text-[10px] font-bold text-[#2B2E31] shadow-xs">
-          {/* <Sparkles className="h-3 w-3" /> */}
+          <Sparkles className="h-3 w-3" />
           <span>SPECIAL OFFER</span>
         </div>
       </div>

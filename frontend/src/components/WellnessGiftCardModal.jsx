@@ -100,7 +100,8 @@ export default function WellnessGiftCardModal({
     paymentChannel: 'momo',
     momoNetwork: 'MTN',
     momoNumber: '',
-    notes: ''
+    notes: '',
+    agreedToTerms: false
   });
 
   // Gift Card state
@@ -119,7 +120,8 @@ export default function WellnessGiftCardModal({
     deliveryOption: 'whatsapp', // 'whatsapp' | 'email' | 'self'
     paymentChannel: 'momo',
     momoNetwork: 'MTN',
-    momoNumber: ''
+    momoNumber: '',
+    agreedToTerms: false
   });
 
   // Flow states
@@ -150,6 +152,9 @@ export default function WellnessGiftCardModal({
         errs.subMomoNumber = 'Mobile Money phone number is required.';
       }
     }
+    if (!subFormData.agreedToTerms) {
+      errs.subAgreedToTerms = 'You must confirm and accept the mandatory studio conditions before making payment.';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -167,6 +172,9 @@ export default function WellnessGiftCardModal({
       if (!num || num.trim().length < 8) {
         errs.giftMomoNumber = 'Mobile Money phone number is required.';
       }
+    }
+    if (!giftFormData.agreedToTerms) {
+      errs.giftAgreedToTerms = 'You must confirm and accept the mandatory studio conditions before making payment.';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -690,6 +698,73 @@ export default function WellnessGiftCardModal({
                       </div>
                     )}
                   </div>
+                  {/* MANDATORY CONFIRMATION BEFORE MAKING PAYMENT */}
+                  <div className={`rounded-2xl border p-4 transition-all ${
+                    errors.subAgreedToTerms
+                      ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/25'
+                      : 'border-[#E6E1D8] bg-[#FAF8F5]'
+                  }`}>
+                    <div className="flex items-center gap-2 pb-2 border-b border-[#E6E1D8]">
+                      <ShieldCheck className="h-4 w-4 text-[#A44A4A]" />
+                      <h5 className="font-serif text-xs font-bold tracking-wide uppercase text-[#2B2E31]">
+                        MANDATORY CONFIRMATION BEFORE MAKING PAYMENT
+                      </h5>
+                    </div>
+
+                    <div className="mt-2.5 space-y-2 text-xs text-[#2B2E31]">
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          1
+                        </span>
+                        <p className="leading-relaxed">
+                          I understand that I must disclose relevant injuries or physical limitations before participating.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          2
+                        </span>
+                        <p className="leading-relaxed">
+                          I agree to arrive 10 minutes before my scheduled session.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          3
+                        </span>
+                        <p className="leading-relaxed">
+                          I have read and accepted the studio&apos;s cancellation and rescheduling policy.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-[#E6E1D8]">
+                      <label className="flex items-start gap-2.5 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={subFormData.agreedToTerms || false}
+                          onChange={(e) => {
+                            setSubFormData((prev) => ({ ...prev, agreedToTerms: e.target.checked }));
+                            if (errors.subAgreedToTerms) {
+                              setErrors((prev) => ({ ...prev, subAgreedToTerms: undefined }));
+                            }
+                          }}
+                          className="mt-0.5 h-4 w-4 rounded border-[#D5CEC2] text-[#7A8B71] focus:ring-[#7A8B71] cursor-pointer"
+                        />
+                        <span className="text-xs font-semibold text-[#2B2E31] leading-snug group-hover:text-[#5A6952] transition-colors">
+                          I agree to the mandatory studio confirmation above before proceeding to payment. *
+                        </span>
+                      </label>
+
+                      {errors.subAgreedToTerms && (
+                        <p className="mt-1.5 text-[11px] font-semibold text-[#A44A4A]">
+                          {errors.subAgreedToTerms}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -993,6 +1068,73 @@ export default function WellnessGiftCardModal({
                       />
                       {errors.giftMomoNumber && (
                         <p className="text-[11px] text-[#A44A4A] mt-1">{errors.giftMomoNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                  {/* MANDATORY CONFIRMATION BEFORE MAKING PAYMENT */}
+                  <div className={`rounded-2xl border p-4 transition-all ${
+                    errors.giftAgreedToTerms
+                      ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/25'
+                      : 'border-[#E6E1D8] bg-[#FAF8F5]'
+                  }`}>
+                    <div className="flex items-center gap-2 pb-2 border-b border-[#E6E1D8]">
+                      <ShieldCheck className="h-4 w-4 text-[#A44A4A]" />
+                      <h5 className="font-serif text-xs font-bold tracking-wide uppercase text-[#2B2E31]">
+                        MANDATORY CONFIRMATION BEFORE MAKING PAYMENT
+                      </h5>
+                    </div>
+
+                    <div className="mt-2.5 space-y-2 text-xs text-[#2B2E31]">
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          1
+                        </span>
+                        <p className="leading-relaxed">
+                          I understand that I must disclose relevant injuries or physical limitations before participating.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          2
+                        </span>
+                        <p className="leading-relaxed">
+                          I agree to arrive 10 minutes before my scheduled session.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[10px] font-bold mt-0.5">
+                          3
+                        </span>
+                        <p className="leading-relaxed">
+                          I have read and accepted the studio&apos;s cancellation and rescheduling policy.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-[#E6E1D8]">
+                      <label className="flex items-start gap-2.5 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={giftFormData.agreedToTerms || false}
+                          onChange={(e) => {
+                            setGiftFormData((prev) => ({ ...prev, agreedToTerms: e.target.checked }));
+                            if (errors.giftAgreedToTerms) {
+                              setErrors((prev) => ({ ...prev, giftAgreedToTerms: undefined }));
+                            }
+                          }}
+                          className="mt-0.5 h-4 w-4 rounded border-[#D5CEC2] text-[#7A8B71] focus:ring-[#7A8B71] cursor-pointer"
+                        />
+                        <span className="text-xs font-semibold text-[#2B2E31] leading-snug group-hover:text-[#5A6952] transition-colors">
+                          I agree to the mandatory studio confirmation above before proceeding to payment. *
+                        </span>
+                      </label>
+
+                      {errors.giftAgreedToTerms && (
+                        <p className="mt-1.5 text-[11px] font-semibold text-[#A44A4A]">
+                          {errors.giftAgreedToTerms}
+                        </p>
                       )}
                     </div>
                   </div>

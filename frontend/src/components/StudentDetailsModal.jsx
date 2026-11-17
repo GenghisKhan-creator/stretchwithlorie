@@ -1,4 +1,4 @@
-import { X, Mail, Phone, Calendar, Clock, HeartPulse, CheckCircle2 } from 'lucide-react';
+import { X, Mail, Phone, Calendar, Clock, HeartPulse, CheckCircle2, ClipboardList, AlertTriangle } from 'lucide-react';
 import { PaystackIcon } from './RegistrationForm';
 
 export default function StudentDetailsModal({ registration, onClose, onToggleCheckIn }) {
@@ -93,19 +93,100 @@ export default function StudentDetailsModal({ registration, onClose, onToggleChe
             </div>
           </div>
 
-          {/* Health & Injury Notes */}
-          <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4">
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#5C6260] mb-1.5">
-              <HeartPulse className="h-4 w-4 text-[#7A8B71]" />
-              Health, Physical Accommodations & Injuries
-            </span>
-            <div className="rounded-xl bg-[#FAF8F5] p-3 text-xs text-[#2B2E31] leading-relaxed border border-[#E6E1D8]">
-              {registration.healthNotes && registration.healthNotes !== 'None reported' ? (
-                <p className="font-medium">{registration.healthNotes}</p>
-              ) : (
-                <p className="text-[#5C6260] italic">No physical injuries or accommodations submitted by student.</p>
-              )}
+          {/* Student Wellness & Intake Profile */}
+          <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E6E1D8]">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#5A6952]">
+                <ClipboardList className="h-4 w-4 text-[#7A8B71]" />
+                Client Intake & Wellness Questionnaire
+              </span>
+              <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2 py-0.5 text-[10px] font-bold text-[#5A6952]">
+                {registration.isFirstTime === false ? 'Returning Student' : 'New Client'}
+              </span>
             </div>
+
+            {registration.intake ? (
+              <div className="space-y-2.5 text-xs text-[#2B2E31]">
+                {/* Background & Goal */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-[#FAF8F5] p-2.5 border border-[#E6E1D8]">
+                    <span className="text-[10px] font-bold uppercase text-[#5C6260] block">
+                      Yoga Experience
+                    </span>
+                    <span className="font-semibold text-[#2B2E31]">
+                      {registration.intake.experienceLevel || 'Beginner'}
+                    </span>
+                    <span className="text-[10px] text-[#5C6260] block mt-0.5">
+                      Practiced before: <strong>{registration.intake.practicedBefore || 'Yes'}</strong>
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl bg-[#FAF8F5] p-2.5 border border-[#E6E1D8]">
+                    <span className="text-[10px] font-bold uppercase text-[#5C6260] block">
+                      Session Goal
+                    </span>
+                    <span className="font-semibold text-[#7A8B71]">
+                      {registration.intake.customGoal || registration.intake.mainGoal || 'Mobility & Wellness'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Injuries & Physical Limitations */}
+                <div className={`rounded-xl p-2.5 border ${
+                  registration.intake.hasInjuries === 'Yes'
+                    ? 'bg-[#FFF8F8] border-[#A44A4A]/30 text-[#A44A4A]'
+                    : 'bg-[#FAF8F5] border-[#E6E1D8] text-[#2B2E31]'
+                }`}>
+                  <div className="flex items-center gap-1.5 mb-1 font-bold text-[11px]">
+                    {registration.intake.hasInjuries === 'Yes' ? (
+                      <AlertTriangle className="h-3.5 w-3.5 text-[#A44A4A]" />
+                    ) : (
+                      <HeartPulse className="h-3.5 w-3.5 text-[#7A8B71]" />
+                    )}
+                    <span>Physical Limitations & Injuries</span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-[#2B2E31]">
+                    {registration.intake.hasInjuries === 'Yes' && registration.intake.injuriesDetails
+                      ? registration.intake.injuriesDetails
+                      : 'None reported (All clear for standard movement)'}
+                  </p>
+                </div>
+
+                {/* Pregnancy / Postpartum & Notes */}
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="rounded-xl bg-[#FAF8F5] p-2.5 border border-[#E6E1D8]">
+                    <span className="text-[10px] font-bold uppercase text-[#5C6260] block">
+                      Pregnancy / Postpartum
+                    </span>
+                    <span className="font-semibold text-[#2B2E31]">
+                      {registration.intake.pregnancyStatus === 'Pregnant'
+                        ? 'Currently Pregnant'
+                        : registration.intake.pregnancyStatus === 'Postpartum'
+                        ? 'Recently Given Birth'
+                        : 'No'}
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl bg-[#FAF8F5] p-2.5 border border-[#E6E1D8]">
+                    <span className="text-[10px] font-bold uppercase text-[#5C6260] block">
+                      Instructor Note
+                    </span>
+                    <span className="font-medium text-[#2B2E31] italic">
+                      {registration.intake.instructorNotes || registration.intake.returningNotes || 'None'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Fallback for legacy registration records */
+              <div className="rounded-xl bg-[#FAF8F5] p-3 text-xs text-[#2B2E31] leading-relaxed border border-[#E6E1D8]">
+                {registration.healthNotes && registration.healthNotes !== 'None reported' ? (
+                  <p className="font-medium">{registration.healthNotes}</p>
+                ) : (
+                  <p className="text-[#5C6260] italic">No physical injuries or accommodations submitted by student.</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Payment & Attendance Status */}

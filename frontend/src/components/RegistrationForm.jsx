@@ -14,7 +14,10 @@ import {
   CheckCircle2,
   Home,
   Building2,
-  Sparkles
+  Sparkles,
+  ClipboardList,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import massYogaImg from '../assets/mass_yoga_class.jpg';
@@ -55,8 +58,33 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     momoNumber: '',
     locationOption: 'studio', // 'studio' | 'clientLocation'
     clientAddress: '',
-    selectedSlot: 'Wednesdays 7:00 AM'
+    selectedSlot: 'Wednesdays 7:00 AM',
+    // New Client Questionnaire State
+    isFirstTime: true,
+    intake: {
+      practicedBefore: 'Yes', // 'Yes' | 'No'
+      experienceLevel: 'Beginner', // 'Beginner' | 'Intermediate' | 'Advanced'
+      mainGoal: 'Flexibility & Mobility',
+      customGoal: '',
+      hasInjuries: 'No', // 'No' | 'Yes'
+      injuriesDetails: '',
+      pregnancyStatus: 'No', // 'No' | 'Pregnant' | 'Postpartum'
+      instructorNotes: '',
+      returningNotes: ''
+    },
+    // Mandatory Confirmation Before Payment
+    agreedToMandatoryTerms: false
   });
+
+  const handleIntakeChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      intake: {
+        ...prev.intake,
+        [field]: value
+      }
+    }));
+  };
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -132,6 +160,11 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
       }
     }
 
+    // Mandatory Studio Policy & Injury Disclosure Confirmation
+    if (!formData.agreedToMandatoryTerms) {
+      errs.agreedToMandatoryTerms = 'You must confirm and accept the mandatory studio conditions before making payment.';
+    }
+
     return errs;
   };
 
@@ -156,7 +189,14 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     e.preventDefault();
     const currentErrors = validate();
     setErrors(currentErrors);
-    setTouched({ fullName: true, email: true, phone: true, momoNumber: true, clientAddress: true });
+    setTouched({
+      fullName: true,
+      email: true,
+      phone: true,
+      momoNumber: true,
+      clientAddress: true,
+      agreedToMandatoryTerms: true
+    });
 
     if (Object.keys(currentErrors).length === 0) {
       const momoProviderName =
@@ -175,8 +215,26 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
         ? `${selectedClass.title} (${formData.selectedSlot})`
         : selectedClass.title;
 
+      // Compile comprehensive intake summary for backward compatibility
+      const intakeSummary = formData.isFirstTime
+        ? [
+            `Yoga Experience: ${formData.intake.experienceLevel} (Practiced before: ${formData.intake.practicedBefore})`,
+            `Goal: ${formData.intake.customGoal?.trim() || formData.intake.mainGoal}`,
+            formData.intake.hasInjuries === 'Yes' && formData.intake.injuriesDetails?.trim()
+              ? `Injuries/Conditions: ${formData.intake.injuriesDetails.trim()}`
+              : 'Injuries/Limitations: None reported',
+            formData.intake.pregnancyStatus && formData.intake.pregnancyStatus !== 'No'
+              ? `Pregnancy/Postpartum: ${formData.intake.pregnancyStatus === 'Pregnant' ? 'Currently Pregnant' : 'Recently Given Birth'}`
+              : null,
+            formData.intake.instructorNotes?.trim() ? `Instructor Note: "${formData.intake.instructorNotes.trim()}"` : null
+          ].filter(Boolean).join(' • ')
+        : `Returning Student. Updates: ${formData.intake.returningNotes?.trim() || 'No new updates'}`;
+
       await onSubmitBooking({
         ...formData,
+        healthNotes: intakeSummary,
+        intake: formData.intake,
+        isFirstTime: formData.isFirstTime,
         amount: currentPrice,
         price: currentPrice,
         paymentMethod: paymentMethodName,
@@ -499,29 +557,257 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           </div>
         </div>
 
-        {/* Health & Injury Notes (Optional) */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31]">
-              Health, Goals, Injuries or Pregnancy Notes
-            </label>
-            <span className="text-[11px] text-[#5C6260]">Optional</span>
+        {/* New Client Wellness & Intake Questionnaire */}
+        <div className="rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E6E1D8]">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E5ECE2] text-[#5A6952]">
+                <ClipboardList className="h-4 w-4" />
+              </div>
+              <div>
+                <h4 className="font-serif text-sm sm:text-base font-bold text-[#2B2E31]">
+                  Client Wellness & Intake Questionnaire
+                </h4>
+                <p className="text-[11px] text-[#5C6260]">
+                  Confidential details to help Lorie personalize your alignments & safety
+                </p>
+              </div>
+            </div>
+            
+            <span className="hidden xs:inline-flex items-center gap-1 rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-[10px] font-bold text-[#5A6952]">
+              <HeartPulse className="h-3 w-3 text-[#7A8B71]" />
+              Private to Lorie
+            </span>
           </div>
-          <div className="relative">
-            <textarea
-              name="healthNotes"
-              rows={2}
-              placeholder="E.g., tight hamstrings, lower back sensitivity, goals for splits, or recent surgery so Lorie can offer personalized guidance..."
-              value={formData.healthNotes}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="w-full rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] p-3 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20"
-            />
+
+          {/* Student Status Toggle */}
+          <div className="grid grid-cols-2 gap-2 bg-[#EFECE6] p-1 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, isFirstTime: true }))}
+              className={`py-1.5 px-2 rounded-lg transition-all text-center ${
+                formData.isFirstTime
+                  ? 'bg-white text-[#2B2E31] shadow-2xs font-bold'
+                  : 'text-[#5C6260] hover:text-[#2B2E31]'
+              }`}
+            >
+              First time with Lorie
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, isFirstTime: false }))}
+              className={`py-1.5 px-2 rounded-lg transition-all text-center ${
+                !formData.isFirstTime
+                  ? 'bg-white text-[#2B2E31] shadow-2xs font-bold'
+                  : 'text-[#5C6260] hover:text-[#2B2E31]'
+              }`}
+            >
+              Returning Student
+            </button>
           </div>
-          <p className="mt-1.5 text-[11px] text-[#5C6260] flex items-center gap-1">
-            <HeartPulse className="h-3.5 w-3.5 text-[#7A8B71]" />
-            Shared privately with Lorie before your session.
-          </p>
+
+          {formData.isFirstTime ? (
+            <div className="space-y-4 pt-1 text-xs">
+              
+              {/* Question 1: Have you practised yoga before? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1.5">
+                  1. Have you practised yoga before? *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { val: 'Yes', label: 'Yes, I have' },
+                    { val: 'No', label: 'No, first time' }
+                  ].map((opt) => {
+                    const isSelected = formData.intake.practicedBefore === opt.val;
+                    return (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        onClick={() => handleIntakeChange('practicedBefore', opt.val)}
+                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-center font-medium transition-all ${
+                          isSelected
+                            ? 'bg-white border-[#7A8B71] text-[#2B2E31] ring-1 ring-[#7A8B71] font-bold shadow-2xs'
+                            : 'bg-white/80 border-[#E6E1D8] text-[#5C6260] hover:border-[#7A8B71]/40'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 text-[#7A8B71]" />}
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 2: What is your experience level with yoga? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1.5">
+                  2. What is your experience level with yoga? *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
+                    const isSelected = formData.intake.experienceLevel === lvl;
+                    return (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => handleIntakeChange('experienceLevel', lvl)}
+                        className={`flex items-center justify-center gap-1 py-2 px-2 rounded-xl border text-center font-medium transition-all text-xs ${
+                          isSelected
+                            ? 'bg-white border-[#7A8B71] text-[#2B2E31] ring-1 ring-[#7A8B71] font-bold shadow-2xs'
+                            : 'bg-white/80 border-[#E6E1D8] text-[#5C6260] hover:border-[#7A8B71]/40'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 text-[#7A8B71]" />}
+                        <span>{lvl}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 3: What is your main goal for this session? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1.5">
+                  3. What is your main goal for this session? *
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {[
+                    'Flexibility & Mobility',
+                    'Stress Relief & Calm',
+                    'Core Strength & Balance',
+                    'Pain Relief / Posture',
+                    'Mind-Body Connection',
+                    'Fun & Celebration'
+                  ].map((goal) => {
+                    const isSelected = formData.intake.mainGoal === goal;
+                    return (
+                      <button
+                        key={goal}
+                        type="button"
+                        onClick={() => handleIntakeChange('mainGoal', goal)}
+                        className={`py-1.5 px-3 rounded-full border text-[11px] font-medium transition-all ${
+                          isSelected
+                            ? 'bg-[#7A8B71] border-[#7A8B71] text-white font-bold shadow-2xs'
+                            : 'bg-white border-[#E6E1D8] text-[#5C6260] hover:border-[#7A8B71]/50'
+                        }`}
+                      >
+                        {goal}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or write a custom goal (optional)..."
+                  value={formData.intake.customGoal || ''}
+                  onChange={(e) => handleIntakeChange('customGoal', e.target.value)}
+                  className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71]"
+                />
+              </div>
+
+              {/* Question 4: Do you have any injuries, physical limitations or health conditions that may affect your participation? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1.5">
+                  4. Do you have any injuries, physical limitations or health conditions? *
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => handleIntakeChange('hasInjuries', 'No')}
+                    className={`py-2 px-3 rounded-xl border text-center font-medium transition-all ${
+                      formData.intake.hasInjuries === 'No'
+                        ? 'bg-white border-[#7A8B71] text-[#2B2E31] ring-1 ring-[#7A8B71] font-bold shadow-2xs'
+                        : 'bg-white/80 border-[#E6E1D8] text-[#5C6260] hover:border-[#7A8B71]/40'
+                    }`}
+                  >
+                    No, none
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleIntakeChange('hasInjuries', 'Yes')}
+                    className={`py-2 px-3 rounded-xl border text-center font-medium transition-all ${
+                      formData.intake.hasInjuries === 'Yes'
+                        ? 'bg-white border-[#A44A4A] text-[#2B2E31] ring-1 ring-[#A44A4A] font-bold shadow-2xs'
+                        : 'bg-white/80 border-[#E6E1D8] text-[#5C6260] hover:border-[#A44A4A]/40'
+                    }`}
+                  >
+                    Yes, I have some
+                  </button>
+                </div>
+
+                {formData.intake.hasInjuries === 'Yes' && (
+                  <textarea
+                    rows={2}
+                    placeholder="Please specify (e.g. lower back stiffness, wrist discomfort, knee surgery, tight shoulders, high blood pressure)..."
+                    value={formData.intake.injuriesDetails || ''}
+                    onChange={(e) => handleIntakeChange('injuriesDetails', e.target.value)}
+                    className="w-full rounded-xl border border-[#A44A4A]/50 bg-white p-2.5 text-xs text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#A44A4A] animate-in fade-in duration-150"
+                  />
+                )}
+              </div>
+
+              {/* Question 5: Are you currently pregnant or have you recently given birth? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1.5">
+                  5. Are you currently pregnant or have you recently given birth? *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'No', label: 'No' },
+                    { id: 'Pregnant', label: 'Currently Pregnant' },
+                    { id: 'Postpartum', label: 'Recently Given Birth' }
+                  ].map((item) => {
+                    const isSelected = formData.intake.pregnancyStatus === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleIntakeChange('pregnancyStatus', item.id)}
+                        className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl border text-center font-medium transition-all text-[11px] sm:text-xs ${
+                          isSelected
+                            ? 'bg-white border-[#7A8B71] text-[#2B2E31] ring-1 ring-[#7A8B71] font-bold shadow-2xs'
+                            : 'bg-white/80 border-[#E6E1D8] text-[#5C6260] hover:border-[#7A8B71]/40'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 text-[#7A8B71]" />}
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Question 6: Is there anything specific you would like your instructor to know before your session? */}
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
+                  6. Anything specific you would like your instructor to know?
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Preferences, gentle adjustments, music vibe, intentions, or questions (optional)..."
+                  value={formData.intake.instructorNotes || ''}
+                  onChange={(e) => handleIntakeChange('instructorNotes', e.target.value)}
+                  className="w-full rounded-xl border border-[#E6E1D8] bg-white p-2.5 text-xs text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71]"
+                />
+              </div>
+
+            </div>
+          ) : (
+            /* Returning Student Flow */
+            <div className="space-y-3 pt-1 text-xs">
+              <p className="text-[#5C6260]">
+                Welcome back! Your previous wellness profile is on file. Any new updates or specific areas to focus on today?
+              </p>
+              <textarea
+                rows={2}
+                placeholder="E.g. Feeling neck stiffness today, want to focus on deep hamstrings..."
+                value={formData.intake.returningNotes || ''}
+                onChange={(e) => handleIntakeChange('returningNotes', e.target.value)}
+                className="w-full rounded-xl border border-[#E6E1D8] bg-white p-2.5 text-xs text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71]"
+              />
+            </div>
+          )}
         </div>
 
         {/* Step 2: Payment via Paystack */}
@@ -779,6 +1065,76 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
             )}
           </div>
         )}
+
+        {/* MANDATORY CONFIRMATION BEFORE MAKING PAYMENT */}
+        <div className={`rounded-2xl border p-4 sm:p-5 transition-all ${
+          touched.agreedToMandatoryTerms && errors.agreedToMandatoryTerms
+            ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/25'
+            : 'border-[#E6E1D8] bg-[#FAF8F5]'
+        }`}>
+          <div className="flex items-center gap-2 pb-2.5 border-b border-[#E6E1D8]">
+            <ShieldCheck className="h-4 w-4 text-[#A44A4A]" />
+            <h4 className="font-serif text-xs sm:text-sm font-bold tracking-wide uppercase text-[#2B2E31]">
+              MANDATORY CONFIRMATION BEFORE MAKING PAYMENT
+            </h4>
+          </div>
+
+          <div className="mt-3 space-y-2.5 text-xs text-[#2B2E31]">
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[11px] font-bold mt-0.5">
+                1
+              </span>
+              <p className="leading-relaxed">
+                I understand that I must disclose relevant injuries or physical limitations before participating.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[11px] font-bold mt-0.5">
+                2
+              </span>
+              <p className="leading-relaxed">
+                I agree to arrive 10 minutes before my scheduled session.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] text-[11px] font-bold mt-0.5">
+                3
+              </span>
+              <p className="leading-relaxed">
+                I have read and accepted the studio&apos;s cancellation and rescheduling policy.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-[#E6E1D8]">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                name="agreedToMandatoryTerms"
+                checked={formData.agreedToMandatoryTerms}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, agreedToMandatoryTerms: e.target.checked }));
+                  if (errors.agreedToMandatoryTerms) {
+                    setErrors((prev) => ({ ...prev, agreedToMandatoryTerms: undefined }));
+                  }
+                }}
+                className="mt-0.5 h-4 w-4 rounded border-[#D5CEC2] text-[#7A8B71] focus:ring-[#7A8B71] cursor-pointer"
+              />
+              <span className="text-xs font-semibold text-[#2B2E31] leading-snug group-hover:text-[#5A6952] transition-colors">
+                I agree to the mandatory studio confirmation above before proceeding to payment. *
+              </span>
+            </label>
+
+            {touched.agreedToMandatoryTerms && errors.agreedToMandatoryTerms && (
+              <p className="mt-2 text-xs font-semibold text-[#A44A4A] flex items-center gap-1.5 animate-in fade-in duration-150">
+                <AlertCircle className="h-4 w-4 shrink-0 text-[#A44A4A]" />
+                <span>{errors.agreedToMandatoryTerms}</span>
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Action Button: Pay & Register via Paystack */}
         <div className="pt-2">
