@@ -170,7 +170,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F5F2EC] text-[#201410] font-sans antialiased selection:bg-[#C9B6A5] selection:text-[#201410] flex flex-col w-full max-w-full overflow-x-hidden">
-      
+
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
@@ -181,11 +181,11 @@ export default function App() {
 
       {/* Main Container */}
       <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 overflow-x-hidden">
-        
+
         {/* VIEW A: STUDENT BOOKING FLOW */}
         {activeTab === 'student' && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
-            
+
             {/* Hero Banner with Lorie's Exact Welcoming Copy */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EAE4DC] via-[#F4ECE3] to-[#F5F2EC] p-6 sm:p-10 border border-[#E0DFDB] shadow-sm w-full max-w-full">
               <div className="relative z-10 max-w-3xl">
@@ -287,10 +287,10 @@ export default function App() {
 
             {/* Content Layout: 2 Columns on Desktop */}
             <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-12 items-start w-full max-w-full">
-              
+
               {/* Left Column: Offerings & Experiences Selector (7 cols on lg) */}
               <div className="lg:col-span-7 space-y-6 w-full max-w-full">
-                
+
                 {/* Section Header & Filter Pills */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -315,11 +315,10 @@ export default function App() {
                         key={cat.id}
                         type="button"
                         onClick={() => setCategoryFilter(cat.id)}
-                        className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${
-                          categoryFilter === cat.id
-                            ? 'bg-[#774929] text-white shadow-sm'
-                            : 'bg-white text-[#88796B] border border-[#E0DFDB] hover:bg-[#F5EBE1] hover:text-[#201410]'
-                        }`}
+                        className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${categoryFilter === cat.id
+                          ? 'bg-[#774929] text-white shadow-sm'
+                          : 'bg-white text-[#88796B] border border-[#E0DFDB] hover:bg-[#F5EBE1] hover:text-[#201410]'
+                          }`}
                       >
                         {cat.label}
                       </button>
@@ -429,16 +428,6 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4 text-[#5A655E]">
             <span>Accra, Ghana • Studio Sanctuary & Client Locations</span>
-            <span className="hidden sm:inline">•</span>
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="hover:text-[#774929] hover:underline font-semibold transition-colors"
-            >
-              Back to top ↑
-            </button>
-            <span className="hidden sm:inline">•</span>
-            <span className="text-[#774929] font-medium">Secured by Paystack</span>
           </div>
         </div>
       </footer>
