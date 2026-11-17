@@ -36,8 +36,8 @@
 
 import { INITIAL_CLASSES, INITIAL_REGISTRATIONS } from '../data/mockData';
 
-const STORAGE_KEY_CLASSES = 'stretchwithlorie_classes_v5';
-const STORAGE_KEY_REGISTRATIONS = 'stretchwithlorie_registrations_v5';
+const STORAGE_KEY_CLASSES = 'stretchwithlorie_classes_v7';
+const STORAGE_KEY_REGISTRATIONS = 'stretchwithlorie_registrations_v7';
 
 // Helper to simulate realistic network latency (e.g. 400ms - 1200ms)
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,9 +62,22 @@ export const api = {
    * Backend equivalent: return (await fetch('/api/classes')).json()
    */
   async getClasses() {
-    await delay(250);
+    await delay(150);
     const data = localStorage.getItem(STORAGE_KEY_CLASSES);
-    return data ? JSON.parse(data) : INITIAL_CLASSES;
+    if (!data) return INITIAL_CLASSES;
+    try {
+      const parsed = JSON.parse(data);
+      // Ensure static assets/images from INITIAL_CLASSES are always hydrated
+      return parsed.map((cls) => {
+        const initial = INITIAL_CLASSES.find((ic) => ic.id === cls.id);
+        return {
+          ...cls,
+          image: cls.image || initial?.image
+        };
+      });
+    } catch {
+      return INITIAL_CLASSES;
+    }
   },
 
   /**

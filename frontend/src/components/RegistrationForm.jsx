@@ -17,6 +17,21 @@ import {
   Sparkles
 } from 'lucide-react';
 import MobileMoneyLogo from './MobileMoneyLogo';
+import massYogaImg from '../assets/mass_yoga_class.jpg';
+import privateYogaImg from '../assets/private_yoga_class.jpg';
+import flexibilityMasterclassImg from '../assets/flexibility_masterclass.jpg';
+import thaiYogaStretchesImg from '../assets/thai_yoga_stretches.jpg';
+import couplesYogaImg from '../assets/couples_yoga.jpg';
+import yogaChampagneImg from '../assets/yoga_champagne.jpg';
+
+const CLASS_FALLBACK_IMAGES = {
+  'cls-mass': massYogaImg,
+  'cls-private': privateYogaImg,
+  'cls-masterclass': flexibilityMasterclassImg,
+  'cls-thai': thaiYogaStretchesImg,
+  'cls-couples': couplesYogaImg,
+  'cls-champagne': yogaChampagneImg
+};
 
 // Paystack Official Mark Icon
 export function PaystackIcon({ className = 'h-4 w-4' }) {
@@ -203,23 +218,34 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
           )}
         </div>
 
-        <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31] leading-snug">
-          {selectedClass.title}
-        </h2>
+        <div className="flex items-start gap-3.5 sm:gap-4">
+          {(selectedClass.image || CLASS_FALLBACK_IMAGES[selectedClass.id]) && (
+            <img
+              src={selectedClass.image || CLASS_FALLBACK_IMAGES[selectedClass.id]}
+              alt={selectedClass.title}
+              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover object-[center_25%] ring-2 ring-[#E6E1D8] shrink-0 shadow-xs"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31] leading-snug">
+              {selectedClass.title}
+            </h2>
 
-        <div className="mt-2 flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-[#5C6260]">
-          <span className="flex items-center gap-1.5 font-medium text-[#2B2E31]">
-            <Calendar className="h-3.5 w-3.5 text-[#7A8B71] shrink-0" />
-            {selectedClass.date}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-[#7A8B71] shrink-0" />
-            {selectedClass.time} ({selectedClass.duration})
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
-            {selectedClass.room}
-          </span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-[#5C6260]">
+              <span className="flex items-center gap-1.5 font-medium text-[#2B2E31]">
+                <Calendar className="h-3.5 w-3.5 text-[#7A8B71] shrink-0" />
+                {selectedClass.date}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-[#7A8B71] shrink-0" />
+                {selectedClass.time} ({selectedClass.duration})
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
+                {selectedClass.room}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Dedicated Price & Spots Strip - Always readable, never clipped */}

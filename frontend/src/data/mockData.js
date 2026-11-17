@@ -1,5 +1,11 @@
 // Initial mock data for stretchwithlorie
 // YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
+import massYogaImg from '../assets/mass_yoga_class.jpg';
+import privateYogaImg from '../assets/private_yoga_class.jpg';
+import flexibilityMasterclassImg from '../assets/flexibility_masterclass.jpg';
+import thaiYogaStretchesImg from '../assets/thai_yoga_stretches.jpg';
+import couplesYogaImg from '../assets/couples_yoga.jpg';
+import yogaChampagneImg from '../assets/yoga_champagne.jpg';
 
 export const STUDIO_SCHEDULES = [
   {
@@ -87,6 +93,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-mass",
     title: "Mass Yoga Class",
+    image: massYogaImg,
+    imagePosition: 'object-[center_35%]',
     badge: "Group Sessions",
     category: "Yoga Classes",
     instructor: {
@@ -116,6 +124,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-private",
     title: "Private Yoga Class (One-on-One)",
+    image: privateYogaImg,
+    imagePosition: 'object-[center_25%]',
     badge: "Personalised",
     category: "Private Bookings",
     instructor: {
@@ -144,6 +154,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-masterclass",
     title: "Flexibility MASTERCLASS",
+    image: flexibilityMasterclassImg,
+    imagePosition: 'object-[center_20%]',
     badge: "Intensive Program",
     category: "Masterclass",
     instructor: {
@@ -168,6 +180,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-thai",
     title: "Thai Yoga Stretches",
+    image: thaiYogaStretchesImg,
+    imagePosition: 'object-[center_40%]',
     badge: "Therapeutic",
     category: "Therapeutic",
     instructor: {
@@ -191,6 +205,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-couples",
     title: "Couples Yoga",
+    image: couplesYogaImg,
+    imagePosition: 'object-[center_35%]',
     badge: "Experience for Two",
     category: "Special Experiences",
     instructor: {
@@ -214,6 +230,8 @@ export const INITIAL_CLASSES = [
   {
     id: "cls-champagne",
     title: "YOGA & CHAMPAGNE",
+    image: yogaChampagneImg,
+    imagePosition: 'object-[center_25%]',
     badge: "Signature Monthly",
     category: "Special Experiences",
     instructor: {
