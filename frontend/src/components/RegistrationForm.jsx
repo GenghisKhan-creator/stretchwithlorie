@@ -338,7 +338,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                     onChange={handleChange}
                     onBlur={handleBlur}
                     disabled={isSubmitting}
-                    className={`w-full rounded-2xl border bg-white py-2.5 pl-10 pr-4 text-sm text-[#201410] outline-none transition-all ${touched.clientAddress && errors.clientAddress
+                    className={`w-full rounded-2xl border bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#201410] outline-none transition-all ${touched.clientAddress && errors.clientAddress
                         ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                         : 'border-[#E0DFDB] focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20'
                       }`}
@@ -397,7 +397,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               onChange={handleChange}
               onBlur={handleBlur}
               disabled={isSubmitting}
-              className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.fullName && errors.fullName
+              className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.fullName && errors.fullName
                   ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                   : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
                 }`}
@@ -429,7 +429,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.email && errors.email
+                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.email && errors.email
                     ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                     : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
                   }`}
@@ -459,7 +459,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.phone && errors.phone
+                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all ${touched.phone && errors.phone
                     ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
                     : 'border-[#E0DFDB] focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20'
                   }`}
@@ -489,7 +489,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
               value={formData.healthNotes}
               onChange={handleChange}
               disabled={isSubmitting}
-              className="w-full rounded-2xl border border-[#E0DFDB] bg-[#FAF8F5] p-3 text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20"
+              className="w-full rounded-2xl border border-[#E0DFDB] bg-[#FAF8F5] p-3 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none transition-all focus:border-[#774929] focus:bg-white focus:ring-3 focus:ring-[#774929]/20"
             />
           </div>
           <p className="mt-1.5 text-[11px] text-[#88796B] flex items-center gap-1">
@@ -671,7 +671,7 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
                     onChange={handleChange}
                     onBlur={handleBlur}
                     disabled={isSubmitting}
-                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white py-2.5 pl-10 pr-4 text-sm text-[#201410] placeholder-[#A89E96] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
+                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
                   />
                 </div>
                 {touched.momoNumber && errors.momoNumber && (

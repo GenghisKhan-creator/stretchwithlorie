@@ -217,7 +217,7 @@ export default function SpecialOccasionsSection() {
                     placeholder="e.g. Next Saturday around 11:00 AM"
                     value={inquiryForm.preferredDate}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, preferredDate: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none"
+                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-base sm:text-xs text-[#201410] outline-none"
                   />
                 </div>
 
@@ -233,7 +233,7 @@ export default function SpecialOccasionsSection() {
                       placeholder="e.g. Akosua Mensah"
                       value={inquiryForm.name}
                       onChange={(e) => setInquiryForm({ ...inquiryForm, name: e.target.value })}
-                      className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none"
+                      className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-base sm:text-xs text-[#201410] outline-none"
                     />
                   </div>
                   <div>
@@ -246,7 +246,7 @@ export default function SpecialOccasionsSection() {
                       placeholder="e.g. 024 123 4567"
                       value={inquiryForm.phone}
                       onChange={(e) => setInquiryForm({ ...inquiryForm, phone: e.target.value })}
-                      className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-xs text-[#201410] outline-none"
+                      className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2 text-base sm:text-xs text-[#201410] outline-none"
                     />
                   </div>
                 </div>
@@ -261,7 +261,7 @@ export default function SpecialOccasionsSection() {
                     placeholder="E.g. Champagne setup, herbal teas, custom music playlist, beginner modifications..."
                     value={inquiryForm.notes}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, notes: e.target.value })}
-                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white p-2.5 text-xs text-[#201410] outline-none"
+                    className="w-full rounded-2xl border border-[#E0DFDB] bg-white p-2.5 text-base sm:text-xs text-[#201410] outline-none"
                   />
                 </div>
 

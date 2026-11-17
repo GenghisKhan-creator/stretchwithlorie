@@ -445,7 +445,7 @@ export default function InstructorDashboard({
                 placeholder="Search student, phone, booking ID, or Paystack ref..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
+                className="w-full rounded-2xl border border-[#E0DFDB] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#201410] placeholder-[#A89E96] outline-none focus:border-[#774929] focus:ring-2 focus:ring-[#774929]/20"
               />
             </div>
 
@@ -454,7 +454,7 @@ export default function InstructorDashboard({
               <select
                 value={selectedClassFilter}
                 onChange={(e) => setSelectedClassFilter(e.target.value)}
-                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2.5 text-xs sm:text-sm text-[#201410] outline-none focus:border-[#774929]"
+                className="w-full rounded-2xl border border-[#E0DFDB] bg-white px-3 py-2.5 text-base sm:text-sm text-[#201410] outline-none focus:border-[#774929]"
               >
                 <option value="ALL">All Classes (Full Schedule)</option>
                 {classes.map((c) => (
