@@ -11,7 +11,10 @@ import {
   X,
   CreditCard,
   Lock,
-  PlusCircle
+  PlusCircle,
+  ExternalLink,
+  Send,
+  Check
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import MobileMoneyLogo from './MobileMoneyLogo';
@@ -27,6 +30,7 @@ export default function SuccessModal({
   onViewDashboard
 }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [downloadFeedback, setDownloadFeedback] = useState(null);
 
   if (!booking) return null;
 
@@ -74,16 +78,33 @@ export default function SuccessModal({
     document.body.removeChild(link);
   };
 
-  // Generate downloadable luxury PDF Studio Entry Pass
-  const handleDownloadPass = async () => {
+  // Generate downloadable luxury PDF Studio Entry Pass (with native Mobile Share/Save to Files & direct download)
+  const handleDownloadPass = async (options = {}) => {
     try {
       setIsGeneratingPdf(true);
-      await exportBookingPassPDF(booking);
+      const res = await exportBookingPassPDF(booking, options);
+      if (res?.method === 'share') {
+        setDownloadFeedback('Pass shared!');
+      } else if (res?.method === 'download') {
+        setDownloadFeedback('Pass downloaded!');
+      }
+      setTimeout(() => setDownloadFeedback(null), 3500);
     } catch (err) {
       console.error('Failed to generate studio pass PDF:', err);
     } finally {
       setIsGeneratingPdf(false);
     }
+  };
+
+  // Explicitly preview / open PDF in new tab
+  const handlePreviewPass = () => {
+    handleDownloadPass({ preview: true });
+  };
+
+  // Direct WhatsApp Share of Pass & Confirmation Details
+  const handleShareWhatsApp = () => {
+    const text = `🧘 *Official Studio Pass - stretchwithlorie*\n\n*Booking Ref:* ${bookingRef}\n*Class:* ${className}\n*Scheduled Date:* ${classDate}\n*Time:* ${classTime}\n*Instructor:* ${instructor}\n*Attendee:* ${studentName}\n*Payment:* Verified Paid (${paymentMethod})\n*Status:* Confirmed Mat Reservation\n📍 *Sanctuary:* Suite 4B, East Legon, Accra, Ghana\n\nSee you on the mat! 🌿`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -209,36 +230,75 @@ export default function SuccessModal({
             </div>
           </div>
 
-          {/* Quick Download Actions */}
-          <div className="mt-3.5 sm:mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={handleDownloadCalendar}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
-            >
-              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
-              <span className="truncate">Add to Calendar</span>
-            </button>
+          {/* Quick Download & Share Actions */}
+          <div className="mt-3.5 sm:mt-5 space-y-2.5">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={handleDownloadCalendar}
+                className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
+              >
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
+                <span className="truncate">Add to Calendar</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={handleDownloadPass}
-              disabled={isGeneratingPdf}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs cursor-pointer disabled:opacity-60"
-              title="Download official PDF entry pass & receipt"
-            >
-              {isGeneratingPdf ? (
-                <>
-                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent shrink-0" />
-                  <span className="truncate">Preparing PDF...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
-                  <span className="truncate">Download PDF Pass</span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadPass()}
+                disabled={isGeneratingPdf}
+                className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#7A8B71] bg-[#7A8B71] p-2.5 sm:p-3 text-xs font-bold text-white hover:bg-[#687760] active:scale-[0.98] transition-all shadow-sm cursor-pointer disabled:opacity-60"
+                title="Download official PDF entry pass & receipt to your phone or computer"
+              >
+                {isGeneratingPdf ? (
+                  <>
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent shrink-0" />
+                    <span className="truncate">Preparing Pass...</span>
+                  </>
+                ) : downloadFeedback ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-white shrink-0" />
+                    <span className="truncate">{downloadFeedback}</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white shrink-0" />
+                    <span className="truncate">Download PDF Pass</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Utility Actions (Preview in New Tab & Send to WhatsApp) */}
+            <div className="flex items-center justify-between gap-2 px-1 pt-0.5 text-[11px]">
+              <button
+                type="button"
+                onClick={handlePreviewPass}
+                disabled={isGeneratingPdf}
+                className="inline-flex items-center gap-1 text-[#5C6260] hover:text-[#2B2E31] hover:underline cursor-pointer disabled:opacity-50"
+                title="Open PDF directly in a new tab"
+              >
+                <ExternalLink className="h-3 w-3 text-[#7A8B71]" />
+                <span>Preview in Browser</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShareWhatsApp}
+                className="inline-flex items-center gap-1 text-[#1E7E34] font-semibold hover:underline cursor-pointer"
+                title="Send booking confirmation and pass details on WhatsApp"
+              >
+                <Send className="h-3 w-3 text-[#25D366]" />
+                <span>Send to WhatsApp</span>
+              </button>
+            </div>
+
+            {/* Mobile Download Helper Tip */}
+            <div className="rounded-xl bg-[#F1F4EF]/80 border border-[#DCE4D9] p-2 text-[10.5px] text-[#5A6952] flex items-start gap-1.5 leading-relaxed">
+              <span className="font-bold shrink-0">📱 Phone tip:</span>
+              <span>
+                Tap <strong>Download PDF Pass</strong> to save to your files or share. You can also tap <strong>Send to WhatsApp</strong> to keep your pass in your chat.
+              </span>
+            </div>
           </div>
 
           {/* Book for Other Days & Sessions Feature */}

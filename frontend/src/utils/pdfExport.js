@@ -24,6 +24,99 @@ async function getBase64ImageFromUrl(imageUrl) {
 }
 
 /**
+ * Universal Mobile-Friendly PDF Saver & Sharer
+ *
+ * Solves the critical mobile Safari / iOS issue where doc.save() redirects to an un-downloadable new tab:
+ * 1. Checks if the device supports native Web Share API (navigator.canShare with File).
+ *    On iOS Safari and Android Chrome, this opens the native OS sheet with "Save to Files",
+ *    "Save to Downloads", "WhatsApp", "AirDrop", and "Print".
+ * 2. On desktop or fallback browsers, uses an explicit <a download> click on an application/octet-stream blob.
+ *    On iOS Safari, octet-stream forces Safari's native "Do you want to download..." dialog,
+ *    saving directly into the phone's Downloads folder instead of redirecting the user away.
+ * 3. Supports explicit preview in a new tab if requested.
+ */
+export async function saveOrSharePdf(doc, filename, options = {}) {
+  const {
+    title = 'stretchwithlorie Official Pass',
+    text = 'Official Studio Entry Pass & Receipt from stretchwithlorie Sanctuary',
+    forceDownload = false,
+    preview = false
+  } = options;
+
+  // Generate binary PDF blob
+  const pdfBlob = doc.output('blob');
+
+  // Preview in new browser tab
+  if (preview) {
+    return openPdfInNewTab(pdfBlob, filename);
+  }
+
+  const isMobile =
+    typeof navigator !== 'undefined' &&
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+
+  // 1. Mobile Native Share (iOS "Save to Files" / Android Share Sheet)
+  if (!forceDownload && isMobile && typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title,
+          text
+        });
+        return { success: true, method: 'share', filename };
+      }
+    } catch (shareErr) {
+      if (shareErr.name === 'AbortError') {
+        // User closed or dismissed the share sheet
+        return { success: true, method: 'dismissed', filename };
+      }
+      console.warn('Native share failed or was dismissed, falling back to direct download:', shareErr);
+    }
+  }
+
+  // 2. Direct octet-stream download
+  // Using application/octet-stream is vital: it tells iOS Safari and mobile browsers to
+  // prompt the user to download the file directly, rather than opening and displaying it in a tab.
+  try {
+    const octetBlob = new Blob([pdfBlob], { type: 'application/octet-stream' });
+    const blobUrl = URL.createObjectURL(octetBlob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    }, 4000);
+
+    return { success: true, method: 'download', filename };
+  } catch (dlErr) {
+    console.warn('Direct octet download failed, using standard doc.save():', dlErr);
+    doc.save(filename);
+    return { success: true, method: 'doc.save', filename };
+  }
+}
+
+/**
+ * Open PDF in a new browser tab for explicit viewing / printing
+ */
+export function openPdfInNewTab(pdfBlobOrDoc, filename = 'document.pdf') {
+  const blob = pdfBlobOrDoc instanceof Blob ? pdfBlobOrDoc : pdfBlobOrDoc.output('blob');
+  const blobUrl = URL.createObjectURL(blob);
+  const win = window.open(blobUrl, '_blank');
+  if (!win) {
+    window.location.href = blobUrl;
+  }
+  return { success: true, method: 'preview', blobUrl, filename };
+}
+
+/**
  * exportAttendeesToPDF
  * Generates an executive, beautifully formatted PDF report of class attendees
  * with complete booking references, verified Paystack payments, and student health notes.
@@ -31,7 +124,7 @@ async function getBase64ImageFromUrl(imageUrl) {
  * @param {Array} registrations - List of registration records to include
  * @param {Object} options - Additional context (filter, class title, etc.)
  */
-export function exportAttendeesToPDF(registrations, options = {}) {
+export async function exportAttendeesToPDF(registrations, options = {}) {
   if (!registrations || registrations.length === 0) {
     throw new Error('No attendee records available to export.');
   }
@@ -284,12 +377,18 @@ export function exportAttendeesToPDF(registrations, options = {}) {
 
   // Save PDF file directly to client browser
   const filename = `StretchWithLorie_Attendees_${fileDateStr}.pdf`;
-  doc.save(filename);
+  const saveResult = await saveOrSharePdf(doc, filename, {
+    title: `Attendee Roster - ${fileDateStr}`,
+    text: `stretchwithlorie Studio Attendee Roster (${totalCount} attendees)`,
+    forceDownload: options.forceDownload,
+    preview: options.preview
+  });
 
   return {
     filename,
     count: totalCount,
-    revenue: formattedRevenue
+    revenue: formattedRevenue,
+    ...saveResult
   };
 }
 
@@ -339,7 +438,7 @@ function drawStudioSeal(doc, cx, cy, radius = 32) {
  *
  * @param {Object} booking - Booking details from SuccessModal
  */
-export async function exportBookingPassPDF(booking) {
+export async function exportBookingPassPDF(booking, options = {}) {
   if (!booking) {
     throw new Error('No booking data provided for PDF generation.');
   }
@@ -822,13 +921,19 @@ export async function exportBookingPassPDF(booking) {
   doc.setFillColor(200, 162, 83);
   doc.rect(cardX + 12, cardY + cardH - 6, cardW - 24, 1.5, 'F');
 
-  // Save PDF file to user browser
+  // Save or Share PDF pass to user device
   const filename = `StretchWithLorie_Pass_${bookingRef}.pdf`;
-  doc.save(filename);
+  const result = await saveOrSharePdf(doc, filename, {
+    title: `Studio Entry Pass - ${bookingRef}`,
+    text: `stretchwithlorie Yoga Sanctuary Pass for ${studentName} (${className})`,
+    preview: options.preview,
+    forceDownload: options.forceDownload
+  });
 
   return {
     filename,
-    bookingRef
+    bookingRef,
+    ...result
   };
 }
 
@@ -838,7 +943,7 @@ export async function exportBookingPassPDF(booking) {
  *
  * @param {Object} order - Order details from WellnessGiftCardModal
  */
-export async function exportGiftPassPDF(order) {
+export async function exportGiftPassPDF(order, options = {}) {
   if (!order) {
     throw new Error('No order details provided for Gift Pass PDF.');
   }
@@ -1057,7 +1162,12 @@ export async function exportGiftPassPDF(order) {
   doc.text(`Order ID: ${orderId}  -  Voucher: ${voucherCode}  -  Verified on Paystack`, cardX + cardW - 24, footerY, { align: 'right' });
 
   const filename = `StretchWithLorie_Pass_${voucherCode}.pdf`;
-  doc.save(filename);
+  const result = await saveOrSharePdf(doc, filename, {
+    title: `Wellness Pass - ${voucherCode}`,
+    text: `stretchwithlorie Wellness Pass (${title}) - Voucher: ${voucherCode}`,
+    preview: options.preview,
+    forceDownload: options.forceDownload
+  });
 
-  return { filename, voucherCode };
+  return { filename, voucherCode, ...result };
 }

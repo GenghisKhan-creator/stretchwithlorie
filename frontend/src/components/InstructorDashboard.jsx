@@ -78,7 +78,7 @@ export default function InstructorDashboard({
   }, [registrations, searchTerm, selectedClassFilter, attendanceFilter]);
 
   // PDF Export Trigger (Well-organized branded table)
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const targetList = filteredRegistrations.length > 0 ? filteredRegistrations : registrations;
     if (targetList.length === 0) {
       alert('No attendee records available to export.');
@@ -86,7 +86,7 @@ export default function InstructorDashboard({
     }
 
     try {
-      const result = exportAttendeesToPDF(targetList, {
+      const result = await exportAttendeesToPDF(targetList, {
         filterClass: selectedClassFilter,
         filterAttendance: attendanceFilter,
         searchTerm

@@ -247,7 +247,7 @@ export const INITIAL_CLASSES = [
     rawDate: "2026-11-20",
     time: "Flexible Studio Time Slots",
     duration: "60 min",
-    price: 400,
+    price: 500,
     maxCapacity: 6,
     bookedCount: 3,
     level: "All Levels (Restorative)",
@@ -309,7 +309,7 @@ export const INITIAL_CLASSES = [
     rawDate: "2026-11-29",
     time: "04:30 PM - 05:30 PM",
     duration: "60 min",
-    price: 350,
+    price: 400,
     maxCapacity: 20,
     bookedCount: 14, // 6 spots left
     level: "All Levels Celebration",
