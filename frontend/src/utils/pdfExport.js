@@ -132,6 +132,8 @@ export async function exportAttendeesToPDF(registrations, options = {}) {
   const {
     filterClass = 'ALL',
     filterAttendance = 'ALL',
+    filterMonth = null,
+    filterDate = null,
     searchTerm = ''
   } = options;
 
@@ -183,6 +185,12 @@ export async function exportAttendeesToPDF(registrations, options = {}) {
   doc.setFontSize(8);
   doc.setTextColor(92, 98, 96); // Muted Slate #5C6260
   let scopeText = `Roster Scope: ${filterClass === 'ALL' ? 'All Classes & Experiences' : filterClass}`;
+  if (filterMonth) {
+    scopeText += ` • Month: ${filterMonth}`;
+  }
+  if (filterDate) {
+    scopeText += ` • Date: ${filterDate}`;
+  }
   if (filterAttendance !== 'ALL') {
     scopeText += ` • Attendance: ${filterAttendance === 'CHECKED_IN' ? 'Checked-In Only' : 'Pending Only'}`;
   }
@@ -375,8 +383,16 @@ export async function exportAttendeesToPDF(registrations, options = {}) {
     }
   });
 
-  // Save PDF file directly to client browser
-  const filename = `StretchWithLorie_Attendees_${fileDateStr}.pdf`;
+  // Save PDF file directly to client browser with filter-descriptive filename
+  let filterSlug = '';
+  if (filterDate) {
+    filterSlug = `_${filterDate.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').slice(0, 20)}`;
+  } else if (filterMonth) {
+    filterSlug = `_${filterMonth.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  } else if (filterClass && filterClass !== 'ALL') {
+    filterSlug = `_${filterClass.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 15)}`;
+  }
+  const filename = `StretchWithLorie_Roster${filterSlug}_${fileDateStr}.pdf`;
   const saveResult = await saveOrSharePdf(doc, filename, {
     title: `Attendee Roster - ${fileDateStr}`,
     text: `stretchwithlorie Studio Attendee Roster (${totalCount} attendees)`,

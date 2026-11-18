@@ -10,7 +10,9 @@ import {
   HeartPulse,
   Eye,
   RefreshCw,
-  FileText
+  CalendarDays,
+  CheckCheck,
+  Download
 } from 'lucide-react';
 import AddClassModal from './AddClassModal';
 import StudentDetailsModal from './StudentDetailsModal';
@@ -18,6 +20,57 @@ import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportAttendeesToPDF } from '../utils/pdfExport';
 import { DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
+
+// Helper to extract normalized date and month from any registration
+function parseRegistrationDate(reg) {
+  if (reg.sessionDate && /^\d{4}-\d{2}-\d{2}$/.test(reg.sessionDate)) {
+    const [yyyy, mm, dd] = reg.sessionDate.split('-');
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return {
+      dateKey: reg.sessionDate,
+      monthKey: `${yyyy}-${mm}`,
+      monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  const raw = (reg.classDate || '').replace(/\(.*?\)/g, '').trim();
+  const parsed = Date.parse(raw);
+  if (!isNaN(parsed)) {
+    const d = new Date(parsed);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dateKey = `${yyyy}-${mm}-${dd}`;
+    return {
+      dateKey,
+      monthKey: `${yyyy}-${mm}`,
+      monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  if (reg.registeredAt) {
+    const d = new Date(reg.registeredAt);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dateKey = `${yyyy}-${mm}-${dd}`;
+    return {
+      dateKey,
+      monthKey: `${yyyy}-${mm}`,
+      monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  return {
+    dateKey: 'unknown',
+    monthKey: 'unknown',
+    monthLabel: 'Other Sessions',
+    dateLabel: raw || 'Flexible Date'
+  };
+}
 
 export default function InstructorDashboard({
   classes,
@@ -28,10 +81,45 @@ export default function InstructorDashboard({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClassFilter, setSelectedClassFilter] = useState('ALL');
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState('ALL');
+  const [selectedDateFilter, setSelectedDateFilter] = useState('ALL');
   const [attendanceFilter, setAttendanceFilter] = useState('ALL'); // 'ALL' | 'CHECKED_IN' | 'PENDING'
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [exportNotice, setExportNotice] = useState(null);
+
+  // Dynamic list of months and dates available in registrations
+  const { availableMonths, availableDates } = useMemo(() => {
+    const monthsMap = new Map();
+    const datesMap = new Map();
+
+    registrations.forEach((reg) => {
+      const info = parseRegistrationDate(reg);
+      if (info.monthKey !== 'unknown') {
+        if (!monthsMap.has(info.monthKey)) {
+          monthsMap.set(info.monthKey, { key: info.monthKey, label: info.monthLabel, count: 0 });
+        }
+        monthsMap.get(info.monthKey).count += 1;
+      }
+
+      if (info.dateKey !== 'unknown') {
+        if (!datesMap.has(info.dateKey)) {
+          datesMap.set(info.dateKey, {
+            key: info.dateKey,
+            monthKey: info.monthKey,
+            label: info.dateLabel,
+            count: 0
+          });
+        }
+        datesMap.get(info.dateKey).count += 1;
+      }
+    });
+
+    const months = Array.from(monthsMap.values()).sort((a, b) => a.key.localeCompare(b.key));
+    const dates = Array.from(datesMap.values()).sort((a, b) => a.key.localeCompare(b.key));
+
+    return { availableMonths: months, availableDates: dates };
+  }, [registrations]);
 
   // Compute studio metrics
   const stats = useMemo(() => {
@@ -50,7 +138,7 @@ export default function InstructorDashboard({
     };
   }, [classes, registrations]);
 
-  // Filter registrations based on search & filters
+  // Filter registrations based on search, class, month, day, & attendance
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((reg) => {
       // Search matching: name, email, phone, booking ref, class name, or paystack ref
@@ -68,32 +156,66 @@ export default function InstructorDashboard({
       const matchesClass =
         selectedClassFilter === 'ALL' || reg.classId === selectedClassFilter;
 
+      // Date parsing for month and day filters
+      const regDateInfo = parseRegistrationDate(reg);
+
+      // Month filter
+      const matchesMonth =
+        selectedMonthFilter === 'ALL' || regDateInfo.monthKey === selectedMonthFilter;
+
+      // Day / Date filter
+      const matchesDate =
+        selectedDateFilter === 'ALL' || regDateInfo.dateKey === selectedDateFilter;
+
       // Attendance filter
       const matchesAttendance =
         attendanceFilter === 'ALL' ||
         (attendanceFilter === 'CHECKED_IN' && reg.checkedIn) ||
         (attendanceFilter === 'PENDING' && !reg.checkedIn);
 
-      return matchesSearch && matchesClass && matchesAttendance;
+      return matchesSearch && matchesClass && matchesMonth && matchesDate && matchesAttendance;
     });
-  }, [registrations, searchTerm, selectedClassFilter, attendanceFilter]);
+  }, [registrations, searchTerm, selectedClassFilter, selectedMonthFilter, selectedDateFilter, attendanceFilter]);
 
-  // PDF Export Trigger (Well-organized branded table)
-  const handleExportPDF = async () => {
+  // Attendance metrics for the active filter set
+  const filteredAttendanceStats = useMemo(() => {
+    const total = filteredRegistrations.length;
+    const checkedIn = filteredRegistrations.filter((r) => r.checkedIn).length;
+    const pending = total - checkedIn;
+    const attendanceRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+    return { total, checkedIn, pending, attendanceRate };
+  }, [filteredRegistrations]);
+
+  // PDF Export Trigger (Well-organized branded table of filtered records)
+  const handleExportPDF = async (exportOptions = {}) => {
     const targetList = filteredRegistrations.length > 0 ? filteredRegistrations : registrations;
     if (targetList.length === 0) {
-      alert('No attendee records available to export.');
+      alert('No attendee records match the current filter to export.');
       return;
     }
 
     try {
+      const activeMonthLabel = selectedMonthFilter !== 'ALL'
+        ? availableMonths.find((m) => m.key === selectedMonthFilter)?.label
+        : null;
+      const activeDateLabel = selectedDateFilter !== 'ALL'
+        ? availableDates.find((d) => d.key === selectedDateFilter)?.label
+        : null;
+      const activeClassTitle = selectedClassFilter !== 'ALL'
+        ? classes.find((c) => c.id === selectedClassFilter)?.title
+        : null;
+
       const result = await exportAttendeesToPDF(targetList, {
-        filterClass: selectedClassFilter,
+        filterClass: activeClassTitle || selectedClassFilter,
         filterAttendance: attendanceFilter,
-        searchTerm
+        filterMonth: activeMonthLabel,
+        filterDate: activeDateLabel,
+        searchTerm,
+        forceDownload: exportOptions.forceDownload ?? true,
+        preview: exportOptions.preview ?? false
       });
-      setExportNotice(`Exported ${result.count} attendee records to organized PDF table (${result.revenue})!`);
-      setTimeout(() => setExportNotice(null), 4500);
+      setExportNotice(`Downloaded ${result.count} attendee records (${result.filename})!`);
+      setTimeout(() => setExportNotice(null), 5000);
     } catch (err) {
       console.error('Failed to export PDF:', err);
       alert('Failed to generate PDF. Please try again.');
@@ -146,12 +268,12 @@ export default function InstructorDashboard({
 
           <button
             type="button"
-            onClick={handleExportPDF}
-            className="flex items-center gap-2 rounded-2xl border border-[#E6E1D8] bg-white px-4 py-2.5 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] hover:border-[#7A8B71]/40 transition-all shadow-sm"
-            title="Download well-organized PDF table of attendees and verified Paystack payments"
+            onClick={() => handleExportPDF({ forceDownload: true })}
+            className="flex items-center gap-2 rounded-2xl border border-[#E6E1D8] bg-white px-4 py-2.5 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] hover:border-[#7A8B71]/40 transition-all shadow-sm cursor-pointer"
+            title="Download PDF table for the currently filtered attendee records"
           >
-            <FileText className="h-4 w-4 text-[#7A8B71]" />
-            <span>Export Attendee PDF</span>
+            <Download className="h-4 w-4 text-[#7A8B71]" />
+            <span>Download Filtered PDF ({filteredRegistrations.length})</span>
           </button>
 
           <button
@@ -388,9 +510,21 @@ export default function InstructorDashboard({
               </p>
             </div>
 
-            {/* Quick stats on filtered set */}
-            <div className="text-xs text-[#5C6260]">
-              Showing {filteredRegistrations.length} of {registrations.length} bookings
+            {/* Quick stats & Download action on filtered set */}
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="text-xs text-[#5C6260] hidden sm:block">
+                Showing {filteredRegistrations.length} of {registrations.length} bookings
+              </div>
+              <button
+                type="button"
+                onClick={() => handleExportPDF({ forceDownload: true })}
+                disabled={filteredRegistrations.length === 0}
+                className="flex items-center gap-1.5 rounded-2xl bg-[#5A6952] hover:bg-[#465340] text-white px-3.5 py-2 text-xs font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                title="Download PDF report for the filtered attendees"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download PDF ({filteredRegistrations.length})</span>
+              </button>
             </div>
           </div>
 
@@ -398,16 +532,16 @@ export default function InstructorDashboard({
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
 
             {/* Search input */}
-            <div className="sm:col-span-6 relative">
+            <div className="sm:col-span-4 relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
                 <Search className="h-4 w-4" />
               </div>
               <input
                 type="text"
-                placeholder="Search student, phone, booking ID, or Paystack ref..."
+                placeholder="Search student, booking ID, phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl border border-[#E6E1D8] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white py-2.5 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20 shadow-2xs"
               />
             </div>
 
@@ -416,7 +550,7 @@ export default function InstructorDashboard({
               <select
                 value={selectedClassFilter}
                 onChange={(e) => setSelectedClassFilter(e.target.value)}
-                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-base sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-base sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71] shadow-2xs"
               >
                 <option value="ALL">All Classes (Full Schedule)</option>
                 {classes.map((c) => (
@@ -427,20 +561,207 @@ export default function InstructorDashboard({
               </select>
             </div>
 
-            {/* Attendance filter */}
+            {/* Month Filter */}
+            <div className="sm:col-span-2">
+              <select
+                value={selectedMonthFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedMonthFilter(val);
+                  if (val !== 'ALL' && selectedDateFilter !== 'ALL') {
+                    const dateObj = availableDates.find((d) => d.key === selectedDateFilter);
+                    if (dateObj && dateObj.monthKey !== val) {
+                      setSelectedDateFilter('ALL');
+                    }
+                  }
+                }}
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-base sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71] shadow-2xs"
+              >
+                <option value="ALL">All Months</option>
+                {availableMonths.map((m) => (
+                  <option key={m.key} value={m.key}>
+                    {m.label} ({m.count})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Day / Session Date Filter */}
             <div className="sm:col-span-3">
               <select
-                value={attendanceFilter}
-                onChange={(e) => setAttendanceFilter(e.target.value)}
-                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                value={selectedDateFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedDateFilter(val);
+                  if (val !== 'ALL') {
+                    const dateObj = availableDates.find((d) => d.key === val);
+                    if (dateObj && selectedMonthFilter !== dateObj.monthKey) {
+                      setSelectedMonthFilter(dateObj.monthKey);
+                    }
+                  }
+                }}
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-base sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71] shadow-2xs"
               >
-                <option value="ALL">All Attendance</option>
-                <option value="CHECKED_IN">Checked In Only</option>
-                <option value="PENDING">Not Checked In</option>
+                <option value="ALL">All Days / Dates</option>
+                {availableDates
+                  .filter((d) => selectedMonthFilter === 'ALL' || d.monthKey === selectedMonthFilter)
+                  .map((d) => (
+                    <option key={d.key} value={d.key}>
+                      {d.label} ({d.count} booked)
+                    </option>
+                  ))}
               </select>
             </div>
 
           </div>
+
+          {/* Quick Date Pills & Attendance Status Filter Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-[#E6E1D8]/60">
+            {/* Quick Filter Pills for Session Days */}
+            <div className="flex items-center gap-1.5 flex-wrap text-xs">
+              <span className="text-[#5C6260] font-medium mr-1 flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5 text-[#7A8B71]" />
+                Filter by Day:
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('ALL')}
+                className={`px-2.5 py-1 rounded-xl font-medium transition-all cursor-pointer ${
+                  selectedDateFilter === 'ALL'
+                    ? 'bg-[#2B2E31] text-white shadow-xs'
+                    : 'bg-white border border-[#E6E1D8] text-[#5C6260] hover:bg-[#FAF8F5]'
+                }`}
+              >
+                All Days
+              </button>
+              {availableDates.slice(0, 6).map((d) => (
+                <button
+                  key={d.key}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDateFilter(d.key);
+                    setSelectedMonthFilter(d.monthKey);
+                  }}
+                  className={`px-2.5 py-1 rounded-xl font-medium transition-all cursor-pointer ${
+                    selectedDateFilter === d.key
+                      ? 'bg-[#7A8B71] text-white shadow-xs'
+                      : 'bg-white border border-[#E6E1D8] text-[#5C6260] hover:bg-[#FAF8F5]'
+                  }`}
+                >
+                  {d.label.split(',')[0]} ({d.key.slice(5)})
+                </button>
+              ))}
+            </div>
+
+            {/* Attendance Status Filter Pill Group */}
+            <div className="flex items-center gap-1.5 text-xs shrink-0">
+              <button
+                type="button"
+                onClick={() => setAttendanceFilter('ALL')}
+                className={`px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer ${
+                  attendanceFilter === 'ALL'
+                    ? 'bg-[#5A6952] text-white shadow-xs'
+                    : 'bg-white border border-[#E6E1D8] text-[#5C6260] hover:bg-[#FAF8F5]'
+                }`}
+              >
+                All ({filteredAttendanceStats.total})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttendanceFilter('CHECKED_IN')}
+                className={`px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer ${
+                  attendanceFilter === 'CHECKED_IN'
+                    ? 'bg-[#0288D1] text-white shadow-xs'
+                    : 'bg-white border border-[#E6E1D8] text-[#0288D1] hover:bg-[#E6F8FD]'
+                }`}
+              >
+                Checked In ({filteredAttendanceStats.checkedIn})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttendanceFilter('PENDING')}
+                className={`px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer ${
+                  attendanceFilter === 'PENDING'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-white border border-[#E6E1D8] text-amber-700 hover:bg-amber-50'
+                }`}
+              >
+                Not Checked In ({filteredAttendanceStats.pending})
+              </button>
+            </div>
+          </div>
+
+          {/* Active Attendance Summary Banner */}
+          {(selectedMonthFilter !== 'ALL' || selectedDateFilter !== 'ALL' || selectedClassFilter !== 'ALL' || attendanceFilter !== 'ALL' || searchTerm) && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-2xl bg-[#E5ECE2]/70 border border-[#DCE4D9] text-xs">
+              <div className="flex items-center gap-2 flex-wrap text-[#2B2E31]">
+                <span className="font-bold flex items-center gap-1 text-[#5A6952]">
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  Active Attendance View:
+                </span>
+                {selectedMonthFilter !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-[#DCE4D9] font-medium text-[11px]">
+                    Month: {availableMonths.find((m) => m.key === selectedMonthFilter)?.label}
+                  </span>
+                )}
+                {selectedDateFilter !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-[#DCE4D9] font-medium text-[11px]">
+                    Day: {availableDates.find((d) => d.key === selectedDateFilter)?.label}
+                  </span>
+                )}
+                {selectedClassFilter !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-[#DCE4D9] font-medium text-[11px]">
+                    Class: {classes.find((c) => c.id === selectedClassFilter)?.title}
+                  </span>
+                )}
+                {attendanceFilter !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-[#DCE4D9] font-medium text-[11px]">
+                    Status: {attendanceFilter === 'CHECKED_IN' ? 'Checked In' : 'Pending'}
+                  </span>
+                )}
+                <span className="font-semibold text-[#5A6952] ml-1">
+                  • {filteredAttendanceStats.checkedIn} / {filteredAttendanceStats.total} Checked In ({filteredAttendanceStats.attendanceRate}%)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleExportPDF({ forceDownload: true })}
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-[#2B2E31] bg-white border border-[#DCE4D9] px-2.5 py-1 rounded-lg hover:bg-[#FAF8F5] transition-colors shadow-2xs cursor-pointer"
+                  title="Download PDF report for this specific filter view"
+                >
+                  <Download className="h-3 w-3 text-[#7A8B71]" />
+                  <span>Download PDF ({filteredAttendanceStats.total})</span>
+                </button>
+                {onToggleCheckIn && filteredAttendanceStats.pending > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      filteredRegistrations
+                        .filter((r) => !r.checkedIn)
+                        .forEach((r) => onToggleCheckIn(r.id));
+                    }}
+                    className="text-[11px] font-bold text-[#0288D1] bg-white border border-[#B6EEFC] px-2 py-0.5 rounded-lg hover:bg-[#E6F8FD] transition-colors cursor-pointer"
+                  >
+                    Check In All Pending ({filteredAttendanceStats.pending})
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMonthFilter('ALL');
+                    setSelectedDateFilter('ALL');
+                    setSelectedClassFilter('ALL');
+                    setAttendanceFilter('ALL');
+                    setSearchTerm('');
+                  }}
+                  className="text-[11px] font-bold text-[#A44A4A] hover:underline cursor-pointer shrink-0"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Table View */}
@@ -476,6 +797,8 @@ export default function InstructorDashboard({
                       onClick={() => {
                         setSearchTerm('');
                         setSelectedClassFilter('ALL');
+                        setSelectedMonthFilter('ALL');
+                        setSelectedDateFilter('ALL');
                         setAttendanceFilter('ALL');
                       }}
                       className="mt-3 text-xs font-semibold text-[#7A8B71] underline"
@@ -519,7 +842,7 @@ export default function InstructorDashboard({
                           {reg.className}
                         </p>
                         <p className="text-[11px] text-[#5C6260]">
-                          {reg.classDate.split(',')[0]} • {reg.classTime.split('-')[0]}
+                          <span className="font-medium text-[#2B2E31]">{reg.classDate}</span> • {reg.classTime.split('-')[0].trim()}
                         </p>
                       </td>
 

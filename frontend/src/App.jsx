@@ -13,8 +13,8 @@ import WellnessGiftCardModal from './components/WellnessGiftCardModal';
 import WellnessPassHeroCard from './components/WellnessPassHeroCard';
 import { api } from './services/api';
 import { STUDIO_SCHEDULES } from './data/mockData';
+import loriePoseImg from './assets/lorie_pose.png';
 import {
-  Sparkles,
   Calendar,
   Clock,
   ArrowRight,
@@ -286,59 +286,67 @@ export default function App() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
 
                 {/* Left Column: Headline, Story & Quick CTAs (7 cols) */}
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-[#5A6952] border border-[#7A8B71]/30 shadow-2xs">
-                    <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
-                    stretchwithlorie • Yoga & Fitness
+                <div className="lg:col-span-7 relative space-y-4">
+                  {/* Layered Yoga Stretch Pose (Positioned under the text with lower z-index, shifted right) */}
+                  <div className="pointer-events-none absolute left-2 sm:left-8 lg:left-16 top-1/2 -translate-y-1/2 z-0 opacity-35 sm:opacity-40 select-none">
+                    <img
+                      src={loriePoseImg}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-[380px] sm:h-[520px] lg:h-[620px] w-auto max-w-none object-contain filter drop-shadow-sm"
+                    />
                   </div>
 
-                  <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight">
-                    YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
-                  </h1>
+                  {/* Text & CTAs Content Layer (Layered on top of image, z-10) */}
+                  <div className="relative z-10 space-y-4">
+                    <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight drop-shadow-2xs">
+                      YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
+                    </h1>
 
-                  <p className="text-xs sm:text-base text-[#5C6260] leading-relaxed">
-                    Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
-                  </p>
+                    <p className="text-xs sm:text-base text-[#5C6260] leading-relaxed">
+                      Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
+                    </p>
 
-                  <p className="text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
-                    Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
-                  </p>
+                    <p className="text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
+                      Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
+                    </p>
 
-                  {/* Studio Highlights Bar */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-semibold text-[#5A6952] pt-1">
-                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                      <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
-                      All Levels Welcome
-                    </span>
-                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                      <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
-                      Complimentary Mat & Teas
-                    </span>
-                    <span className="flex items-center gap-1.5 rounded-xl bg-white/80 px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                      <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
-                      Paystack Mobile Money
-                    </span>
-                  </div>
+                    {/* Studio Highlights Bar */}
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-semibold text-[#5A6952] pt-0.5">
+                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                        <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
+                        All Levels Welcome
+                      </span>
+                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                        <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
+                        Complimentary Mat & Teas
+                      </span>
+                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
+                        <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
+                        Paystack Mobile Money
+                      </span>
+                    </div>
 
-                  {/* Hero Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenGiftModal('subscription')}
-                      className="flex items-center gap-2 rounded-xl bg-[#A44A4A] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:bg-[#8f3e3e] transition-all hover:scale-[1.01] cursor-pointer"
-                    >
-                      <Gift className="h-4 w-4" />
-                      <span>Buy Wellness Pass / Gift Card</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+                    {/* Hero Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenGiftModal('subscription')}
+                        className="flex items-center gap-2 rounded-xl bg-[#A44A4A] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:bg-[#8f3e3e] transition-all hover:scale-[1.01] cursor-pointer"
+                      >
+                        <Gift className="h-4 w-4" />
+                        <span>Buy Wellness Pass / Gift Card</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
 
-                    <a
-                      href="#class-catalog"
-                      className="flex items-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white/80 backdrop-blur-sm px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#2B2E31] hover:bg-white hover:border-[#7A8B71] transition-colors"
-                    >
-                      <span>Explore Single Classes</span>
-                      <ChevronDown className="h-3.5 w-3.5 text-[#7A8B71]" />
-                    </a>
+                      <a
+                        href="#class-catalog"
+                        className="flex items-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white/85 backdrop-blur-sm px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#2B2E31] hover:bg-white hover:border-[#7A8B71] transition-colors"
+                      >
+                        <span>Explore Single Classes</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-[#7A8B71]" />
+                      </a>
+                    </div>
                   </div>
                 </div>
 
@@ -386,11 +394,10 @@ export default function App() {
                         key={sched.id || sched.label}
                         type="button"
                         onClick={() => handleSelectScheduleSlot(sched)}
-                        className={`group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border p-3 text-left transition-all hover:shadow-sm cursor-pointer ${
-                          isSlotFull
-                            ? 'border-stone-200 bg-stone-50/90 hover:border-amber-300'
-                            : 'border-[#E6E1D8] bg-[#FAF8F5] hover:border-[#7A8B71] hover:bg-[#F1F4EF]'
-                        }`}
+                        className={`group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border p-3 text-left transition-all hover:shadow-sm cursor-pointer ${isSlotFull
+                          ? 'border-stone-200 bg-stone-50/90 hover:border-amber-300'
+                          : 'border-[#E6E1D8] bg-[#FAF8F5] hover:border-[#7A8B71] hover:bg-[#F1F4EF]'
+                          }`}
                       >
                         <div>
                           <div className="flex items-center gap-1.5 text-xs font-bold text-[#2B2E31] group-hover:text-[#5A6952] transition-colors">
