@@ -29,6 +29,8 @@ export default function App() {
   const [classes, setClasses] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [preselectedSlot, setPreselectedSlot] = useState(null);
+  const [bookingInitialData, setBookingInitialData] = useState(null);
   const [activeTab, setActiveTab] = useState('student'); // 'student' | 'instructor'
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,6 +99,8 @@ export default function App() {
   const handleSelectScheduleSlot = (schedule) => {
     const massClass = classes.find((c) => c.id === 'cls-mass') || classes[0];
     setSelectedClass(massClass);
+    const slotString = schedule.label || `${schedule.day} ${schedule.time}`;
+    setPreselectedSlot(slotString);
 
     if (registrationSectionRef.current) {
       registrationSectionRef.current.scrollIntoView({
@@ -104,7 +108,61 @@ export default function App() {
         block: 'start'
       });
     }
-    showToast('info', `Selected ${schedule.label} (GH₵ ${schedule.price})`);
+
+    const isSlotFull =
+      schedule.isFull ||
+      (schedule.spotsLeft ?? (schedule.maxCapacity - schedule.bookedCount)) <= 0;
+
+    if (isSlotFull) {
+      showToast('warning', `${schedule.label || schedule.day} is currently fully booked! Alternative open days are shown below.`);
+    } else {
+      showToast('info', `Selected ${schedule.label || schedule.day} (GH₵ ${schedule.price})`);
+    }
+  };
+
+  // Handle booking another session from SuccessModal (retaining student details)
+  const handleBookAnotherSession = (option) => {
+    setSuccessBooking(null);
+
+    if (!option) {
+      if (registrationSectionRef.current) {
+        registrationSectionRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+      return;
+    }
+
+    // Preserve attendee details for fast 1-tap rebooking
+    if (option.booking) {
+      setBookingInitialData({
+        studentName: option.booking.studentName,
+        email: option.booking.email,
+        phone: option.booking.phone,
+        momoNumber: option.booking.phone,
+        intake: option.booking.intake
+      });
+    }
+
+    const targetClass = classes.find((c) => c.id === option.classId) || classes[0];
+    setSelectedClass(targetClass);
+
+    if (option.slot) {
+      setPreselectedSlot(option.slot);
+      showToast('info', `Switched to ${option.slotLabel || option.slot}! Your details are pre-filled.`);
+    } else {
+      showToast('info', `Selected ${targetClass.title}! Your details are pre-filled.`);
+    }
+
+    setTimeout(() => {
+      if (registrationSectionRef.current) {
+        registrationSectionRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 120);
   };
 
   // Handle booking and Paystack payment submit
@@ -313,37 +371,60 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* 3 Schedule Slots */}
+                {/* 3 Schedule Slots with Real-time Capacity */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 md:gap-3 w-full md:w-auto">
-                  {STUDIO_SCHEDULES.map((sched) => (
-                    <button
-                      key={sched.id}
-                      type="button"
-                      onClick={() => handleSelectScheduleSlot(sched)}
-                      className="group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] p-3 text-left hover:border-[#7A8B71] hover:bg-[#F1F4EF] transition-all hover:shadow-sm"
-                    >
-                      <div>
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#2B2E31] group-hover:text-[#5A6952] transition-colors">
-                          <Calendar className="h-3.5 w-3.5 text-[#7A8B71]" />
-                          <span>{sched.day}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-[11px] text-[#5C6260] mt-0.5">
-                          <Clock className="h-3 w-3 text-[#7A8B71]" />
-                          <span>{sched.time}</span>
-                        </div>
-                      </div>
+                  {(classes.find((c) => c.id === 'cls-mass')?.scheduleSlots || STUDIO_SCHEDULES).map((sched) => {
+                    const isSlotFull =
+                      sched.isFull ||
+                      (sched.spotsLeft ?? (sched.maxCapacity - sched.bookedCount)) <= 0;
+                    const left =
+                      sched.spotsLeft ??
+                      Math.max(0, (sched.maxCapacity || 15) - (sched.bookedCount || 0));
 
-                      <div className="flex items-center gap-2 sm:mt-2 sm:w-full sm:justify-between pt-1 border-t sm:border-[#EDE8E0]">
-                        <span className="font-bold text-xs text-[#2B2E31]">
-                          Gh {sched.price}
-                        </span>
-                        <span className="text-[10px] font-semibold text-[#A44A4A] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                          <span>Book Slot</span>
-                          <ArrowRight className="h-2.5 w-2.5" />
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                    return (
+                      <button
+                        key={sched.id || sched.label}
+                        type="button"
+                        onClick={() => handleSelectScheduleSlot(sched)}
+                        className={`group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border p-3 text-left transition-all hover:shadow-sm cursor-pointer ${
+                          isSlotFull
+                            ? 'border-stone-200 bg-stone-50/90 hover:border-amber-300'
+                            : 'border-[#E6E1D8] bg-[#FAF8F5] hover:border-[#7A8B71] hover:bg-[#F1F4EF]'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-[#2B2E31] group-hover:text-[#5A6952] transition-colors">
+                            <Calendar className={`h-3.5 w-3.5 ${isSlotFull ? 'text-stone-400' : 'text-[#7A8B71]'}`} />
+                            <span className={isSlotFull ? 'line-through text-stone-600' : ''}>{sched.day}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] text-[#5C6260] mt-0.5">
+                            <Clock className="h-3 w-3 text-[#7A8B71]" />
+                            <span>{sched.time}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:mt-2 sm:w-full sm:justify-between pt-1 border-t sm:border-[#EDE8E0]">
+                          <span className="font-bold text-xs text-[#2B2E31]">
+                            GH₵ {sched.price || 200}
+                          </span>
+                          {isSlotFull ? (
+                            <span className="text-[10px] font-bold text-[#A44A4A] bg-[#F9F3F4] px-1.5 py-0.5 rounded border border-[#EAD3D5]">
+                              Sold Out
+                            </span>
+                          ) : left <= 2 ? (
+                            <span className="text-[10px] font-bold text-[#B45309] bg-[#FFFBEB] px-1.5 py-0.5 rounded border border-[#FDE68A] animate-pulse">
+                              {left} left
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-semibold text-[#5A6952] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                              <span>{left} open</span>
+                              <ArrowRight className="h-2.5 w-2.5" />
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -431,7 +512,10 @@ export default function App() {
                 className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full max-w-full overflow-hidden scroll-mt-20 sm:scroll-mt-24"
               >
                 <RegistrationForm
+                  key={`${selectedClass?.id || 'none'}-${preselectedSlot || 'none'}-${bookingInitialData ? bookingInitialData.studentName : 'fresh'}`}
                   selectedClass={selectedClass}
+                  preselectedSlot={preselectedSlot}
+                  initialData={bookingInitialData}
                   onSubmitBooking={handleBookingSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={() => setSelectedClass(null)}
@@ -469,6 +553,8 @@ export default function App() {
       {/* Success Modal Confirmation */}
       <SuccessModal
         booking={successBooking}
+        classes={classes}
+        onBookAnotherSession={handleBookAnotherSession}
         onClose={() => setSuccessBooking(null)}
         onViewDashboard={() => {
           setSuccessBooking(null);

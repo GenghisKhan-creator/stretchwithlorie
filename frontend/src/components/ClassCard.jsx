@@ -47,9 +47,43 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
   const displayImage = image || CLASS_FALLBACK_IMAGES[yogaClass.id] || null;
   const imagePos = imagePosition || CLASS_IMAGE_POSITIONS[yogaClass.id] || 'object-center';
-  const spotsLeft = Math.max(0, maxCapacity - bookedCount);
-  const isFull = spotsLeft === 0;
-  const isLowCapacity = spotsLeft > 0 && spotsLeft <= 3;
+
+  // Compute slot-aware or session-option-aware capacities
+  let spotsLeft = Math.max(0, maxCapacity - bookedCount);
+  let isFull = spotsLeft === 0;
+  let slotSummaryText = null;
+
+  if (yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0) {
+    const openSlots = yogaClass.scheduleSlots.filter((s) => !s.isFull && (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) > 0);
+    const fullSlots = yogaClass.scheduleSlots.filter((s) => s.isFull || (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) <= 0);
+    
+    // Total remaining spots across all slots
+    const totalSlotsLeft = yogaClass.scheduleSlots.reduce(
+      (sum, s) => sum + Math.max(0, s.spotsLeft ?? (s.maxCapacity - s.bookedCount)),
+      0
+    );
+    spotsLeft = totalSlotsLeft;
+    // Entire class is only full if ALL slots are full
+    isFull = openSlots.length === 0;
+
+    if (fullSlots.length > 0 && openSlots.length > 0) {
+      const fullDayNames = fullSlots.map((s) => s.day.replace(/s$/, '')).join(' & ');
+      const openDayNames = openSlots.map((s) => s.day.replace(/s$/, '')).join(' & ');
+      slotSummaryText = `${fullDayNames} Sold Out • ${openDayNames} Open`;
+    }
+  } else if (yogaClass.hasSessionOptions && yogaClass.sessionOptions?.length > 0) {
+    const openOptions = yogaClass.sessionOptions.filter((opt) => !opt.isFull && (opt.spotsLeft ?? 1) > 0);
+    const fullOptions = yogaClass.sessionOptions.filter((opt) => opt.isFull || (opt.spotsLeft ?? 1) <= 0);
+    const totalOptsLeft = yogaClass.sessionOptions.reduce((sum, opt) => sum + Math.max(0, opt.spotsLeft ?? 1), 0);
+    spotsLeft = totalOptsLeft;
+    isFull = openOptions.length === 0;
+
+    if (fullOptions.length > 0 && openOptions.length > 0) {
+      slotSummaryText = `${openOptions.length} of ${yogaClass.sessionOptions.length} dates open`;
+    }
+  }
+
+  const isLowCapacity = spotsLeft > 0 && spotsLeft <= 4;
 
   // Render Card with Full-Bleed Image Background
   if (displayImage) {
@@ -106,6 +140,11 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 <span className="inline-flex items-center gap-1 rounded-full bg-stone-900/80 backdrop-blur-md border border-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-xs">
                   Sold Out
                 </span>
+              ) : slotSummaryText ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#C8A253]/60 px-2.5 py-0.5 text-[11px] font-semibold text-[#F7E7C4] shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#C8A253] shrink-0" />
+                  <span>{spotsLeft} spots • {slotSummaryText}</span>
+                </span>
               ) : isLowCapacity ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-rose-600/90 backdrop-blur-md border border-white/30 px-2.5 py-0.5 text-[11px] font-semibold text-white animate-pulse shadow-xs">
                   <AlertCircle className="h-3 w-3 text-white" />
@@ -155,6 +194,58 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 <MapPin className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
                 <span className="truncate">{room}</span>
               </div>
+
+              {/* Slot-level capacity indicator pills */}
+              {yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0 && (
+                <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+                  {yogaClass.scheduleSlots.map((slot) => {
+                    const isSlotFull = slot.isFull || (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
+                    const left = slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount);
+                    return (
+                      <span
+                        key={slot.id}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${
+                          isSlotFull
+                            ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                            : left <= 2
+                            ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
+                            : 'bg-white/15 text-white border border-white/20'
+                        }`}
+                        title={isSlotFull ? `${slot.label} is fully booked` : `${slot.label}: ${left} spots available`}
+                      >
+                        <span>{slot.day.slice(0, 3)} {slot.time}</span>
+                        <span className="font-bold">
+                          {isSlotFull ? '(Full)' : `(${left} left)`}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Session options indicator pills (e.g. Masterclass dates) */}
+              {yogaClass.hasSessionOptions && yogaClass.sessionOptions?.length > 0 && !yogaClass.isPrivateOneOnOne && (
+                <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+                  {yogaClass.sessionOptions.slice(0, 3).map((opt) => {
+                    const isOptFull = opt.isFull || (opt.spotsLeft ?? 1) <= 0;
+                    const left = opt.spotsLeft ?? 1;
+                    return (
+                      <span
+                        key={opt.id}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium ${
+                          isOptFull
+                            ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                            : 'bg-white/15 text-white border border-white/20'
+                        }`}
+                        title={isOptFull ? `${opt.label || opt.date} is fully booked` : `${opt.label || opt.date}: ${left} spots`}
+                      >
+                        <span className="truncate max-w-[130px]">{opt.label || opt.date}</span>
+                        <span className="font-bold">{isOptFull ? '(Full)' : `(${left})`}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Instructor info row */}
@@ -212,7 +303,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                   disabled
                   className="w-full sm:w-auto rounded-xl bg-white/20 text-white/50 px-4 py-2.5 text-xs font-medium cursor-not-allowed text-center"
                 >
-                  Waitlist Only
+                  Sold Out
                 </button>
               ) : isSelected ? (
                 <div className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-[#5A6952] px-4 py-2.5 text-xs font-semibold text-white shadow-lg border border-white/30 text-center">
@@ -277,6 +368,11 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               <span className="inline-flex items-center gap-1 rounded-full bg-stone-900/80 backdrop-blur-md border border-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-xs">
                 Sold Out
               </span>
+            ) : slotSummaryText ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#C8A253]/60 px-2.5 py-0.5 text-[11px] font-semibold text-[#F7E7C4] shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C8A253] shrink-0" />
+                <span>{spotsLeft} spots • {slotSummaryText}</span>
+              </span>
             ) : isLowCapacity ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-rose-600/90 backdrop-blur-md border border-white/30 px-2.5 py-0.5 text-[11px] font-semibold text-white animate-pulse shadow-xs">
                 <AlertCircle className="h-3 w-3 text-white" />
@@ -326,6 +422,34 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               <MapPin className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
               <span className="truncate">{room}</span>
             </div>
+
+            {/* Slot-level capacity indicator pills */}
+            {yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0 && (
+              <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+                {yogaClass.scheduleSlots.map((slot) => {
+                  const isSlotFull = slot.isFull || (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
+                  const left = slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount);
+                  return (
+                    <span
+                      key={slot.id}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${
+                        isSlotFull
+                          ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                          : left <= 2
+                          ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
+                          : 'bg-white/15 text-white border border-white/20'
+                      }`}
+                      title={isSlotFull ? `${slot.label} is fully booked` : `${slot.label}: ${left} spots available`}
+                    >
+                      <span>{slot.day.slice(0, 3)} {slot.time}</span>
+                      <span className="font-bold">
+                        {isSlotFull ? '(Full)' : `(${left} left)`}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Instructor info row */}

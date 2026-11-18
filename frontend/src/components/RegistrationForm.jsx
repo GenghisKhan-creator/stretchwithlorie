@@ -47,21 +47,62 @@ export function PaystackIcon({ className = 'h-4 w-4' }) {
   );
 }
 
-export default function RegistrationForm({ selectedClass, onSubmitBooking, isSubmitting, onCancel }) {
+export default function RegistrationForm({
+  selectedClass,
+  preselectedSlot,
+  initialData,
+  onSubmitBooking,
+  isSubmitting,
+  onCancel
+}) {
+  // Compute initial slot
+  const defaultSlot = () => {
+    if (preselectedSlot) return preselectedSlot;
+    if (selectedClass?.hasScheduleSlots && selectedClass.scheduleSlots?.length > 0) {
+      const firstOpen =
+        selectedClass.scheduleSlots.find(
+          (s) => !s.isFull && (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) > 0
+        ) || selectedClass.scheduleSlots[0];
+      return `${firstOpen.day} ${firstOpen.time}`;
+    }
+    return 'Wednesdays 7:00 AM';
+  };
+
+  // Compute initial session option ID
+  const defaultSessionId = () => {
+    if (selectedClass?.hasSessionOptions && selectedClass.sessionOptions?.length > 0) {
+      const firstOpenOpt =
+        selectedClass.sessionOptions.find((opt) => !opt.isFull && (opt.spotsLeft ?? 1) > 0) ||
+        selectedClass.sessionOptions[0];
+      return firstOpenOpt.id;
+    }
+    return '';
+  };
+
+  // Compute default private session date
+  const defaultPrivateDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
+    fullName: initialData?.studentName || initialData?.fullName || '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || '',
     healthNotes: '',
     paymentChannel: 'momo', // 'momo' (Mobile Money) or 'card'
     momoNetwork: 'MTN', // 'MTN' | 'Telecel' | 'AirtelTigo'
-    momoNumber: '',
+    momoNumber: initialData?.phone || '',
     locationOption: 'studio', // 'studio' | 'clientLocation'
     clientAddress: '',
-    selectedSlot: 'Wednesdays 7:00 AM',
+    selectedSlot: defaultSlot(),
+    selectedSessionId: defaultSessionId(),
+    preferredDate: defaultPrivateDate(),
+    selectedTimeWindow: 'Morning (7:00 AM - 10:00 AM)',
     // New Client Questionnaire State
-    isFirstTime: true,
-    intake: {
+    isFirstTime: initialData?.isFirstTime !== undefined ? initialData.isFirstTime : true,
+    intake: initialData?.intake || {
       practicedBefore: 'Yes', // 'Yes' | 'No'
       experienceLevel: 'Beginner', // 'Beginner' | 'Intermediate' | 'Advanced'
       mainGoal: 'Flexibility & Mobility',
@@ -121,6 +162,42 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
     );
   }
 
+  // Active slot lookup & capacity state
+  const currentSlotObj = selectedClass?.scheduleSlots?.find(
+    (s) =>
+      s.id === formData.selectedSlot ||
+      `${s.day} ${s.time}` === formData.selectedSlot ||
+      s.label === formData.selectedSlot ||
+      (formData.selectedSlot && formData.selectedSlot.includes(s.day))
+  );
+
+  const isSelectedSlotFull = currentSlotObj
+    ? currentSlotObj.isFull || (currentSlotObj.spotsLeft ?? (currentSlotObj.maxCapacity - currentSlotObj.bookedCount)) <= 0
+    : false;
+
+  const availableAlternativeSlots = selectedClass?.scheduleSlots?.filter(
+    (s) =>
+      !s.isFull &&
+      (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) > 0 &&
+      s.id !== currentSlotObj?.id
+  ) || [];
+
+  // Active session option lookup for Masterclass / Thai Yoga
+  const currentOptionObj = selectedClass?.sessionOptions?.find(
+    (opt) => opt.id === formData.selectedSessionId
+  );
+
+  const isSelectedOptionFull = currentOptionObj
+    ? currentOptionObj.isFull || (currentOptionObj.spotsLeft ?? 1) <= 0
+    : false;
+
+  const availableAlternativeOptions = selectedClass?.sessionOptions?.filter(
+    (opt) =>
+      !opt.isFull &&
+      (opt.spotsLeft ?? 1) > 0 &&
+      opt.id !== currentOptionObj?.id
+  ) || [];
+
   // Calculate dynamic price (handles studio Gh 300 vs client location Gh 500 for private sessions)
   const currentPrice = selectedClass.locationPricing
     ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
@@ -145,6 +222,15 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
       errs.phone = 'Please provide a phone / WhatsApp number.';
     } else if (formData.phone.trim().length < 7) {
       errs.phone = 'Please provide a valid phone number.';
+    }
+
+    // Capacity checks:
+    if (selectedClass.hasScheduleSlots && isSelectedSlotFull) {
+      errs.selectedSlot = `The ${currentSlotObj?.label || 'selected'} session is fully booked. Please select an open day.`;
+    }
+
+    if (selectedClass.hasSessionOptions && !selectedClass.isPrivateOneOnOne && isSelectedOptionFull) {
+      errs.selectedSession = `The ${currentOptionObj?.label || currentOptionObj?.date || 'selected'} session date is fully booked. Please select an alternative date.`;
     }
 
     if (selectedClass.locationPricing && formData.locationOption === 'clientLocation') {
@@ -240,6 +326,12 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
         paymentMethod: paymentMethodName,
         classTitle: sessionTitle,
         classId: selectedClass.id,
+        slotId: currentSlotObj?.id,
+        selectedSlot: currentSlotObj ? `${currentSlotObj.day} ${currentSlotObj.time}` : formData.selectedSlot,
+        selectedSessionId: formData.selectedSessionId,
+        selectedOptionId: formData.selectedSessionId,
+        preferredDate: formData.preferredDate,
+        selectedTimeWindow: formData.selectedTimeWindow,
         locationType: selectedClass.locationPricing
           ? formData.locationOption === 'clientLocation'
             ? `Client Location (${formData.clientAddress.trim()})`
@@ -325,42 +417,289 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-4 sm:p-7 space-y-5">
 
-        {/* Step 1: Session Preferences (If Mass Yoga or Private One-on-One) */}
-        {selectedClass.hasScheduleSlots && (
-          <div className="space-y-2.5 pb-4 border-b border-[#EDE8E0]">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31]">
-              Choose Your Weekly Schedule Slot
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                { day: 'Wednesdays', time: '7:00 AM', label: 'Wed 7:00 AM', focus: 'Morning Stretch' },
-                { day: 'Saturdays', time: '8:30 AM', label: 'Sat 8:30 AM', focus: 'Weekend Awakening' },
-                { day: 'Sundays', time: '6:00 PM', label: 'Sun 6:00 PM', focus: 'Sunset Grounding' }
-              ].map((slot) => {
-                const isSelectedSlot = formData.selectedSlot === `${slot.day} ${slot.time}`;
+        {/* Step 1: Session Preferences (Weekly Schedule Slot for Mass Yoga) */}
+        {selectedClass.hasScheduleSlots && selectedClass.scheduleSlots?.length > 0 && (
+          <div className="space-y-3 pb-4 border-b border-[#EDE8E0]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31]">
+                Choose Your Weekly Schedule Slot
+              </label>
+              <span className="text-[11px] font-medium text-[#5A6952]">
+                60 min each • Studio Sanctuary
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {selectedClass.scheduleSlots.map((slot) => {
+                const isSelectedSlot =
+                  formData.selectedSlot === `${slot.day} ${slot.time}` ||
+                  formData.selectedSlot === slot.label ||
+                  formData.selectedSlot === slot.id;
+                const isSlotFull =
+                  slot.isFull ||
+                  (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
+                const left =
+                  slot.spotsLeft ??
+                  Math.max(0, slot.maxCapacity - slot.bookedCount);
+
                 return (
                   <button
-                    key={slot.label}
+                    key={slot.id || slot.label}
                     type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: `${slot.day} ${slot.time}` }))}
-                    className={`flex sm:flex-col items-center sm:items-start justify-between rounded-2xl p-3 border transition-all text-left ${isSelectedSlot
-                        ? 'border-[#7A8B71] bg-[#F1F4EF] ring-2 ring-[#7A8B71]/20'
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        selectedSlot: `${slot.day} ${slot.time}`
+                      }));
+                      if (errors.selectedSlot) {
+                        setErrors((prev) => ({ ...prev, selectedSlot: undefined }));
+                      }
+                    }}
+                    className={`relative flex sm:flex-col items-center sm:items-start justify-between rounded-2xl p-3 border transition-all text-left ${
+                      isSelectedSlot
+                        ? isSlotFull
+                          ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/30 shadow-xs'
+                          : 'border-[#7A8B71] bg-[#F1F4EF] ring-2 ring-[#7A8B71]/30 shadow-xs'
+                        : isSlotFull
+                        ? 'border-stone-200 bg-stone-50/80 hover:bg-stone-100/90 text-stone-500'
                         : 'border-[#E6E1D8] bg-white hover:bg-[#FAF6F3]'
-                      }`}
+                    }`}
                   >
                     <div>
                       <div className="flex items-center gap-1.5 font-bold text-xs text-[#2B2E31]">
-                        <Calendar className="h-3.5 w-3.5 text-[#7A8B71] shrink-0" />
-                        <span>{slot.label}</span>
+                        <Calendar className={`h-3.5 w-3.5 shrink-0 ${isSlotFull ? 'text-stone-400' : 'text-[#7A8B71]'}`} />
+                        <span className={isSlotFull ? 'line-through text-stone-600' : ''}>{slot.label}</span>
                       </div>
                       <span className="text-[11px] text-[#5C6260] block mt-0.5">{slot.focus}</span>
                     </div>
-                    <span className="font-bold text-xs text-[#A44A4A] mt-0 sm:mt-1.5 bg-[#F9F3F4] px-2 py-0.5 rounded-lg border border-[#EAD3D5]">
-                      GH₵ 200
-                    </span>
+
+                    <div className="mt-0 sm:mt-2 flex items-center gap-1.5 flex-wrap justify-end sm:justify-start">
+                      {isSlotFull ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#A44A4A] bg-[#F9F3F4] px-2 py-0.5 rounded-lg border border-[#EAD3D5]">
+                          <Lock className="h-2.5 w-2.5" />
+                          Sold Out
+                        </span>
+                      ) : left <= 2 ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded-lg border border-[#FDE68A] animate-pulse">
+                          Only {left} spots left
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#5A6952] bg-[#E5ECE2] px-2 py-0.5 rounded-lg border border-[#DCE4D9]">
+                          {left} spots open
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
+            </div>
+
+            {/* Alternative Day Recommendation Banner if Selected Slot is Full */}
+            {isSelectedSlotFull && (
+              <div className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-[#FFFDF9] p-3.5 sm:p-4 text-xs space-y-2.5 animate-in fade-in duration-200 shadow-2xs">
+                <div className="flex items-start gap-2.5">
+                  <div className="h-6 w-6 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs shadow-2xs">
+                    !
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#8C5E14] text-xs sm:text-sm">
+                      {currentSlotObj?.label} is currently fully booked!
+                    </p>
+                    <p className="text-[#5C6260] text-[11px] sm:text-xs mt-0.5 leading-relaxed">
+                      All 15 mats for this day are reserved. You can easily switch to another open day this week:
+                    </p>
+                  </div>
+                </div>
+
+                {availableAlternativeSlots.length > 0 ? (
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    {availableAlternativeSlots.map((altSlot) => {
+                      const left = altSlot.spotsLeft ?? (altSlot.maxCapacity - altSlot.bookedCount);
+                      return (
+                        <button
+                          key={altSlot.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              selectedSlot: `${altSlot.day} ${altSlot.time}`
+                            }));
+                            if (errors.selectedSlot) {
+                              setErrors((prev) => ({ ...prev, selectedSlot: undefined }));
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#7A8B71] text-[#2B2E31] font-semibold hover:bg-[#F1F4EF] hover:border-[#5A6952] active:scale-[0.98] transition-all shadow-xs group cursor-pointer"
+                        >
+                          <Calendar className="h-3.5 w-3.5 text-[#7A8B71] group-hover:scale-110 transition-transform" />
+                          <span>Switch to <strong>{altSlot.label}</strong></span>
+                          <span className="text-[10px] text-[#5A6952] font-bold bg-[#E5ECE2] px-1.5 py-0.5 rounded">
+                            {left} spots left
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#A44A4A] font-semibold italic">
+                    All group sessions for this week are fully booked. Check our Flexibility Masterclass or 1-on-1 Private Yoga sessions below.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Masterclass Session Dates Selection */}
+        {selectedClass.hasSessionOptions && !selectedClass.isPrivateOneOnOne && selectedClass.sessionOptions?.length > 0 && (
+          <div className="space-y-3 pb-4 border-b border-[#EDE8E0]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31]">
+                Select Masterclass Session Date
+              </label>
+              <span className="text-[11px] font-medium text-[#5A6952]">
+                60 min intensive
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {selectedClass.sessionOptions.map((opt) => {
+                const isSelected = formData.selectedSessionId === opt.id;
+                const isOptFull = opt.isFull || (opt.spotsLeft ?? 1) <= 0;
+                const left = opt.spotsLeft ?? 1;
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, selectedSessionId: opt.id }));
+                      if (errors.selectedSession) {
+                        setErrors((prev) => ({ ...prev, selectedSession: undefined }));
+                      }
+                    }}
+                    className={`flex flex-col justify-between rounded-2xl p-3 border transition-all text-left ${
+                      isSelected
+                        ? isOptFull
+                          ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/30 shadow-xs'
+                          : 'border-[#7A8B71] bg-[#F1F4EF] ring-2 ring-[#7A8B71]/30 shadow-xs'
+                        : isOptFull
+                        ? 'border-stone-200 bg-stone-50/80 text-stone-500 hover:bg-stone-100'
+                        : 'border-[#E6E1D8] bg-white hover:bg-[#FAF6F3]'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-[#2B2E31]">
+                        <Calendar className={`h-3.5 w-3.5 shrink-0 ${isOptFull ? 'text-stone-400' : 'text-[#7A8B71]'}`} />
+                        <span className={isOptFull ? 'line-through text-stone-600' : ''}>{opt.label || opt.date}</span>
+                      </div>
+                      <span className="text-[11px] text-[#5C6260] block mt-0.5">{opt.time}</span>
+                    </div>
+
+                    <div className="mt-2">
+                      {isOptFull ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#A44A4A] bg-[#F9F3F4] px-2 py-0.5 rounded-lg border border-[#EAD3D5]">
+                          <Lock className="h-2.5 w-2.5" />
+                          Sold Out
+                        </span>
+                      ) : left <= 3 ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded-lg border border-[#FDE68A]">
+                          Only {left} spots left
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10px] text-[#5A6952] bg-[#E5ECE2] px-2 py-0.5 rounded-lg border border-[#DCE4D9]">
+                          {left} spots open
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Alternative Date Suggestion if Selected Option is Full */}
+            {isSelectedOptionFull && (
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-3.5 text-xs space-y-2 animate-in fade-in duration-200">
+                <p className="font-bold text-[#8C5E14]">
+                  This session date ({currentOptionObj?.label || currentOptionObj?.date}) is fully booked!
+                </p>
+                <p className="text-[#5C6260] text-[11px]">
+                  Switch to one of our other open Saturday intensive dates:
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {availableAlternativeOptions.map((altOpt) => (
+                    <button
+                      key={altOpt.id}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, selectedSessionId: altOpt.id }))}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#7A8B71] text-[#2B2E31] font-semibold hover:bg-[#F1F4EF] cursor-pointer"
+                    >
+                      <span>Switch to <strong>{altOpt.label || altOpt.date}</strong></span>
+                      <span className="text-[10px] text-[#5A6952] font-bold bg-[#E5ECE2] px-1.5 py-0.2 rounded">
+                        {altOpt.spotsLeft} spots
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Private One-on-One: Preferred Date & Time Window */}
+        {selectedClass.isPrivateOneOnOne && (
+          <div className="space-y-3 pb-4 border-b border-[#EDE8E0]">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31]">
+              Preferred Session Date & Time Window
+            </label>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-[#5C6260]">
+                Select Date for Your Private Session
+              </label>
+              <input
+                type="date"
+                name="preferredDate"
+                value={formData.preferredDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={handleChange}
+                className="w-full rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] py-2.5 px-4 text-xs sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71] focus:bg-white"
+              />
+            </div>
+
+            <div className="space-y-1.5 pt-1">
+              <label className="block text-xs font-medium text-[#5C6260]">
+                Preferred Time of Day Window
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {selectedClass.sessionOptions?.map((opt) => {
+                  const isSelected = formData.selectedTimeWindow === opt.timeWindow;
+                  const isOptFull = opt.isFull || (opt.spotsLeft ?? 1) <= 0;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, selectedTimeWindow: opt.timeWindow }))}
+                      className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
+                        isSelected
+                          ? isOptFull
+                            ? 'border-[#A44A4A] bg-[#FFF8F8] ring-2 ring-[#A44A4A]/20'
+                            : 'border-[#7A8B71] bg-[#F1F4EF] ring-2 ring-[#7A8B71]/20 font-bold'
+                          : isOptFull
+                          ? 'border-stone-200 bg-stone-50 text-stone-400'
+                          : 'border-[#E6E1D8] bg-white hover:bg-[#FAF6F3]'
+                      }`}
+                    >
+                      <span className="block font-semibold text-[#2B2E31]">{opt.label}</span>
+                      <span className="text-[10px] text-[#5C6260] block">{opt.timeWindow}</span>
+                      <span className={`text-[10px] font-bold mt-1 inline-block ${
+                        isOptFull ? 'text-[#A44A4A]' : 'text-[#5A6952]'
+                      }`}>
+                        {isOptFull ? 'Full (Pick other)' : `${opt.spotsLeft} openings`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -1138,47 +1477,75 @@ export default function RegistrationForm({ selectedClass, onSubmitBooking, isSub
 
         {/* Action Button: Pay & Register via Paystack */}
         <div className="pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold text-white shadow-lg transition-all duration-300 ${isSubmitting
-                ? 'bg-[#A44A4A]/80 cursor-wait'
-                : 'bg-[#A44A4A] hover:bg-[#8C3E3E] active:scale-[0.99] hover:shadow-xl'
-              }`}
-          >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="h-5 w-5 animate-spin text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Processing Paystack Reservation...</span>
-              </>
-            ) : (
-              <>
-                <Lock className="h-4 w-4" />
-                <span>
-                  Pay GH₵{currentPrice}.00 with Paystack
-                </span>
-              </>
-            )}
-          </button>
+          {((selectedClass.hasScheduleSlots && isSelectedSlotFull) ||
+            (selectedClass.hasSessionOptions && !selectedClass.isPrivateOneOnOne && isSelectedOptionFull)) ? (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-center space-y-2.5">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-[#8C5E14]">
+                <AlertCircle className="h-4 w-4 text-[#8C5E14] shrink-0" />
+                <span>Selected Session Day Is Fully Booked</span>
+              </div>
+              <p className="text-[11px] text-[#5C6260]">
+                All mats for {currentSlotObj?.label || currentOptionObj?.label || 'this session'} are taken. Please select an available alternative day above to continue to payment.
+              </p>
+              {availableAlternativeSlots.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                  {availableAlternativeSlots.map((altSlot) => (
+                    <button
+                      key={altSlot.id}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, selectedSlot: `${altSlot.day} ${altSlot.time}` }))}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#7A8B71] text-[#2B2E31] text-xs font-semibold hover:bg-[#F1F4EF] shadow-2xs cursor-pointer"
+                    >
+                      <Calendar className="h-3.5 w-3.5 text-[#7A8B71]" />
+                      <span>Switch to <strong>{altSlot.label}</strong></span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold text-white shadow-lg transition-all duration-300 ${isSubmitting
+                  ? 'bg-[#A44A4A]/80 cursor-wait'
+                  : 'bg-[#A44A4A] hover:bg-[#8C3E3E] active:scale-[0.99] hover:shadow-xl cursor-pointer'
+                }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Processing Paystack Reservation...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4" />
+                  <span>
+                    Pay GH₵{currentPrice}.00 with Paystack
+                  </span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Security & Cancellation guarantees */}
           <div className="mt-3.5 flex flex-col sm:flex-row items-center justify-center gap-2 text-center text-xs text-[#5C6260]">

@@ -9,14 +9,23 @@ import {
   ArrowRight,
   Sparkles,
   X,
-  CreditCard
+  CreditCard,
+  Lock,
+  PlusCircle
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportBookingPassPDF } from '../utils/pdfExport';
+import { STUDIO_SCHEDULES } from '../data/mockData';
 
-export default function SuccessModal({ booking, onClose, onViewDashboard }) {
+export default function SuccessModal({
+  booking,
+  classes = [],
+  onBookAnotherSession,
+  onClose,
+  onViewDashboard
+}) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   if (!booking) return null;
@@ -35,6 +44,10 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
     paymentMethod,
     healthNotes
   } = booking;
+
+  // Find Mass Yoga class if exists
+  const massClass = classes.find((c) => c.id === 'cls-mass') || null;
+  const currentSlots = massClass?.scheduleSlots || STUDIO_SCHEDULES;
 
   // Generate downloadable iCalendar (.ics) file
   const handleDownloadCalendar = () => {
@@ -81,7 +94,7 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 rounded-full p-2 text-[#5C6260] bg-white/90 hover:bg-[#EAE4DC] hover:text-[#2B2E31] border border-[#E6E1D8] shadow-2xs transition-colors"
+            className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 z-20 rounded-full p-2 text-[#5C6260] bg-white/90 hover:bg-[#EAE4DC] hover:text-[#2B2E31] border border-[#E6E1D8] shadow-2xs transition-colors cursor-pointer"
             title="Close confirmation"
             aria-label="Close"
           >
@@ -201,7 +214,7 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
             <button
               type="button"
               onClick={handleDownloadCalendar}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-[#E6E1D8] bg-white p-2.5 sm:p-3 text-xs font-semibold text-[#2B2E31] hover:bg-[#FAF8F5] active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
             >
               <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
               <span className="truncate">Add to Calendar</span>
@@ -228,12 +241,122 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
             </button>
           </div>
 
+          {/* Book for Other Days & Sessions Feature */}
+          <div className="mt-4 rounded-2xl bg-gradient-to-br from-[#F1F4EF] via-[#FAF8F5] to-[#EFECE6] border border-[#DCE4D9] p-3.5 sm:p-4 text-xs space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-[#7A8B71] shrink-0" />
+                <h4 className="font-serif text-xs sm:text-sm font-bold text-[#2B2E31]">
+                  Book for Other Days & Sessions
+                </h4>
+              </div>
+              <span className="text-[10px] font-bold text-[#5A6952] bg-white px-2 py-0.5 rounded-full border border-[#DCE4D9] shrink-0 shadow-2xs">
+                1-Tap Pre-Filled
+              </span>
+            </div>
+
+            <p className="text-[11px] text-[#5C6260] leading-relaxed">
+              Want to stretch again this week? Pick another day below — your attendee information and health profile will stay pre-filled for a fast checkout.
+            </p>
+
+            {/* Other Weekly Mass Slots */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5A6952] block">
+                Available Weekly Mass Yoga Mats:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {currentSlots.map((slot) => {
+                  const isSlotFull = slot.isFull || (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
+                  const left = slot.spotsLeft ?? Math.max(0, slot.maxCapacity - slot.bookedCount);
+                  const isAlreadyBookedDay = className.includes(slot.day) || className.includes(slot.label);
+
+                  return (
+                    <button
+                      key={slot.id || slot.label}
+                      type="button"
+                      disabled={isSlotFull}
+                      onClick={() =>
+                        onBookAnotherSession &&
+                        onBookAnotherSession({
+                          classId: 'cls-mass',
+                          slot: `${slot.day} ${slot.time}`,
+                          slotLabel: slot.label,
+                          booking
+                        })
+                      }
+                      className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                        isSlotFull
+                          ? 'bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed opacity-75'
+                          : isAlreadyBookedDay
+                          ? 'bg-[#E5ECE2]/70 border-[#7A8B71] text-[#2B2E31] cursor-pointer hover:bg-[#E5ECE2]'
+                          : 'bg-white border-[#DCE4D9] hover:border-[#7A8B71] hover:bg-[#FAF8F5] cursor-pointer shadow-2xs group'
+                      }`}
+                    >
+                      <div className="min-w-0 pr-1">
+                        <div className="flex items-center gap-1 font-bold text-xs text-[#2B2E31] group-hover:text-[#5A6952] truncate">
+                          <Calendar className="h-3 w-3 text-[#7A8B71] shrink-0" />
+                          <span className="truncate">{slot.label}</span>
+                        </div>
+                        <span className="text-[10px] text-[#5C6260] block truncate">{slot.focus}</span>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        {isSlotFull ? (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[#A44A4A] bg-[#F9F3F4] px-1.5 py-0.5 rounded border border-[#EAD3D5]">
+                            <Lock className="h-2 w-2" /> Full
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[#5A6952] bg-[#E5ECE2] px-1.5 py-0.5 rounded border border-[#DCE4D9]">
+                            {left} left
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Other Signature Offerings */}
+            <div className="pt-2 border-t border-[#DCE4D9]/70 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  onBookAnotherSession &&
+                  onBookAnotherSession({
+                    classId: 'cls-masterclass',
+                    booking
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DCE4D9] hover:border-[#C8A253] text-[#2B2E31] text-[11px] font-semibold transition-all shadow-2xs cursor-pointer group"
+              >
+                <PlusCircle className="h-3.5 w-3.5 text-[#C8A253] group-hover:rotate-90 transition-transform" />
+                <span>Flexibility Masterclass (GH₵250)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onBookAnotherSession &&
+                  onBookAnotherSession({
+                    classId: 'cls-private',
+                    booking
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DCE4D9] hover:border-[#7A8B71] text-[#2B2E31] text-[11px] font-semibold transition-all shadow-2xs cursor-pointer group"
+              >
+                <PlusCircle className="h-3.5 w-3.5 text-[#7A8B71] group-hover:rotate-90 transition-transform" />
+                <span>1-on-1 Private Session (From GH₵300)</span>
+              </button>
+            </div>
+          </div>
+
           {/* Primary Next Actions */}
           <div className="mt-3.5 sm:mt-5 space-y-2">
             <button
               type="button"
               onClick={onViewDashboard}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#A44A4A] py-3 sm:py-3.5 px-4 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-[#8C3E3E] active:scale-[0.99] transition-all"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#A44A4A] py-3 sm:py-3.5 px-4 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-[#8C3E3E] active:scale-[0.99] transition-all cursor-pointer"
             >
               <span>See Live in Instructor Dashboard</span>
               <ArrowRight className="h-4 w-4 shrink-0" />
@@ -242,9 +365,9 @@ export default function SuccessModal({ booking, onClose, onViewDashboard }) {
             <button
               type="button"
               onClick={onClose}
-              className="w-full rounded-2xl border border-transparent py-2 text-center text-xs font-semibold text-[#5C6260] hover:text-[#2B2E31] hover:bg-[#EAE4DC]/50 transition-colors"
+              className="w-full rounded-2xl border border-transparent py-2 text-center text-xs font-semibold text-[#5C6260] hover:text-[#2B2E31] hover:bg-[#EAE4DC]/50 transition-colors cursor-pointer"
             >
-              Book Another Class
+              Close Confirmation
             </button>
           </div>
 

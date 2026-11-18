@@ -16,7 +16,11 @@ export const STUDIO_SCHEDULES = [
     price: 200,
     label: "Wednesdays 7:00 AM",
     focus: "Morning Stretch & Flow",
-    classId: "cls-mass"
+    classId: "cls-mass",
+    maxCapacity: 15,
+    bookedCount: 11,
+    spotsLeft: 4,
+    isFull: false
   },
   {
     id: "sched-sat",
@@ -26,7 +30,11 @@ export const STUDIO_SCHEDULES = [
     price: 200,
     label: "Saturdays 8:30 AM",
     focus: "Weekend Awakening & Mobility",
-    classId: "cls-mass"
+    classId: "cls-mass",
+    maxCapacity: 15,
+    bookedCount: 13,
+    spotsLeft: 2,
+    isFull: false
   },
   {
     id: "sched-sun",
@@ -36,7 +44,11 @@ export const STUDIO_SCHEDULES = [
     price: 200,
     label: "Sundays 6:00 PM",
     focus: "Sunset Grounding & Unwind",
-    classId: "cls-mass"
+    classId: "cls-mass",
+    maxCapacity: 15,
+    bookedCount: 15,
+    spotsLeft: 0,
+    isFull: true
   }
 ];
 
@@ -107,16 +119,46 @@ export const INITIAL_CLASSES = [
     time: "Wed 7am • Sat 8:30am • Sun 6pm",
     duration: "60 min",
     price: 200,
-    maxCapacity: 15,
-    bookedCount: 11, // 4 spots left
+    maxCapacity: 45,
+    bookedCount: 39, // 6 spots left total (Wed: 4, Sat: 2, Sun: 0)
     level: "All Levels Welcome",
     intensity: "Moderate / Accessible",
     room: "Studio Sanctuary",
     hasScheduleSlots: true,
     scheduleSlots: [
-      { id: "slot-wed", day: "Wednesdays", time: "7:00 AM", label: "Wednesday 7:00 AM" },
-      { id: "slot-sat", day: "Saturdays", time: "8:30 AM", label: "Saturday 8:30 AM" },
-      { id: "slot-sun", day: "Sundays", time: "6:00 PM", label: "Sunday 6:00 PM" }
+      {
+        id: "slot-wed",
+        day: "Wednesdays",
+        time: "7:00 AM",
+        label: "Wednesday 7:00 AM",
+        focus: "Morning Stretch & Flow",
+        maxCapacity: 15,
+        bookedCount: 11,
+        spotsLeft: 4,
+        isFull: false
+      },
+      {
+        id: "slot-sat",
+        day: "Saturdays",
+        time: "8:30 AM",
+        label: "Saturday 8:30 AM",
+        focus: "Weekend Awakening & Mobility",
+        maxCapacity: 15,
+        bookedCount: 13,
+        spotsLeft: 2,
+        isFull: false
+      },
+      {
+        id: "slot-sun",
+        day: "Sundays",
+        time: "6:00 PM",
+        label: "Sunday 6:00 PM",
+        focus: "Sunset Grounding & Unwind",
+        maxCapacity: 15,
+        bookedCount: 15,
+        spotsLeft: 0,
+        isFull: true
+      }
     ],
     description: "Join our group yoga sessions designed to improve flexibility, strength, balance and overall well-being. A beautiful opportunity to move, stretch, relax and connect with others.",
     tags: ["Community", "Flexibility", "Strength", "Balance"]
@@ -142,12 +184,18 @@ export const INITIAL_CLASSES = [
       studio: 300,
       clientLocation: 500
     },
-    maxCapacity: 2,
-    bookedCount: 0,
+    maxCapacity: 6,
+    bookedCount: 2,
     level: "Tailored to You",
     intensity: "Custom",
     room: "Studio Sanctuary or Client's Location",
     isPrivateOneOnOne: true,
+    hasSessionOptions: true,
+    sessionOptions: [
+      { id: "opt-morn", timeWindow: "Morning (7:00 AM - 10:00 AM)", label: "Morning Energy Flow", desc: "Best for early focus & flexibility", spotsLeft: 2, isFull: false },
+      { id: "opt-mid", timeWindow: "Midday (11:00 AM - 2:00 PM)", label: "Midday Reset", desc: "Lunchtime de-stress & spinal relief", spotsLeft: 2, isFull: false },
+      { id: "opt-eve", timeWindow: "Sunset / Evening (4:00 PM - 7:00 PM)", label: "Evening Restoration", desc: "Wind down & nervous system release", spotsLeft: 0, isFull: true }
+    ],
     description: "Enjoy a personalised yoga session tailored to your individual needs, goals and flexibility level. Perfect for anyone who prefers personal attention and a more intimate experience.\n\nAvailable in our serene studio (Gh 300) or at your own private location (Gh 500).",
     tags: ["1-on-1", "Custom Goals", "Studio or Home"]
   },
@@ -168,12 +216,18 @@ export const INITIAL_CLASSES = [
     time: "10:30 AM - 11:30 AM",
     duration: "60 min",
     price: 250,
-    maxCapacity: 12,
-    bookedCount: 9, // 3 spots left
+    maxCapacity: 36, // across 3 dates
+    bookedCount: 23,
     level: "All Committed Yogis",
     intensity: "Intensive & Focused",
     room: "Studio Sanctuary",
     tagline: "Set your goals. Put in the work. Unlock your flexibility.",
+    hasSessionOptions: true,
+    sessionOptions: [
+      { id: "mc-sess-1", date: "Saturday, 21 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 21 Nov (10:30 AM)", spotsLeft: 3, isFull: false },
+      { id: "mc-sess-2", date: "Saturday, 28 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 28 Nov (10:30 AM)", spotsLeft: 8, isFull: false },
+      { id: "mc-sess-3", date: "Saturday, 5 Dec 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 5 Dec (10:30 AM)", spotsLeft: 0, isFull: true }
+    ],
     description: "Set your goals. Put in the work. Unlock your flexibility.\n\nThis is an intensive, goal-driven flexibility class designed for individuals who are serious about improving their flexibility and willing to put in the work.\n\nThrough focused stretches, progressive flexibility training and guided techniques, you will work towards achieving your personal flexibility goals safely and progressively.\n\nThis is not a casual stretching class. It requires commitment, consistency, patience and a willingness to challenge yourself within your body’s limits.\n\nWhether your goal is to achieve your splits, improve your back flexibility or develop greater overall mobility, this class provides a structured environment to work towards it.\n\nCome ready to work. Leave one step closer to your flexibility goals.",
     tags: ["Goal-Driven", "Splits & Backbends", "Progressive Training"]
   },
@@ -194,11 +248,17 @@ export const INITIAL_CLASSES = [
     time: "Flexible Studio Time Slots",
     duration: "60 min",
     price: 400,
-    maxCapacity: 2,
-    bookedCount: 1, // 1 spot left
+    maxCapacity: 6,
+    bookedCount: 3,
     level: "All Levels (Restorative)",
     intensity: "Assisted / Deep Release",
     room: "Studio Sanctuary (Dedicated Props)",
+    hasSessionOptions: true,
+    sessionOptions: [
+      { id: "thai-sess-1", day: "Weekday Morning", time: "09:00 AM - 11:00 AM", label: "Weekday Morning Window", spotsLeft: 1, isFull: false },
+      { id: "thai-sess-2", day: "Weekday Afternoon", time: "02:00 PM - 05:00 PM", label: "Weekday Afternoon Window", spotsLeft: 2, isFull: false },
+      { id: "thai-sess-3", day: "Weekend Studio Slot", time: "11:30 AM - 01:30 PM", label: "Saturday Studio Slot", spotsLeft: 0, isFull: true }
+    ],
     description: "A therapeutic assisted-stretching experience combining gentle yoga movements, guided stretches and mindful pressure to release tension, improve mobility and promote deep relaxation.",
     tags: ["Assisted Stretches", "Mindful Pressure", "Tension Release"]
   },
@@ -219,11 +279,17 @@ export const INITIAL_CLASSES = [
     time: "Selected by Appointment",
     duration: "60 min",
     price: 500,
-    maxCapacity: 4, // 2 couples
+    maxCapacity: 6,
     bookedCount: 2,
     level: "All Couples",
     intensity: "Gentle Partner Flow",
     room: "Studio Sanctuary",
+    hasSessionOptions: true,
+    sessionOptions: [
+      { id: "cpl-sess-1", day: "Friday Date Night", time: "06:00 PM - 07:00 PM", label: "Friday Date Night (6:00 PM)", spotsLeft: 1, isFull: false },
+      { id: "cpl-sess-2", day: "Saturday Sunset", time: "05:00 PM - 06:00 PM", label: "Saturday Sunset (5:00 PM)", spotsLeft: 2, isFull: false },
+      { id: "cpl-sess-3", day: "Sunday Morning", time: "09:30 AM - 10:30 AM", label: "Sunday Morning (9:30 AM)", spotsLeft: 2, isFull: false }
+    ],
     description: "A shared wellness experience for two, encouraging connection, relaxation, balance and bonding through guided yoga movements and partner stretches.",
     tags: ["Two People", "Partner Stretches", "Bonding & Balance"]
   },
