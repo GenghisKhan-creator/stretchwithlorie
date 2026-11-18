@@ -6,6 +6,9 @@ import flexibilityMasterclassImg from '../assets/flexibility_masterclass.jpg';
 import thaiYogaStretchesImg from '../assets/thai_yoga_stretches.jpg';
 import couplesYogaImg from '../assets/couples_yoga.jpg';
 import yogaChampagneImg from '../assets/yoga_champagne.jpg';
+import lorieAvatarImg from '../assets/lorie_avatar.jpg';
+
+export const DEFAULT_INSTRUCTOR_AVATAR = lorieAvatarImg;
 
 export const STUDIO_SCHEDULES = [
   {
@@ -112,7 +115,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "Wednesdays, Saturdays & Sundays",
     rawDate: "2026-11-18",
@@ -173,7 +176,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "Flexible Scheduling (Daily)",
     rawDate: "2026-11-19",
@@ -209,7 +212,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "Saturday Intensive Session",
     rawDate: "2026-11-21",
@@ -241,7 +244,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "By Appointment (Studio)",
     rawDate: "2026-11-20",
@@ -272,7 +275,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "Private Booking for Two",
     rawDate: "2026-11-22",
@@ -303,7 +306,7 @@ export const INITIAL_CLASSES = [
     instructor: {
       name: "Lorie",
       role: "Founder & Lead Yoga Specialist",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+      avatar: lorieAvatarImg,
     },
     date: "Last Sunday of Every Month",
     rawDate: "2026-11-29",

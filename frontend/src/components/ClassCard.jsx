@@ -56,7 +56,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
   if (yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0) {
     const openSlots = yogaClass.scheduleSlots.filter((s) => !s.isFull && (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) > 0);
     const fullSlots = yogaClass.scheduleSlots.filter((s) => s.isFull || (s.spotsLeft ?? (s.maxCapacity - s.bookedCount)) <= 0);
-    
+
     // Total remaining spots across all slots
     const totalSlotsLeft = yogaClass.scheduleSlots.reduce(
       (sum, s) => sum + Math.max(0, s.spotsLeft ?? (s.maxCapacity - s.bookedCount)),
@@ -94,13 +94,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
             onSelect(yogaClass);
           }
         }}
-        className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white min-h-[460px] bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${
-          isSelected
-            ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
-            : isFull
+        className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white min-h-[460px] bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
+          ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
+          : isFull
             ? 'border-white/15 opacity-65 cursor-not-allowed'
             : 'border-[#C8A253]/35 hover:border-[#C8A253] hover:shadow-2xl hover:-translate-y-1'
-        }`}
+          }`}
       >
         {/* Full-bleed background image */}
         <img
@@ -178,7 +177,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 <Calendar className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
                 <span className="font-medium text-white truncate">{date}</span>
               </div>
-              
+
               {/* Time & Duration */}
               <div className="flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -204,13 +203,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                     return (
                       <span
                         key={slot.id}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${
-                          isSlotFull
-                            ? 'bg-black/50 text-white/50 border border-white/10 line-through'
-                            : left <= 2
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${isSlotFull
+                          ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                          : left <= 2
                             ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
                             : 'bg-white/15 text-white border border-white/20'
-                        }`}
+                          }`}
                         title={isSlotFull ? `${slot.label} is fully booked` : `${slot.label}: ${left} spots available`}
                       >
                         <span>{slot.day.slice(0, 3)} {slot.time}</span>
@@ -232,11 +230,10 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                     return (
                       <span
                         key={opt.id}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium ${
-                          isOptFull
-                            ? 'bg-black/50 text-white/50 border border-white/10 line-through'
-                            : 'bg-white/15 text-white border border-white/20'
-                        }`}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium ${isOptFull
+                          ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                          : 'bg-white/15 text-white border border-white/20'
+                          }`}
                         title={isOptFull ? `${opt.label || opt.date} is fully booked` : `${opt.label || opt.date}: ${left} spots`}
                       >
                         <span className="truncate max-w-[130px]">{opt.label || opt.date}</span>
@@ -253,7 +250,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               <img
                 src={instructor.avatar}
                 alt={instructor.name}
-                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-white/40 shrink-0"
+                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover object-[center_20%] ring-2 ring-white/40 shadow-sm shrink-0"
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
@@ -333,13 +330,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           onSelect(yogaClass);
         }
       }}
-      className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${
-        isSelected
-          ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
-          : isFull
+      className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
+        ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
+        : isFull
           ? 'border-white/15 opacity-65 cursor-not-allowed'
           : 'border-[#C8A253]/35 hover:border-[#C8A253] hover:shadow-2xl hover:-translate-y-1'
-      }`}
+        }`}
     >
       {/* Ambient Gold & Botanical Lighting */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-[#C8A253]/15 blur-2xl group-hover:bg-[#C8A253]/25 transition-colors" />
@@ -406,7 +402,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               <Calendar className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
               <span className="font-medium text-white truncate">{date}</span>
             </div>
-            
+
             {/* Time & Duration */}
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -432,13 +428,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                   return (
                     <span
                       key={slot.id}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${
-                        isSlotFull
-                          ? 'bg-black/50 text-white/50 border border-white/10 line-through'
-                          : left <= 2
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${isSlotFull
+                        ? 'bg-black/50 text-white/50 border border-white/10 line-through'
+                        : left <= 2
                           ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
                           : 'bg-white/15 text-white border border-white/20'
-                      }`}
+                        }`}
                       title={isSlotFull ? `${slot.label} is fully booked` : `${slot.label}: ${left} spots available`}
                     >
                       <span>{slot.day.slice(0, 3)} {slot.time}</span>
@@ -457,7 +452,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
             <img
               src={instructor.avatar}
               alt={instructor.name}
-              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover ring-2 ring-white/40 shrink-0"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover object-[center_20%] ring-2 ring-white/40 shadow-sm shrink-0"
               onError={(e) => {
                 e.target.style.display = 'none';
               }}

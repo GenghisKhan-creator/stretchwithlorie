@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Calendar,
   Clock,
-  User,
   HeartPulse,
   Download,
   ArrowRight,
@@ -20,7 +19,7 @@ import BrandLogo from './BrandLogo';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportBookingPassPDF } from '../utils/pdfExport';
-import { STUDIO_SCHEDULES } from '../data/mockData';
+import { STUDIO_SCHEDULES, DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
 
 export default function SuccessModal({
   booking,
@@ -194,7 +193,14 @@ export default function SuccessModal({
                 </div>
               </div>
               <div className="flex items-center gap-2 text-[#5C6260] pt-0.5">
-                <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#7A8B71] shrink-0" />
+                <img
+                  src={DEFAULT_INSTRUCTOR_AVATAR}
+                  alt={instructor}
+                  className="h-4 w-4 sm:h-4.5 sm:w-4.5 rounded-full object-cover object-[center_20%] ring-1 ring-[#7A8B71]/40 shrink-0"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
                 <span className="truncate">Instructor: <strong className="text-[#2B2E31]">{instructor}</strong></span>
               </div>
             </div>

@@ -34,10 +34,10 @@
 //    POST /api/paystack/initialize -> calls https://api.paystack.co/transaction/initialize
 //    Returns authorization_url and reference. Webhook listens for 'charge.success'.
 
-import { INITIAL_CLASSES, INITIAL_REGISTRATIONS } from '../data/mockData';
+import { INITIAL_CLASSES, INITIAL_REGISTRATIONS, DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
 
-const STORAGE_KEY_CLASSES = 'stretchwithlorie_classes_v9';
-const STORAGE_KEY_REGISTRATIONS = 'stretchwithlorie_registrations_v9';
+const STORAGE_KEY_CLASSES = 'stretchwithlorie_classes_v10';
+const STORAGE_KEY_REGISTRATIONS = 'stretchwithlorie_registrations_v10';
 
 // Helper to simulate realistic network latency (e.g. 400ms - 1200ms)
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -73,6 +73,12 @@ export const api = {
         return {
           ...cls,
           image: cls.image || initial?.image,
+          instructor: {
+            ...(cls.instructor || {}),
+            avatar: initial?.instructor?.avatar || cls.instructor?.avatar || DEFAULT_INSTRUCTOR_AVATAR,
+            name: cls.instructor?.name || initial?.instructor?.name || 'Lorie',
+            role: cls.instructor?.role || initial?.instructor?.role || 'Founder & Lead Yoga Specialist'
+          },
           duration: initial?.duration || cls.duration || '60 min',
           scheduleSlots: cls.scheduleSlots || initial?.scheduleSlots,
           hasSessionOptions: initial?.hasSessionOptions,

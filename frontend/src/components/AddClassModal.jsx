@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
-import { INSTRUCTORS_LIST } from '../data/mockData';
+import { INSTRUCTORS_LIST, DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
 
 export default function AddClassModal({ isOpen, onClose, onAddClass }) {
   const [formData, setFormData] = useState({
@@ -52,7 +52,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
       instructor: {
         name: selectedInstructor.name,
         role: selectedInstructor.role,
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80'
+        avatar: DEFAULT_INSTRUCTOR_AVATAR
       },
       date: formData.date,
       time: formData.time,

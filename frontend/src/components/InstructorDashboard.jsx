@@ -17,6 +17,7 @@ import StudentDetailsModal from './StudentDetailsModal';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportAttendeesToPDF } from '../utils/pdfExport';
+import { DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
 
 export default function InstructorDashboard({
   classes,
@@ -104,22 +105,29 @@ export default function InstructorDashboard({
 
       {/* Top Banner & Quick Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E6E1D8] pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-xs font-semibold text-[#5A6952]">
-              Instructor Control Center
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2 py-0.5 text-[11px] font-bold text-[#0288D1]">
-              <PaystackIcon className="h-3 w-3" />
-              Paystack Live
-            </span>
+        <div className="flex items-center gap-3.5">
+          <img
+            src={DEFAULT_INSTRUCTOR_AVATAR}
+            alt="Lorie - Lead Yoga Specialist"
+            className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover object-[center_20%] ring-2 ring-[#7A8B71]/40 shadow-sm shrink-0"
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-xs font-semibold text-[#5A6952]">
+                Instructor Control Center
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2 py-0.5 text-[11px] font-bold text-[#0288D1]">
+                <PaystackIcon className="h-3 w-3" />
+                Paystack Live
+              </span>
+            </div>
+            <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
+              Studio Operations & Rosters
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5C6260] mt-0.5">
+              Welcome back, Lorie. Monitor real-time class capacities, student medical notes, and verified Paystack payments.
+            </p>
           </div>
-          <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
-            Studio Operations & Rosters
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5C6260] mt-0.5">
-            Monitor real-time class capacities, student medical notes, and verified Paystack Mobile Money payments.
-          </p>
         </div>
 
         {/* Action Buttons */}
