@@ -248,8 +248,8 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
           {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
           <div className="mt-auto w-full">
-            {/* Instructor info row - perfectly centered in between the lines */}
-            <div className="flex items-center justify-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
+            {/* Instructor info row - perfectly centered vertically in between the lines, left-aligned */}
+            <div className="flex items-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
               <img
                 src={instructor.avatar}
                 alt={instructor.name}
@@ -258,7 +258,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                   e.target.style.display = 'none';
                 }}
               />
-              <div className="min-w-0 text-left">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-white truncate">
                   {instructor.name}
                 </p>
@@ -453,8 +453,8 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
         {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
         <div className="mt-auto w-full">
-          {/* Instructor info row - perfectly centered in between the lines */}
-          <div className="flex items-center justify-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
+          {/* Instructor info row - perfectly centered vertically in between the lines, left-aligned */}
+          <div className="flex items-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
             <img
               src={instructor.avatar}
               alt={instructor.name}
@@ -463,7 +463,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 e.target.style.display = 'none';
               }}
             />
-            <div className="min-w-0 text-left">
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-white truncate">
                 {instructor.name}
               </p>
