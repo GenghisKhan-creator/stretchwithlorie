@@ -244,9 +244,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Instructor info row */}
-            <div className="flex items-center gap-3 pt-2 border-t border-white/20 mb-4">
+          {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
+          <div className="mt-auto w-full">
+            {/* Instructor info row - perfectly centered in between the lines */}
+            <div className="flex items-center justify-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
               <img
                 src={instructor.avatar}
                 alt={instructor.name}
@@ -255,7 +258,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                   e.target.style.display = 'none';
                 }}
               />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 text-left">
                 <p className="text-xs font-semibold text-white truncate">
                   {instructor.name}
                 </p>
@@ -264,10 +267,9 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 </p>
               </div>
             </div>
-          </div>
 
-          {/* Bottom Footer: Price & Action Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/20 w-full mt-2">
+            {/* Bottom Footer: Price & Action Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 sm:pt-3.5 border-t border-white/20 w-full">
             <div className="min-w-0">
               {locationPricing ? (
                 <div>
@@ -319,7 +321,8 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
   }
 
   // Standard Card for non-image sessions
@@ -446,9 +449,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Instructor info row */}
-          <div className="flex items-center gap-3 pt-2 border-t border-white/20 mb-4">
+        {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
+        <div className="mt-auto w-full">
+          {/* Instructor info row - perfectly centered in between the lines */}
+          <div className="flex items-center justify-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
             <img
               src={instructor.avatar}
               alt={instructor.name}
@@ -457,7 +463,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                 e.target.style.display = 'none';
               }}
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 text-left">
               <p className="text-xs font-semibold text-white truncate">
                 {instructor.name}
               </p>
@@ -466,10 +472,9 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Footer: Price & Action Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/20 w-full mt-2">
+          {/* Bottom Footer: Price & Action Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 sm:pt-3.5 border-t border-white/20 w-full">
           <div className="min-w-0">
             {locationPricing ? (
               <div>
@@ -521,5 +526,6 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
