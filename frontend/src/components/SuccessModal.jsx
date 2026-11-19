@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import {
   CheckCircle2,
   Calendar,
@@ -30,6 +32,48 @@ export default function SuccessModal({
 }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [downloadFeedback, setDownloadFeedback] = useState(null);
+
+  const modalBackdropRef = useRef(null);
+  const modalCardRef = useRef(null);
+  const checkmarkBadgeRef = useRef(null);
+
+  useGSAP(() => {
+    if (!booking) return;
+
+    // Animate backdrop
+    if (modalBackdropRef.current) {
+      gsap.fromTo(
+        modalBackdropRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: 'power2.out' }
+      );
+    }
+
+    // Pop and rise modal card
+    if (modalCardRef.current) {
+      gsap.fromTo(
+        modalCardRef.current,
+        { scale: 0.9, opacity: 0, y: 24 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)', clearProps: 'transform' }
+      );
+    }
+
+    // Rotating spring checkmark badge
+    if (checkmarkBadgeRef.current) {
+      gsap.fromTo(
+        checkmarkBadgeRef.current,
+        { scale: 0, rotate: -35 },
+        { scale: 1, rotate: 0, duration: 0.5, delay: 0.15, ease: 'back.out(2)' }
+      );
+    }
+
+    // Stagger ticket elements
+    gsap.fromTo(
+      '.gsap-success-elem',
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, delay: 0.22, ease: 'power2.out' }
+    );
+  }, [booking?.bookingRef]);
 
   if (!booking) return null;
 
@@ -107,9 +151,9 @@ export default function SuccessModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#2B2E31]/75 backdrop-blur-sm p-3.5 sm:p-6 overscroll-contain animate-in fade-in duration-200">
+    <div ref={modalBackdropRef} className="fixed inset-0 z-50 overflow-y-auto bg-[#2B2E31]/75 backdrop-blur-sm p-3.5 sm:p-6 overscroll-contain">
       <div className="flex min-h-full items-center justify-center py-4 sm:py-6">
-        <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] p-4.5 sm:p-7 shadow-2xl border border-[#E6E1D8] transition-all my-auto">
+        <div ref={modalCardRef} className="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] p-4.5 sm:p-7 shadow-2xl border border-[#E6E1D8] transition-all my-auto">
           
           {/* Close Button */}
           <button
@@ -127,23 +171,23 @@ export default function SuccessModal({
               <div className="rounded-2xl bg-white shadow-2xs ring-1 ring-[#E6E1D8] px-3 py-1 sm:px-3.5 sm:py-1.5 overflow-hidden">
                 <BrandLogo variant="image" size="sm" />
               </div>
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-[#E5ECE2] text-[#5A6952] shadow-inner ring-1 ring-[#DCE4D9]">
+              <div ref={checkmarkBadgeRef} className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-[#E5ECE2] text-[#5A6952] shadow-inner ring-1 ring-[#DCE4D9]">
                 <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 text-[#5A6952]" />
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-[#5A6952]">
+            <span className="gsap-success-elem inline-flex items-center gap-1 rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-[#5A6952]">
               <Sparkles className="h-3 w-3 shrink-0" /> Booking & Payment Confirmed
             </span>
-            <h2 className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31] leading-tight">
+            <h2 className="gsap-success-elem mt-2 font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31] leading-tight">
               Your Mat is Reserved!
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[#5C6260] px-1 break-words">
+            <p className="gsap-success-elem mt-1 text-xs sm:text-sm text-[#5C6260] px-1 break-words">
               We've sent your entry pass and session receipt to <span className="font-semibold text-[#2B2E31] break-all">{email}</span>.
             </p>
           </div>
 
           {/* Booking Card Details */}
-          <div className="mt-4 sm:mt-5 rounded-2xl border border-[#E6E1D8] bg-white p-3.5 sm:p-5 shadow-2xs space-y-3.5 sm:space-y-4">
+          <div className="gsap-success-elem mt-4 sm:mt-5 rounded-2xl border border-[#E6E1D8] bg-white p-3.5 sm:p-5 shadow-2xs space-y-3.5 sm:space-y-4">
             
             {/* Reference & Amount */}
             <div className="flex items-start justify-between gap-2.5 pb-3 border-b border-[#E6E1D8]">

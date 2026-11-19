@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import Navbar from './components/Navbar';
 import ClassCard from './components/ClassCard';
 import RegistrationForm from './components/RegistrationForm';
@@ -39,8 +41,22 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Filtered classes list
+  const filteredClasses = classes.filter((cls) => {
+    if (categoryFilter === 'ALL') return true;
+    return cls.category.toLowerCase() === categoryFilter.toLowerCase();
+  });
+
   // Registration Slide-In Drawer State
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
+
+  // GSAP Animation Refs
+  const heroSectionRef = useRef(null);
+  const poseImgRef = useRef(null);
+  const catalogGridRef = useRef(null);
+  const drawerBackdropRef = useRef(null);
+  const drawerPanelRef = useRef(null);
+  const isClosingDrawerRef = useRef(false);
 
   // Wellness Gift Card & Subscription Modal State
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
@@ -56,14 +72,153 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Close Registration Slide-in Drawer smoothly
+  // Close Registration Slide-in Drawer smoothly with GSAP exit animation
   const handleCloseRegistration = () => {
-    setIsRegistrationDrawerOpen(false);
-    setTimeout(() => {
+    if (isClosingDrawerRef.current) return;
+    isClosingDrawerRef.current = true;
+
+    if (drawerBackdropRef.current && drawerPanelRef.current) {
+      gsap.to(drawerBackdropRef.current, {
+        opacity: 0,
+        duration: 0.28,
+        ease: 'power2.in'
+      });
+      gsap.to(drawerPanelRef.current, {
+        x: '100%',
+        duration: 0.32,
+        ease: 'power3.in',
+        onComplete: () => {
+          setIsRegistrationDrawerOpen(false);
+          setSelectedClass(null);
+          setPreselectedSlot(null);
+          isClosingDrawerRef.current = false;
+        }
+      });
+    } else {
+      setIsRegistrationDrawerOpen(false);
       setSelectedClass(null);
       setPreselectedSlot(null);
-    }, 300);
+      isClosingDrawerRef.current = false;
+    }
   };
+
+  // GSAP: Hero section entrance & gentle breathing float animation
+  useGSAP(() => {
+    if (activeTab !== 'student') return;
+
+    const ctx = gsap.context(() => {
+      // Hero headline & content staggered reveal
+      gsap.fromTo(
+        '.gsap-hero-elem',
+        { opacity: 0, y: 22 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.08,
+          ease: 'power2.out',
+          clearProps: 'transform'
+        }
+      );
+
+      // Hero pose image fade in & subtle organic breathing pulse
+      if (poseImgRef.current) {
+        gsap.fromTo(
+          poseImgRef.current,
+          { opacity: 0, scale: 0.94 },
+          {
+            opacity: 0.38,
+            scale: 1,
+            duration: 1.2,
+            ease: 'power2.out'
+          }
+        );
+
+        // Gentle ambient floating breathing motion
+        gsap.to(poseImgRef.current, {
+          y: -8,
+          duration: 4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+      }
+
+      // VIP Wellness Card entrance
+      gsap.fromTo(
+        '.gsap-hero-card',
+        { opacity: 0, y: 28, scale: 0.97 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.9,
+          delay: 0.15,
+          ease: 'power3.out',
+          clearProps: 'transform'
+        }
+      );
+
+      // Schedule slots reveal
+      gsap.fromTo(
+        '.gsap-sched-slot',
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.06,
+          delay: 0.25,
+          ease: 'power2.out',
+          clearProps: 'transform'
+        }
+      );
+    }, heroSectionRef);
+
+    return () => ctx.revert();
+  }, [activeTab]);
+
+  // GSAP: Class Cards Grid stagger entrance on category change or initial load
+  useGSAP(() => {
+    if (activeTab !== 'student' || isLoading) return;
+
+    const cards = catalogGridRef.current?.querySelectorAll('.gsap-class-card');
+    if (cards && cards.length > 0) {
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 24, scale: 0.98 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.06,
+          ease: 'power2.out',
+          clearProps: 'transform'
+        }
+      );
+    }
+  }, [categoryFilter, filteredClasses.length, isLoading, activeTab]);
+
+  // GSAP: Slide-in Registration Drawer entrance animation
+  useGSAP(() => {
+    if (isRegistrationDrawerOpen && !isClosingDrawerRef.current) {
+      if (drawerBackdropRef.current) {
+        gsap.fromTo(
+          drawerBackdropRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.35, ease: 'power2.out' }
+        );
+      }
+      if (drawerPanelRef.current) {
+        gsap.fromTo(
+          drawerPanelRef.current,
+          { x: '100%' },
+          { x: '0%', duration: 0.45, ease: 'power3.out' }
+        );
+      }
+    }
+  }, [isRegistrationDrawerOpen]);
 
   // Lock body scroll and listen for Escape key when registration drawer is open
   useEffect(() => {
@@ -223,12 +378,6 @@ export default function App() {
     }
   };
 
-  // Filtered classes list
-  const filteredClasses = classes.filter((cls) => {
-    if (categoryFilter === 'ALL') return true;
-    return cls.category.toLowerCase() === categoryFilter.toLowerCase();
-  });
-
   const categories = [
     { id: 'ALL', label: 'All Experiences' },
     { id: 'Yoga Classes', label: 'Yoga Classes' },
@@ -281,7 +430,7 @@ export default function App() {
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
 
             {/* Hero Banner with Botanical Calm, Architectural Warmth & Wellness Pass Spotlight */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
+            <div ref={heroSectionRef} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
 
                 {/* Left Column: Headline, Story & Quick CTAs (7 cols) */}
@@ -289,29 +438,30 @@ export default function App() {
                   {/* Layered Yoga Stretch Pose (Positioned under the text with lower z-index, shifted right) */}
                   <div className="pointer-events-none absolute left-2 sm:left-8 lg:left-16 top-1/2 -translate-y-1/2 z-0 opacity-35 sm:opacity-40 select-none">
                     <img
+                      ref={poseImgRef}
                       src={loriePoseImg}
                       alt=""
                       aria-hidden="true"
-                      className="h-[380px] sm:h-[520px] lg:h-[620px] w-auto max-w-none object-contain filter drop-shadow-sm"
+                      className="h-[380px] sm:h-[520px] lg:h-[620px] w-auto max-w-none object-contain filter drop-shadow-sm will-change-transform"
                     />
                   </div>
 
                   {/* Text & CTAs Content Layer (Layered on top of image, z-10) */}
                   <div className="relative z-10 space-y-4">
-                    <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight drop-shadow-2xs">
+                    <h1 className="gsap-hero-elem font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight drop-shadow-2xs">
                       YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
                     </h1>
 
-                    <p className="text-xs sm:text-base text-[#5C6260] leading-relaxed">
+                    <p className="gsap-hero-elem text-xs sm:text-base text-[#5C6260] leading-relaxed">
                       Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
                     </p>
 
-                    <p className="text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
+                    <p className="gsap-hero-elem text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
                       Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
                     </p>
 
                     {/* Studio Highlights Bar */}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-semibold text-[#5A6952] pt-0.5">
+                    <div className="gsap-hero-elem flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-semibold text-[#5A6952] pt-0.5">
                       <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
                         <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
                         All Levels Welcome
@@ -327,7 +477,7 @@ export default function App() {
                     </div>
 
                     {/* Hero Action Buttons */}
-                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1.5">
+                    <div className="gsap-hero-elem flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1.5">
                       <button
                         type="button"
                         onClick={() => handleOpenGiftModal('subscription')}
@@ -350,7 +500,7 @@ export default function App() {
                 </div>
 
                 {/* Right Column: Physical VIP Wellness Card Spotlight (5 cols) */}
-                <div className="lg:col-span-5 w-full">
+                <div className="lg:col-span-5 w-full gsap-hero-card">
                   <WellnessPassHeroCard onOpenGiftModal={handleOpenGiftModal} />
                 </div>
 
@@ -393,7 +543,7 @@ export default function App() {
                         key={sched.id || sched.label}
                         type="button"
                         onClick={() => handleSelectScheduleSlot(sched)}
-                        className={`group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border p-3 text-left transition-all hover:shadow-sm cursor-pointer ${isSlotFull
+                        className={`gsap-sched-slot group flex items-center justify-between sm:flex-col sm:items-start rounded-2xl border p-3 text-left transition-all hover:shadow-sm cursor-pointer ${isSlotFull
                           ? 'border-stone-200 bg-stone-50/90 hover:border-amber-300'
                           : 'border-[#E6E1D8] bg-[#FAF8F5] hover:border-[#7A8B71] hover:bg-[#F1F4EF]'
                           }`}
@@ -495,14 +645,15 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-full">
+                <div ref={catalogGridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-full">
                   {filteredClasses.map((cls) => (
-                    <ClassCard
-                      key={cls.id}
-                      yogaClass={cls}
-                      isSelected={selectedClass?.id === cls.id && isRegistrationDrawerOpen}
-                      onSelect={handleSelectClass}
-                    />
+                    <div key={cls.id} className="gsap-class-card w-full h-full flex flex-col">
+                      <ClassCard
+                        yogaClass={cls}
+                        isSelected={selectedClass?.id === cls.id && isRegistrationDrawerOpen}
+                        onSelect={handleSelectClass}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -546,6 +697,7 @@ export default function App() {
       >
         {/* Soft Dark Backdrop */}
         <div
+          ref={drawerBackdropRef}
           className={`fixed inset-0 bg-[#232D21]/60 backdrop-blur-xs transition-opacity duration-300 ${
             isRegistrationDrawerOpen ? 'opacity-100' : 'opacity-0'
           }`}
@@ -556,6 +708,7 @@ export default function App() {
         {/* Sliding Drawer Container */}
         <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10 w-full justify-end pointer-events-none">
           <div
+            ref={drawerPanelRef}
             className={`w-full max-w-2xl bg-[#FAF8F5] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out border-l border-[#E6E1D8] pointer-events-auto ${
               isRegistrationDrawerOpen ? 'translate-x-0' : 'translate-x-full'
             }`}
