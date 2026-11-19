@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import ClassCard from './components/ClassCard';
 import RegistrationForm from './components/RegistrationForm';
@@ -22,7 +22,8 @@ import {
   Coffee,
   Heart,
   Gift,
-  ChevronDown
+  ChevronDown,
+  X
 } from 'lucide-react';
 
 export default function App() {
@@ -38,6 +39,9 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Registration Slide-In Drawer State
+  const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
+
   // Wellness Gift Card & Subscription Modal State
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftModalTab, setGiftModalTab] = useState('subscription'); // 'subscription' | 'gift'
@@ -47,14 +51,40 @@ export default function App() {
     setIsGiftModalOpen(true);
   };
 
-  const registrationSectionRef = useRef(null);
-
   const showToast = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Load initial data on mount
+  // Close Registration Slide-in Drawer smoothly
+  const handleCloseRegistration = () => {
+    setIsRegistrationDrawerOpen(false);
+    setTimeout(() => {
+      setSelectedClass(null);
+      setPreselectedSlot(null);
+    }, 300);
+  };
+
+  // Lock body scroll and listen for Escape key when registration drawer is open
+  useEffect(() => {
+    if (isRegistrationDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          handleCloseRegistration();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isRegistrationDrawerOpen]);
+
+  // Load initial data on mount (starts without pre-selected class so drawer only slides in when selected)
   useEffect(() => {
     async function loadData() {
       try {
@@ -65,11 +95,6 @@ export default function App() {
         ]);
         setClasses(fetchedClasses);
         setRegistrations(fetchedRegistrations);
-
-        // Pre-select first class
-        if (fetchedClasses && fetchedClasses.length > 0) {
-          setSelectedClass(fetchedClasses[0]);
-        }
       } catch (err) {
         console.error('Failed to load initial data:', err);
         showToast('warning', 'Failed to load data from storage.');
@@ -80,34 +105,19 @@ export default function App() {
     loadData();
   }, []);
 
-  // Handle class selection
+  // Handle class selection - smoothly slides in the registration form without page scrolling
   const handleSelectClass = (yogaClass) => {
     setSelectedClass(yogaClass);
-
-    // If on mobile / small screen, smooth scroll to registration form
-    if (window.innerWidth < 1024 && registrationSectionRef.current) {
-      setTimeout(() => {
-        registrationSectionRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
-    }
+    setIsRegistrationDrawerOpen(true);
   };
 
-  // 1-Click Select Studio Schedule Slot (Wed 7am, Sat 8.30am, Sun 6pm)
+  // 1-Click Select Studio Schedule Slot (Wed 7am, Sat 8.30am, Sun 6pm) - slides in the registration drawer
   const handleSelectScheduleSlot = (schedule) => {
     const massClass = classes.find((c) => c.id === 'cls-mass') || classes[0];
     setSelectedClass(massClass);
     const slotString = schedule.label || `${schedule.day} ${schedule.time}`;
     setPreselectedSlot(slotString);
-
-    if (registrationSectionRef.current) {
-      registrationSectionRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    setIsRegistrationDrawerOpen(true);
 
     const isSlotFull =
       schedule.isFull ||
@@ -125,12 +135,7 @@ export default function App() {
     setSuccessBooking(null);
 
     if (!option) {
-      if (registrationSectionRef.current) {
-        registrationSectionRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
+      setIsRegistrationDrawerOpen(true);
       return;
     }
 
@@ -155,14 +160,7 @@ export default function App() {
       showToast('info', `Selected ${targetClass.title}! Your details are pre-filled.`);
     }
 
-    setTimeout(() => {
-      if (registrationSectionRef.current) {
-        registrationSectionRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
-    }, 120);
+    setIsRegistrationDrawerOpen(true);
   };
 
   // Handle booking and Paystack payment submit
@@ -178,7 +176,8 @@ export default function App() {
       );
       setSelectedClass(result.updatedClass);
 
-      // Trigger success screen
+      // Trigger success screen and close registration drawer
+      setIsRegistrationDrawerOpen(false);
       setSuccessBooking(result.registration);
       showToast('success', `Payment authorized via Paystack! Reservation ${result.registration.bookingRef} confirmed.`);
     } catch (err) {
@@ -436,98 +435,77 @@ export default function App() {
               </div>
             </div>
 
-            {/* Content Layout: 2 Columns on Desktop */}
-            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-12 items-start w-full max-w-full">
+            {/* Offerings & Experiences Catalog (Full-width 3-column responsive grid) */}
+            <div id="class-catalog" className="space-y-6 w-full max-w-full scroll-mt-24">
 
-              {/* Left Column: Offerings & Experiences Selector (7 cols on lg) */}
-              <div className="lg:col-span-7 space-y-6 w-full max-w-full">
-
-                {/* Section Header & Filter Pills */}
-                <div id="class-catalog" className="space-y-3 scroll-mt-24">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31]">
-                        Choose Your Experience
-                      </h2>
-                      <p className="text-xs sm:text-sm text-[#5C6260]">
-                        Select a class or private session below to reserve your space.
-                      </p>
-                    </div>
-
-                    <span className="text-xs font-semibold text-[#5A6952] bg-[#F1F4EF] border border-[#DDE4DA] px-2.5 py-1 rounded-full shrink-0">
-                      {filteredClasses.length} {filteredClasses.length === 1 ? 'offering' : 'offerings'}
-                    </span>
+              {/* Section Header & Filter Pills */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#2B2E31]">
+                      Choose Your Experience
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#5C6260]">
+                      Select a class or private session below to reserve your space.
+                    </p>
                   </div>
 
-                  {/* Filter Pills */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar -mx-1 px-1">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategoryFilter(cat.id)}
-                        className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${categoryFilter === cat.id
-                          ? 'bg-[#7A8B71] text-white shadow-sm'
-                          : 'bg-white text-[#5C6260] border border-[#E6E1D8] hover:bg-[#F1F4EF] hover:text-[#2B2E31]'
-                          }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-xs font-semibold text-[#5A6952] bg-[#F1F4EF] border border-[#DDE4DA] px-2.5 py-1 rounded-full shrink-0">
+                    {filteredClasses.length} {filteredClasses.length === 1 ? 'offering' : 'offerings'}
+                  </span>
                 </div>
 
-                {/* Class Cards Grid */}
-                {isLoading ? (
-                  <div className="py-12 text-center text-[#5C6260]">
-                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent" />
-                    <p className="mt-3 text-xs font-semibold">Loading experiences...</p>
-                  </div>
-                ) : filteredClasses.length === 0 ? (
-                  <div className="rounded-3xl border border-dashed border-[#E6E1D8] bg-white p-8 text-center">
-                    <p className="font-serif text-lg font-bold text-[#2B2E31]">
-                      No sessions found for this category
-                    </p>
-                    <p className="text-xs text-[#5C6260] mt-1">
-                      Try selecting "All Experiences" to browse everything.
-                    </p>
+                {/* Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar -mx-1 px-1">
+                  {categories.map((cat) => (
                     <button
-                      onClick={() => setCategoryFilter('ALL')}
-                      className="mt-3 text-xs font-semibold text-[#7A8B71] underline"
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategoryFilter(cat.id)}
+                      className={`rounded-xl px-3.5 py-1.5 font-semibold transition-all whitespace-nowrap shrink-0 ${categoryFilter === cat.id
+                        ? 'bg-[#7A8B71] text-white shadow-sm'
+                        : 'bg-white text-[#5C6260] border border-[#E6E1D8] hover:bg-[#F1F4EF] hover:text-[#2B2E31]'
+                        }`}
                     >
-                      Show All Experiences
+                      {cat.label}
                     </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full max-w-full">
-                    {filteredClasses.map((cls) => (
-                      <ClassCard
-                        key={cls.id}
-                        yogaClass={cls}
-                        isSelected={selectedClass?.id === cls.id}
-                        onSelect={handleSelectClass}
-                      />
-                    ))}
-                  </div>
-                )}
-
+                  ))}
+                </div>
               </div>
 
-              {/* Right Column: Registration Form (5 cols on lg, sticky on desktop) */}
-              <div
-                ref={registrationSectionRef}
-                className="lg:col-span-5 lg:sticky lg:top-24 space-y-4 w-full max-w-full overflow-hidden scroll-mt-20 sm:scroll-mt-24"
-              >
-                <RegistrationForm
-                  key={`${selectedClass?.id || 'none'}-${preselectedSlot || 'none'}-${bookingInitialData ? bookingInitialData.studentName : 'fresh'}`}
-                  selectedClass={selectedClass}
-                  preselectedSlot={preselectedSlot}
-                  initialData={bookingInitialData}
-                  onSubmitBooking={handleBookingSubmit}
-                  isSubmitting={isSubmitting}
-                  onCancel={() => setSelectedClass(null)}
-                />
-              </div>
+              {/* Class Cards Grid */}
+              {isLoading ? (
+                <div className="py-12 text-center text-[#5C6260]">
+                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#7A8B71] border-t-transparent" />
+                  <p className="mt-3 text-xs font-semibold">Loading experiences...</p>
+                </div>
+              ) : filteredClasses.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-[#E6E1D8] bg-white p-8 text-center">
+                  <p className="font-serif text-lg font-bold text-[#2B2E31]">
+                    No sessions found for this category
+                  </p>
+                  <p className="text-xs text-[#5C6260] mt-1">
+                    Try selecting "All Experiences" to browse everything.
+                  </p>
+                  <button
+                    onClick={() => setCategoryFilter('ALL')}
+                    className="mt-3 text-xs font-semibold text-[#7A8B71] underline cursor-pointer"
+                  >
+                    Show All Experiences
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-full">
+                  {filteredClasses.map((cls) => (
+                    <ClassCard
+                      key={cls.id}
+                      yogaClass={cls}
+                      isSelected={selectedClass?.id === cls.id && isRegistrationDrawerOpen}
+                      onSelect={handleSelectClass}
+                    />
+                  ))}
+                </div>
+              )}
 
             </div>
 
@@ -556,6 +534,73 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Slide-In Registration Drawer (Slides in on class selection, zero page scrolling) */}
+      <div
+        className={`fixed inset-0 z-50 transition-all duration-300 ${
+          isRegistrationDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-modal="true"
+        role="dialog"
+        aria-label="Class Registration Drawer"
+      >
+        {/* Soft Dark Backdrop */}
+        <div
+          className={`fixed inset-0 bg-[#232D21]/60 backdrop-blur-xs transition-opacity duration-300 ${
+            isRegistrationDrawerOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={handleCloseRegistration}
+          aria-hidden="true"
+        />
+
+        {/* Sliding Drawer Container */}
+        <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10 w-full justify-end pointer-events-none">
+          <div
+            className={`w-full max-w-2xl bg-[#FAF8F5] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out border-l border-[#E6E1D8] pointer-events-auto ${
+              isRegistrationDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            {/* Sticky Drawer Header */}
+            <div className="flex items-center justify-between px-5 py-4 bg-white/95 backdrop-blur-md border-b border-[#E6E1D8] z-20 shrink-0">
+              <div className="flex items-center gap-3">
+                <BrandLogo size="sm" showSubtext={false} />
+                <div className="min-w-0">
+                  <h3 className="font-serif text-base sm:text-lg font-bold text-[#2B2E31] leading-none truncate">
+                    Class Reservation
+                  </h3>
+                  <p className="text-[11px] text-[#5A6952] font-medium mt-0.5">
+                    Secure Paystack Checkout • Instant Confirmation
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseRegistration}
+                className="h-9 w-9 rounded-full bg-[#FAF8F5] hover:bg-[#EBF0E9] text-[#5C6260] hover:text-[#2B2E31] flex items-center justify-center border border-[#E6E1D8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A8B71] cursor-pointer shrink-0"
+                aria-label="Close registration form"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Registration Form Body */}
+            <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 overscroll-contain">
+              {selectedClass && (
+                <RegistrationForm
+                  key={`${selectedClass?.id || 'none'}-${preselectedSlot || 'none'}-${bookingInitialData ? bookingInitialData.studentName : 'fresh'}`}
+                  selectedClass={selectedClass}
+                  preselectedSlot={preselectedSlot}
+                  initialData={bookingInitialData}
+                  onSubmitBooking={handleBookingSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCloseRegistration}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Success Modal Confirmation */}
       <SuccessModal
