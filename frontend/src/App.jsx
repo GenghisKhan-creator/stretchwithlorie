@@ -769,6 +769,7 @@ export default function App() {
 
       {/* Signature Wellness Gift Card & Subscription Modal */}
       <WellnessGiftCardModal
+        key={giftModalTab}
         isOpen={isGiftModalOpen}
         initialTab={giftModalTab}
         onClose={() => setIsGiftModalOpen(false)}

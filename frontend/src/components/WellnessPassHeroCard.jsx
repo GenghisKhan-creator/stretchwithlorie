@@ -45,19 +45,19 @@ export default function WellnessPassHeroCard({ onOpenGiftModal }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px] text-[#E6E1D8]/90">
           <div className="flex items-center gap-1.5">
             <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
+            <span>Live 3D Sanctuary Member Keycard</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
+            <span>4 Gift Card Palettes & Affirmations</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
             <span>2, 4 or 8 Classes / mo (Save to GH₵ 250)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
-            <span>Digital Gift Cards (From GH₵ 200)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
-            <span>Complimentary Manduka Mat & Towel</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Check className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
-            <span>Post-Class Herbal Tea Ritual</span>
+            <span>Complimentary Mat & Herbal Tea Ritual</span>
           </div>
         </div>
 
