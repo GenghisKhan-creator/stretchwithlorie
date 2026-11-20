@@ -69,3 +69,12 @@ html, body {
     font-size: 16px !important;
   }
 }
+
+/* Hide scrollbars cleanly while preserving scroll functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
