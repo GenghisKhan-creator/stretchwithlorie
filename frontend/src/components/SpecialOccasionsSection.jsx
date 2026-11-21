@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, MessageCircle, Heart, X, CheckCircle2, ArrowRight } from 'lucide-react';
 import { SPECIAL_OCCASIONS } from '../data/mockData';
+import { api } from '../services/api';
 
 export default function SpecialOccasionsSection() {
   const [selectedOccasion, setSelectedOccasion] = useState(null);
@@ -39,78 +40,89 @@ export default function SpecialOccasionsSection() {
   const handleSubmitInquiry = (e) => {
     e.preventDefault();
     setIsSubmitted(true);
+    api.submitEventInquiry({
+      occasionType: selectedOccasion ? selectedOccasion.title : 'Custom Celebration',
+      fullName: inquiryForm.name,
+      phone: inquiryForm.phone,
+      email: inquiryForm.email,
+      locationPreference: inquiryForm.venue,
+      preferredDate: inquiryForm.preferredDate,
+      notes: `Group Size: ${inquiryForm.groupSize}. Notes: ${inquiryForm.notes}`
+    });
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2B2E31] via-[#333936] to-[#2B2E31] p-6 sm:p-10 text-white shadow-xl">
+    <section className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-gradient-to-br from-[#2B2E31] via-[#333936] to-[#2B2E31] py-10 sm:py-14 lg:py-16 px-4 sm:px-8 lg:px-12 xl:px-16 text-white border-b border-white/10 shadow-xl overflow-hidden">
       
       {/* Decorative ambient background */}
       <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[#7A8B71]/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-[#C8A253]/15 blur-3xl" />
 
-      <div className="relative z-10 max-w-4xl">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-semibold text-[#EDE8E1] mb-3">
-          <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
-          Custom Private Events & Celebrations
-        </span>
+      <div className="max-w-7xl mx-auto w-full relative z-10">
+        <div className="max-w-4xl">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-semibold text-[#EDE8E1] mb-3">
+            <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
+            Custom Private Events & Celebrations
+          </span>
 
-        <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
-          Special Occasion Bookings
-        </h2>
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+            Special Occasion Bookings
+          </h2>
 
-        <p className="mt-3 text-sm sm:text-base text-[#EDE8E1]/90 leading-relaxed max-w-3xl">
-          Planning something special? Whether it is a bridal celebration, anniversary, birthday, reunion or an intimate gathering, we can create a yoga experience around your occasion.
-        </p>
+          <p className="mt-3 text-sm sm:text-base text-[#EDE8E1]/90 leading-relaxed max-w-3xl">
+            Planning something special? Whether it is a bridal celebration, anniversary, birthday, reunion or an intimate gathering, we can create a yoga experience around your occasion.
+          </p>
 
-        <p className="mt-2 text-xs sm:text-sm text-[#C8A253] font-medium">
-          You don’t need to wait for a scheduled event to enjoy a yoga experience. Choose an occasion below to customize:
-        </p>
-      </div>
-
-      {/* Occasions Interactive Grid */}
-      <div className="relative z-10 mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {SPECIAL_OCCASIONS.map((occ) => (
-          <button
-            key={occ.id}
-            type="button"
-            onClick={() => handleOpenCustomizer(occ)}
-            className="group flex flex-col justify-between rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#C8A253]/50 shadow-sm"
-          >
-            <div>
-              <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
-                {occ.icon}
-              </span>
-              <h3 className="font-serif text-sm font-bold text-white group-hover:text-[#C8A253] transition-colors">
-                {occ.title}
-              </h3>
-              <p className="mt-1 text-[11px] text-[#EDE8E1]/75 line-clamp-2 leading-relaxed">
-                {occ.description}
-              </p>
-            </div>
-
-            <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-semibold text-[#C8A253]">
-              <span>Customise</span>
-              <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Bottom CTA Bar */}
-      <div className="relative z-10 mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs text-[#EDE8E1]">
-          <Heart className="h-4 w-4 text-[#C8A253]" />
-          <span>Let’s make your occasion beautiful, refreshing and memorable.</span>
+          <p className="mt-2 text-xs sm:text-sm text-[#C8A253] font-medium">
+            You don’t need to wait for a scheduled event to enjoy a yoga experience. Choose an occasion below to customize:
+          </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => handleOpenCustomizer(SPECIAL_OCCASIONS[0])}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#A44A4A] hover:bg-[#8C3E3E] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg transition-all active:scale-[0.99]"
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span>Contact Us to Customise Your Experience</span>
-        </button>
+        {/* Occasions Interactive Grid */}
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
+          {SPECIAL_OCCASIONS.map((occ) => (
+            <button
+              key={occ.id}
+              type="button"
+              onClick={() => handleOpenCustomizer(occ)}
+              className="group flex flex-col justify-between rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 p-4 sm:p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#C8A253]/50 shadow-sm cursor-pointer"
+            >
+              <div>
+                <span className="text-2xl sm:text-3xl mb-2.5 block group-hover:scale-110 transition-transform">
+                  {occ.icon}
+                </span>
+                <h3 className="font-serif text-sm sm:text-base font-bold text-white group-hover:text-[#C8A253] transition-colors">
+                  {occ.title}
+                </h3>
+                <p className="mt-1 text-[11px] sm:text-xs text-[#EDE8E1]/75 line-clamp-2 leading-relaxed">
+                  {occ.description}
+                </p>
+              </div>
+
+              <div className="mt-3.5 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-[#C8A253]">
+                <span>Customise</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Bottom CTA Bar */}
+        <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-[#EDE8E1]">
+            <Heart className="h-4 w-4 text-[#C8A253]" />
+            <span>Let’s make your occasion beautiful, refreshing and memorable.</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenCustomizer(SPECIAL_OCCASIONS[0])}
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#A44A4A] hover:bg-[#8C3E3E] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg transition-all active:scale-[0.99] cursor-pointer"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Contact Us to Customise Your Experience</span>
+          </button>
+        </div>
       </div>
 
       {/* Customizer Modal */}

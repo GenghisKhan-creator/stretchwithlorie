@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+Backend/node_modules/
+frontend/node_modules/
+
+# Environment Secrets (NEVER commit .env)
+.env
+.env.*
+!.env.example
+Backend/.env
+Backend/.env.*
+!Backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build & Logs
+dist/
+frontend/dist/
+*.log
+npm-debug.log*
+.DS_Store

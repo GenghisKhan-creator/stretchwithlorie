@@ -17,9 +17,12 @@ import {
   Sparkles,
   ClipboardList,
   Check,
-  AlertCircle
+  AlertCircle,
+  Tag,
+  X
 } from 'lucide-react';
 import MobileMoneyLogo from './MobileMoneyLogo';
+import { api } from '../services/api';
 import massYogaImg from '../assets/mass_yoga_class.jpg';
 import privateYogaImg from '../assets/private_yoga_class.jpg';
 import flexibilityMasterclassImg from '../assets/flexibility_masterclass.jpg';
@@ -131,6 +134,92 @@ export default function RegistrationForm({
   const [touched, setTouched] = useState({});
   const [submissionPhase, setSubmissionPhase] = useState(0);
 
+  // Creator Referral & Promo Code State
+  const [promoCodeInput, setPromoCodeInput] = useState(() => {
+    try {
+      return sessionStorage.getItem('stretchwithlorie_active_ref') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [appliedReferral, setAppliedReferral] = useState(null);
+  const [promoError, setPromoError] = useState('');
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+
+  // Base price before discount (handles studio Gh 300 vs client location Gh 500 for private sessions)
+  const basePrice = selectedClass
+    ? selectedClass.locationPricing
+      ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
+      : selectedClass.price
+    : 0;
+
+  // Auto-apply URL referral code or recalculate discount when basePrice changes
+  useEffect(() => {
+    if (!selectedClass) return;
+    let activeCode = appliedReferral?.code;
+    if (!activeCode) {
+      try {
+        activeCode = sessionStorage.getItem('stretchwithlorie_active_ref') || '';
+      } catch {
+        activeCode = '';
+      }
+    }
+    if (!activeCode) return;
+
+    let mounted = true;
+    api
+      .validateReferralCode(activeCode, basePrice)
+      .then((res) => {
+        if (mounted && res) {
+          setAppliedReferral(res);
+          setPromoCodeInput(res.code);
+          setPromoError('');
+        }
+      })
+      .catch(() => {
+        // silent on auto-check
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [basePrice, selectedClass, appliedReferral?.code]);
+
+  const handleApplyPromoCode = async () => {
+    const clean = promoCodeInput.trim().toUpperCase();
+    if (!clean) {
+      setPromoError('Please enter a referral or discount code.');
+      return;
+    }
+    setIsValidatingPromo(true);
+    setPromoError('');
+    try {
+      const res = await api.validateReferralCode(clean, basePrice);
+      setAppliedReferral(res);
+      setPromoCodeInput(res.code);
+      try {
+        sessionStorage.setItem('stretchwithlorie_active_ref', res.code);
+      } catch {
+        // ignore
+      }
+    } catch (err) {
+      setAppliedReferral(null);
+      setPromoError(err.message || 'Invalid or expired discount code.');
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const handleRemovePromoCode = () => {
+    setAppliedReferral(null);
+    setPromoCodeInput('');
+    setPromoError('');
+    try {
+      sessionStorage.removeItem('stretchwithlorie_active_ref');
+    } catch {
+      // ignore
+    }
+  };
+
   // Progressive simulation phases while submitting
   useEffect(() => {
     if (!isSubmitting) {
@@ -198,10 +287,9 @@ export default function RegistrationForm({
       opt.id !== currentOptionObj?.id
   ) || [];
 
-  // Calculate dynamic price (handles studio Gh 300 vs client location Gh 500 for private sessions)
-  const currentPrice = selectedClass.locationPricing
-    ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
-    : selectedClass.price;
+  // Calculate dynamic payable price (after any creator referral / discount code)
+  const discountAmount = appliedReferral ? Number(appliedReferral.discountAmount || 0) : 0;
+  const currentPrice = Math.max(0, basePrice - discountAmount);
 
   // Form validation rules
   const validate = () => {
@@ -323,6 +411,9 @@ export default function RegistrationForm({
         isFirstTime: formData.isFirstTime,
         amount: currentPrice,
         price: currentPrice,
+        promoCode: appliedReferral?.code || null,
+        discountAmount: discountAmount || 0,
+        creatorName: appliedReferral?.creatorName || null,
         paymentMethod: paymentMethodName,
         classTitle: sessionTitle,
         classId: selectedClass.id,
@@ -407,9 +498,19 @@ export default function RegistrationForm({
             </span>
           </div>
           <div className="text-right">
-            <p className="text-xl sm:text-2xl font-bold text-[#2B2E31]">
+            {discountAmount > 0 && (
+              <span className="text-xs text-[#88908D] line-through mr-1.5">
+                GH₵{basePrice}.00
+              </span>
+            )}
+            <p className="text-xl sm:text-2xl font-bold text-[#2B2E31] inline">
               GH₵{currentPrice}.00
             </p>
+            {appliedReferral && (
+              <span className="block text-[10px] font-bold text-[#5A6952]">
+                Code {appliedReferral.code} (-GH₵{discountAmount})
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -1147,6 +1248,71 @@ export default function RegistrationForm({
               />
             </div>
           )}
+        </div>
+
+        {/* Creator Referral / Promo Code Section */}
+        <div className="pt-4 border-t border-[#E6E1D8]">
+          <div className="rounded-2xl bg-[#FAF8F5] border border-[#E6E1D8] p-3.5 sm:p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#2B2E31] flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5 text-[#C8A253]" />
+                <span>Creator Referral or Discount Code</span>
+              </label>
+              {appliedReferral && (
+                <button
+                  type="button"
+                  onClick={handleRemovePromoCode}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A44A4A] hover:underline cursor-pointer"
+                >
+                  <X className="h-3 w-3" />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
+
+            {!appliedReferral ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(e) => {
+                    setPromoCodeInput(e.target.value.toUpperCase());
+                    setPromoError('');
+                  }}
+                  placeholder="Enter code (e.g. AMA15 or LORIEVIP)"
+                  className="flex-1 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromoCode}
+                  disabled={isValidatingPromo || !promoCodeInput.trim()}
+                  className="rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] px-4 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isValidatingPromo ? 'Checking...' : 'Apply'}
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-[#E5ECE2] border border-[#DCE4D9] px-3 py-2.5 flex items-center justify-between gap-2 text-xs text-[#232D21]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="h-4 w-4 text-[#5A6952] shrink-0" />
+                  <div className="truncate">
+                    <span className="font-mono font-bold">{appliedReferral.code}</span> applied
+                    {appliedReferral.creatorName ? ` (${appliedReferral.creatorName})` : ''}
+                  </div>
+                </div>
+                <span className="font-bold text-[#5A6952] shrink-0">
+                  -GH₵{discountAmount}.00 saved
+                </span>
+              </div>
+            )}
+
+            {promoError && (
+              <p className="text-[11px] font-semibold text-[#A44A4A] flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{promoError}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Step 2: Payment via Paystack */}

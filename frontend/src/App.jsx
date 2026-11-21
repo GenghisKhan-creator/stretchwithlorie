@@ -8,11 +8,13 @@ import SuccessModal from './components/SuccessModal';
 import InstructorDashboard from './components/InstructorDashboard';
 import SpecialOccasionsSection from './components/SpecialOccasionsSection';
 import BoutiqueSection from './components/BoutiqueSection';
+import ShortVideosSection from './components/ShortVideosSection';
 import ScrollToTop from './components/ScrollToTop';
 import Toast from './components/Toast';
 import BrandLogo from './components/BrandLogo';
 import WellnessGiftCardModal from './components/WellnessGiftCardModal';
 import WellnessPassHeroCard from './components/WellnessPassHeroCard';
+import AdminLoginModal from './components/AdminLoginModal';
 import { api } from './services/api';
 import { STUDIO_SCHEDULES } from './data/mockData';
 import loriePoseImg from './assets/lorie_pose.png';
@@ -25,8 +27,16 @@ import {
   Heart,
   Gift,
   ChevronDown,
+  Film,
   X
 } from 'lucide-react';
+
+const ADMIN_PATHS = ['/admin', '/portal', '/instructor'];
+
+function checkIsAdminPath(pathname) {
+  const clean = (pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
+  return ADMIN_PATHS.includes(clean);
+}
 
 export default function App() {
   const [classes, setClasses] = useState([]);
@@ -34,7 +44,9 @@ export default function App() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [preselectedSlot, setPreselectedSlot] = useState(null);
   const [bookingInitialData, setBookingInitialData] = useState(null);
-  const [activeTab, setActiveTab] = useState('student'); // 'student' | 'instructor'
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+  const isAdminRoute = checkIsAdminPath(currentPath);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => api.isAdminLoggedIn());
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBooking, setSuccessBooking] = useState(null);
@@ -104,7 +116,7 @@ export default function App() {
 
   // GSAP: Hero section entrance & gentle breathing float animation
   useGSAP(() => {
-    if (activeTab !== 'student') return;
+    if (isAdminRoute) return;
 
     const ctx = gsap.context(() => {
       // Hero headline & content staggered reveal
@@ -176,11 +188,11 @@ export default function App() {
     }, heroSectionRef);
 
     return () => ctx.revert();
-  }, [activeTab]);
+  }, [isAdminRoute]);
 
   // GSAP: Class Cards Grid stagger entrance on category change or initial load
   useGSAP(() => {
-    if (activeTab !== 'student' || isLoading) return;
+    if (isAdminRoute || isLoading) return;
 
     const cards = catalogGridRef.current?.querySelectorAll('.gsap-class-card');
     if (cards && cards.length > 0) {
@@ -198,7 +210,7 @@ export default function App() {
         }
       );
     }
-  }, [categoryFilter, filteredClasses.length, isLoading, activeTab]);
+  }, [categoryFilter, filteredClasses.length, isLoading, isAdminRoute]);
 
   // GSAP: Slide-in Registration Drawer entrance animation
   useGSAP(() => {
@@ -239,17 +251,43 @@ export default function App() {
     }
   }, [isRegistrationDrawerOpen]);
 
-  // Load initial data on mount (starts without pre-selected class so drawer only slides in when selected)
+  // Navigate smoothly between Public route (/) and Dedicated Admin route (/admin)
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Detect creator referral link (?ref=CODE or ?promo=CODE) from URL
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const refCode = (params.get('ref') || params.get('promo') || '').trim().toUpperCase();
+      if (refCode) {
+        sessionStorage.setItem('stretchwithlorie_active_ref', refCode);
+        const timer = setTimeout(() => {
+          showToast('success', `Creator referral code "${refCode}" activated! Discount will auto-apply at checkout.`);
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Load initial public classes on mount
   useEffect(() => {
     async function loadData() {
       try {
         setIsLoading(true);
-        const [fetchedClasses, fetchedRegistrations] = await Promise.all([
-          api.getClasses(),
-          api.getRegistrations()
-        ]);
+        const fetchedClasses = await api.getClasses();
         setClasses(fetchedClasses);
-        setRegistrations(fetchedRegistrations);
       } catch (err) {
         console.error('Failed to load initial data:', err);
         showToast('warning', 'Failed to load data from storage.');
@@ -259,6 +297,34 @@ export default function App() {
     }
     loadData();
   }, []);
+
+  // Verify active admin session and fetch protected registrations ONLY on the /admin route
+  useEffect(() => {
+    if (!isAdminRoute) return;
+
+    if (api.isAdminLoggedIn()) {
+      api.verifyAdminSession().then((valid) => {
+        setIsAdminAuthenticated(valid);
+        if (valid) {
+          api.getRegistrations().then(setRegistrations);
+        }
+      });
+    }
+  }, [isAdminRoute]);
+
+  const handleAdminLoginSuccess = (adminUser) => {
+    setIsAdminAuthenticated(true);
+    // Fetch live registrations with newly granted admin authorization
+    api.getRegistrations().then(setRegistrations);
+    showToast('success', `Welcome back, ${adminUser?.name || 'Lorie'}! Instructor Portal unlocked.`);
+  };
+
+  const handleLogoutAdmin = () => {
+    api.logoutAdmin();
+    setIsAdminAuthenticated(false);
+    setRegistrations([]);
+    showToast('info', 'Instructor Portal locked.');
+  };
 
   // Handle class selection - smoothly slides in the registration form without page scrolling
   const handleSelectClass = (yogaClass) => {
@@ -370,14 +436,6 @@ export default function App() {
     }
   };
 
-  // Reset to default demo data
-  const handleResetData = () => {
-    if (window.confirm('Reset all demo data back to original state?')) {
-      api.resetToDefaults();
-      window.location.reload();
-    }
-  };
-
   const categories = [
     { id: 'ALL', label: 'All Experiences' },
     { id: 'Yoga Classes', label: 'Yoga Classes' },
@@ -415,19 +473,22 @@ export default function App() {
 
       {/* Navigation Header */}
       <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        totalBookings={registrations.length}
-        onResetData={handleResetData}
+        isAdminRoute={isAdminRoute}
+        onNavigateHome={() => navigateTo('/')}
+        onScrollToCatalog={() => {
+          document.getElementById('class-catalog')?.scrollIntoView({ behavior: 'smooth' });
+        }}
         onOpenGiftModal={handleOpenGiftModal}
+        isAdminAuthenticated={isAdminAuthenticated}
+        onLogoutAdmin={handleLogoutAdmin}
       />
 
       {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 overflow-x-hidden">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12">
 
-        {/* VIEW A: STUDENT BOOKING FLOW */}
-        {activeTab === 'student' && (
-          <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full overflow-hidden">
+        {/* ROUTE 1: PUBLIC STUDENT BOOKING FLOW (/) */}
+        {!isAdminRoute && (
+          <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full">
 
             {/* Hero Banner with Botanical Calm, Architectural Warmth & Wellness Pass Spotlight */}
             <div ref={heroSectionRef} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
@@ -494,6 +555,14 @@ export default function App() {
                       >
                         <span>Explore Single Classes</span>
                         <ChevronDown className="h-3.5 w-3.5 text-[#7A8B71]" />
+                      </a>
+
+                      <a
+                        href="#short-videos-vault"
+                        className="flex items-center gap-1.5 rounded-xl border border-[#C8A253]/70 bg-[#232D21] text-[#F7E7C4] px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-[#2F3C2C] transition-colors shadow-xs"
+                      >
+                        <Film className="h-3.5 w-3.5 text-[#C8A253]" />
+                        <span>Guided Videos (30s Preview • From GH₵ 30)</span>
                       </a>
                     </div>
                   </div>
@@ -645,7 +714,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div ref={catalogGridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-full">
+                <div ref={catalogGridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-full items-stretch">
                   {filteredClasses.map((cls) => (
                     <div key={cls.id} className="gsap-class-card w-full h-full flex flex-col">
                       <ClassCard
@@ -660,8 +729,11 @@ export default function App() {
 
             </div>
 
-            {/* SPECIAL OCCASION BOOKINGS & PRIVATE EVENTS SECTION */}
-            <SpecialOccasionsSection />
+            {/* FULL-WIDTH SUITE: GUIDED VIDEOS & CUSTOM PRIVATE EVENTS (TOUCHING SEAMLESSLY) */}
+            <div className="space-y-0">
+              <ShortVideosSection showToast={showToast} isAdmin={false} />
+              <SpecialOccasionsSection />
+            </div>
 
             {/* STUDIO BOUTIQUE / ITEMS AVAILABLE FOR SALE */}
             <BoutiqueSection />
@@ -669,19 +741,29 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW B: INSTRUCTOR DASHBOARD */}
-        {activeTab === 'instructor' && (
-          <InstructorDashboard
-            classes={classes}
-            registrations={registrations}
-            onAddClass={handleAddClass}
-            onToggleCheckIn={handleToggleCheckIn}
-            onRefreshData={() => {
-              api.getClasses().then(setClasses);
-              api.getRegistrations().then(setRegistrations);
-              showToast('success', 'Roster and capacities refreshed.');
-            }}
-          />
+        {/* ROUTE 2: DEDICATED ADMIN PORTAL ROUTE (/admin, /portal, /instructor) */}
+        {isAdminRoute && (
+          isAdminAuthenticated ? (
+            <InstructorDashboard
+              classes={classes}
+              registrations={registrations}
+              onAddClass={handleAddClass}
+              onToggleCheckIn={handleToggleCheckIn}
+              onRefreshData={() => {
+                api.getClasses().then(setClasses);
+                api.getRegistrations().then(setRegistrations);
+                showToast('success', 'Roster and capacities refreshed.');
+              }}
+              showToast={showToast}
+            />
+          ) : (
+            <AdminLoginModal
+              isOpen={true}
+              inline={true}
+              onClose={() => navigateTo('/')}
+              onSuccess={handleAdminLoginSuccess}
+            />
+          )
         )}
 
       </main>
@@ -761,10 +843,6 @@ export default function App() {
         classes={classes}
         onBookAnotherSession={handleBookAnotherSession}
         onClose={() => setSuccessBooking(null)}
-        onViewDashboard={() => {
-          setSuccessBooking(null);
-          setActiveTab('instructor');
-        }}
       />
 
       {/* Signature Wellness Gift Card & Subscription Modal */}
@@ -775,7 +853,9 @@ export default function App() {
         onClose={() => setIsGiftModalOpen(false)}
         onSuccessBooking={(order) => {
           showToast('success', `${order.title} completed successfully!`);
-          api.getRegistrations().then(setRegistrations);
+          if (isAdminRoute && isAdminAuthenticated) {
+            api.getRegistrations().then(setRegistrations);
+          }
         }}
       />
 

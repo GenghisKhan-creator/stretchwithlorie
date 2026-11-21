@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import AddClassModal from './AddClassModal';
 import StudentDetailsModal from './StudentDetailsModal';
+import ShortVideosSection from './ShortVideosSection';
+import CreatorReferralsManager from './CreatorReferralsManager';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportAttendeesToPDF } from '../utils/pdfExport';
@@ -77,7 +79,8 @@ export default function InstructorDashboard({
   registrations,
   onAddClass,
   onToggleCheckIn,
-  onRefreshData
+  onRefreshData,
+  showToast
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClassFilter, setSelectedClassFilter] = useState('ALL');
@@ -276,10 +279,25 @@ export default function InstructorDashboard({
             <span>Download Filtered PDF ({filteredRegistrations.length})</span>
           </button>
 
+          <a
+            href="#creator-referrals-manager"
+            className="flex items-center gap-2 rounded-2xl border border-[#C8A253]/60 bg-[#FAF5EB] hover:bg-[#F3E9D2] px-4 py-2.5 text-xs font-bold text-[#8C6D23] shadow-sm transition-all cursor-pointer"
+          >
+            <span>Creators & Promo Codes</span>
+          </a>
+
+          <a
+            href="#instructor-video-vault"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#C8A253] to-[#B68F40] hover:from-[#d4af61] hover:to-[#C8A253] px-4 py-2.5 text-xs font-bold text-[#1C231A] shadow-md transition-all cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Post Video</span>
+          </a>
+
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 rounded-2xl bg-[#A44A4A] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#8C3E3E] transition-all"
+            className="flex items-center gap-2 rounded-2xl bg-[#A44A4A] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#8C3E3E] transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add New Class</span>
@@ -898,6 +916,12 @@ export default function InstructorDashboard({
                             {reg.paystackRef}
                           </span>
                         )}
+                        {reg.promoCode && (
+                          <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[#FAF5EB] border border-[#E8D7B0] px-1.5 py-0.5 text-[9px] font-bold text-[#8C6D23]">
+                            Promo: {reg.promoCode}
+                            {reg.discountAmount ? ` (-GH₵${reg.discountAmount})` : ''}
+                          </span>
+                        )}
                       </td>
 
                       {/* Booked Timestamp */}
@@ -940,6 +964,29 @@ export default function InstructorDashboard({
           </table>
         </div>
 
+      </div>
+
+      {/* Creator Collaborations, Referral Links & Discount Codes Manager */}
+      <CreatorReferralsManager registrations={registrations} showToast={showToast} />
+
+      {/* On-Demand Guided Video Management (Admin Portal) */}
+      <div id="instructor-video-vault" className="mt-12 pt-8 border-t border-[#E6E1D8] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2.5 py-0.5 text-xs font-semibold text-[#5A6952]">
+              <span>Admin Video Vault</span>
+            </div>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31] mt-1">
+              Manage & Post Guided Videos
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5C6260]">
+              Only administrators can post or remove videos. Visitors on the main site will only be able to preview and purchase sessions.
+            </p>
+          </div>
+        </div>
+
+        {/* Video Vault in Admin Mode (Can Post & Delete Videos) */}
+        <ShortVideosSection showToast={showToast} isAdmin={true} />
       </div>
 
       {/* Add Class Modal */}

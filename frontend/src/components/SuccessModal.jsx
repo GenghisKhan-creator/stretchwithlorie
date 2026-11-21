@@ -7,7 +7,6 @@ import {
   Clock,
   HeartPulse,
   Download,
-  ArrowRight,
   Sparkles,
   X,
   CreditCard,
@@ -27,8 +26,7 @@ export default function SuccessModal({
   booking,
   classes = [],
   onBookAnotherSession,
-  onClose,
-  onViewDashboard
+  onClose
 }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [downloadFeedback, setDownloadFeedback] = useState(null);
@@ -461,23 +459,14 @@ export default function SuccessModal({
             </div>
           </div>
 
-          {/* Primary Next Actions */}
-          <div className="mt-3.5 sm:mt-5 space-y-2">
-            <button
-              type="button"
-              onClick={onViewDashboard}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#A44A4A] py-3 sm:py-3.5 px-4 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-[#8C3E3E] active:scale-[0.99] transition-all cursor-pointer"
-            >
-              <span>See Live in Instructor Dashboard</span>
-              <ArrowRight className="h-4 w-4 shrink-0" />
-            </button>
-
+          {/* Primary Next Action */}
+          <div className="mt-3.5 sm:mt-5">
             <button
               type="button"
               onClick={onClose}
-              className="w-full rounded-2xl border border-transparent py-2 text-center text-xs font-semibold text-[#5C6260] hover:text-[#2B2E31] hover:bg-[#EAE4DC]/50 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#232D21] hover:bg-[#2F3C2C] py-3 sm:py-3.5 px-4 text-xs sm:text-sm font-bold text-[#F7E7C4] shadow-md active:scale-[0.99] transition-all cursor-pointer"
             >
-              Close Confirmation
+              <span>Done • Return to Sanctuary</span>
             </button>
           </div>
 

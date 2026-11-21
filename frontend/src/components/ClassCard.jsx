@@ -94,7 +94,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
             onSelect(yogaClass);
           }
         }}
-        className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white min-h-[460px] bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
+        className={`group relative flex flex-col justify-between rounded-3xl p-4 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white min-h-[480px] sm:h-[550px] lg:h-[565px] bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
           ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
           : isFull
             ? 'border-white/15 opacity-65 cursor-not-allowed'
@@ -157,16 +157,16 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
             </div>
 
             {/* Class Title, Tagline & Description */}
-            <div className="mb-4">
-              <h3 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-[#F7F4EF] transition-colors leading-snug drop-shadow-sm">
+            <div className="mb-3.5">
+              <h3 className="font-serif text-lg sm:text-xl lg:text-2xl font-bold text-white group-hover:text-[#F7E7C4] transition-colors leading-snug drop-shadow-sm min-h-[3rem] sm:min-h-[3.25rem] flex items-start">
                 {title}
               </h3>
               {tagline && (
-                <p className="mt-1 text-xs font-serif italic text-[#EAD3D5]">
+                <p className="mt-0.5 text-xs font-serif italic text-[#EAD3D5] truncate">
                   "{tagline}"
                 </p>
               )}
-              <p className="mt-1.5 text-xs sm:text-sm text-[#F7F4EF]/90 line-clamp-3 leading-relaxed">
+              <p className="mt-1 text-xs text-[#F7F4EF]/90 line-clamp-2 leading-relaxed">
                 {description}
               </p>
             </div>
@@ -196,14 +196,14 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
               {/* Slot-level capacity indicator pills */}
               {yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0 && (
-                <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+                <div className="pt-2 border-t border-white/15 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-nowrap pb-0.5">
                   {yogaClass.scheduleSlots.map((slot) => {
                     const isSlotFull = slot.isFull || (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
                     const left = slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount);
                     return (
                       <span
                         key={slot.id}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${isSlotFull
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors shrink-0 whitespace-nowrap ${isSlotFull
                           ? 'bg-black/50 text-white/50 border border-white/10 line-through'
                           : left <= 2
                             ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
@@ -223,14 +223,14 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
               {/* Session options indicator pills (e.g. Masterclass dates) */}
               {yogaClass.hasSessionOptions && yogaClass.sessionOptions?.length > 0 && !yogaClass.isPrivateOneOnOne && (
-                <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+                <div className="pt-2 border-t border-white/15 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-nowrap pb-0.5">
                   {yogaClass.sessionOptions.slice(0, 3).map((opt) => {
                     const isOptFull = opt.isFull || (opt.spotsLeft ?? 1) <= 0;
                     const left = opt.spotsLeft ?? 1;
                     return (
                       <span
                         key={opt.id}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium ${isOptFull
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium shrink-0 whitespace-nowrap ${isOptFull
                           ? 'bg-black/50 text-white/50 border border-white/10 line-through'
                           : 'bg-white/15 text-white border border-white/20'
                           }`}
@@ -249,7 +249,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
           <div className="mt-auto w-full">
             {/* Instructor info row - perfectly centered vertically in between the lines, left-aligned */}
-            <div className="flex items-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
+            <div className="flex items-center gap-3 py-2.5 sm:py-3.5 border-t border-white/20 w-full">
               <img
                 src={instructor.avatar}
                 alt={instructor.name}
@@ -269,59 +269,59 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
             </div>
 
             {/* Bottom Footer: Price & Action Button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 sm:pt-3.5 border-t border-white/20 w-full">
-            <div className="min-w-0">
-              {locationPricing ? (
-                <div>
-                  <span className="text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Pricing</span>
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span className="text-base sm:text-lg font-bold font-serif text-[#F7E7C4] drop-shadow-sm">
-                      GH₵{locationPricing.studio} <span className="text-[10px] font-sans font-normal text-[#EDE8E1]/80">studio</span>
-                    </span>
-                    <span className="text-[#EDE8E1]/60">•</span>
-                    <span className="text-base sm:text-lg font-bold font-serif text-[#EAD3D5] drop-shadow-sm">
-                      GH₵{locationPricing.clientLocation} <span className="text-[10px] font-sans font-normal text-[#EDE8E1]/80">location</span>
-                    </span>
+            <div className="flex items-center justify-between gap-2 pt-2.5 sm:pt-3.5 border-t border-white/20 w-full">
+              <div className="min-w-0 flex-1">
+                {locationPricing ? (
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Pricing</span>
+                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                      <span className="text-sm sm:text-base font-bold font-serif text-[#F7E7C4] drop-shadow-sm whitespace-nowrap">
+                        GH₵{locationPricing.studio} <span className="text-[9px] font-sans font-normal text-[#EDE8E1]/80">studio</span>
+                      </span>
+                      <span className="text-[#EDE8E1]/60">•</span>
+                      <span className="text-sm sm:text-base font-bold font-serif text-[#EAD3D5] drop-shadow-sm whitespace-nowrap">
+                        GH₵{locationPricing.clientLocation} <span className="text-[9px] font-sans font-normal text-[#EDE8E1]/80">location</span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <span className="text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Price</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold font-serif text-[#F7E7C4] drop-shadow-sm">GH₵{price}</span>
-                    <span className="text-xs text-[#EDE8E1]/80">/ session</span>
+                ) : (
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Price</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl sm:text-2xl font-bold font-serif text-[#F7E7C4] drop-shadow-sm">GH₵{price}</span>
+                      <span className="text-[11px] sm:text-xs text-[#EDE8E1]/80 whitespace-nowrap">/ session</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <div className="w-full sm:w-auto shrink-0">
-              {isFull ? (
-                <button
-                  type="button"
-                  disabled
-                  className="w-full sm:w-auto rounded-xl bg-white/20 text-white/50 px-4 py-2.5 text-xs font-medium cursor-not-allowed text-center"
-                >
-                  Sold Out
-                </button>
-              ) : isSelected ? (
-                <div className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-[#5A6952] px-4 py-2.5 text-xs font-semibold text-white shadow-lg border border-white/30 text-center">
-                  <Check className="h-3.5 w-3.5" />
-                  <span>Selected</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="w-full sm:w-auto rounded-xl bg-[#A44A4A] hover:bg-[#8C3E3E] text-white px-4 py-2.5 text-xs font-semibold shadow-xl border border-white/20 transition-all text-center"
-                >
-                  Select Experience
-                </button>
-              )}
+              <div className="shrink-0">
+                {isFull ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="rounded-xl bg-white/20 text-white/50 px-3.5 py-2 text-xs font-medium cursor-not-allowed text-center whitespace-nowrap"
+                  >
+                    Sold Out
+                  </button>
+                ) : isSelected ? (
+                  <div className="flex items-center justify-center gap-1.5 rounded-xl bg-[#5A6952] px-3.5 py-2 text-xs font-semibold text-white shadow-lg border border-white/30 text-center whitespace-nowrap">
+                    <Check className="h-3.5 w-3.5" />
+                    <span>Selected</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded-xl bg-[#A44A4A] hover:bg-[#8C3E3E] text-white px-3.5 py-2 text-xs font-semibold shadow-xl border border-white/20 transition-all text-center whitespace-nowrap"
+                  >
+                    Select Experience
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
   );
   }
 
@@ -333,7 +333,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           onSelect(yogaClass);
         }
       }}
-      className={`group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
+      className={`group relative flex flex-col justify-between rounded-3xl p-4 sm:p-6 transition-all duration-300 cursor-pointer border w-full max-w-full overflow-hidden text-white min-h-[480px] sm:h-[550px] lg:h-[565px] bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] shadow-xl ${isSelected
         ? 'border-[#C8A253] shadow-2xl ring-4 ring-[#C8A253]/60 scale-[1.01]'
         : isFull
           ? 'border-white/15 opacity-65 cursor-not-allowed'
@@ -385,16 +385,16 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           </div>
 
           {/* Class Title, Tagline & Description */}
-          <div className="mb-4">
-            <h3 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-[#F7F4EF] transition-colors leading-snug drop-shadow-sm">
+          <div className="mb-3.5">
+            <h3 className="font-serif text-lg sm:text-xl lg:text-2xl font-bold text-white group-hover:text-[#F7E7C4] transition-colors leading-snug drop-shadow-sm min-h-[3rem] sm:min-h-[3.25rem] flex items-start">
               {title}
             </h3>
             {tagline && (
-              <p className="mt-1 text-xs font-serif italic text-[#EAD3D5]">
+              <p className="mt-0.5 text-xs font-serif italic text-[#EAD3D5] truncate">
                 &ldquo;{tagline}&rdquo;
               </p>
             )}
-            <p className="mt-1.5 text-xs sm:text-sm text-[#F7F4EF]/90 line-clamp-3 leading-relaxed">
+            <p className="mt-1 text-xs text-[#F7F4EF]/90 line-clamp-2 leading-relaxed">
               {description}
             </p>
           </div>
@@ -424,14 +424,14 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
 
             {/* Slot-level capacity indicator pills */}
             {yogaClass.hasScheduleSlots && yogaClass.scheduleSlots?.length > 0 && (
-              <div className="pt-2 border-t border-white/15 flex flex-wrap gap-1.5">
+              <div className="pt-2 border-t border-white/15 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-nowrap pb-0.5">
                 {yogaClass.scheduleSlots.map((slot) => {
                   const isSlotFull = slot.isFull || (slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount)) <= 0;
                   const left = slot.spotsLeft ?? (slot.maxCapacity - slot.bookedCount);
                   return (
                     <span
                       key={slot.id}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors ${isSlotFull
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors shrink-0 whitespace-nowrap ${isSlotFull
                         ? 'bg-black/50 text-white/50 border border-white/10 line-through'
                         : left <= 2
                           ? 'bg-[#C8A253]/25 text-[#F7E7C4] border border-[#C8A253]/40'
@@ -454,7 +454,7 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
         {/* Bottom Section: Instructor Info Row & Price/Action Footer */}
         <div className="mt-auto w-full">
           {/* Instructor info row - perfectly centered vertically in between the lines, left-aligned */}
-          <div className="flex items-center gap-3 py-3 sm:py-3.5 border-t border-white/20 w-full">
+          <div className="flex items-center gap-3 py-2.5 sm:py-3.5 border-t border-white/20 w-full">
             <img
               src={instructor.avatar}
               alt={instructor.name}
@@ -474,58 +474,58 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           </div>
 
           {/* Bottom Footer: Price & Action Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 sm:pt-3.5 border-t border-white/20 w-full">
-          <div className="min-w-0">
-            {locationPricing ? (
-              <div>
-                <span className="text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Pricing</span>
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-base sm:text-lg font-bold font-serif text-[#F7E7C4] drop-shadow-sm">
-                    GH₵{locationPricing.studio} <span className="text-[10px] font-sans font-normal text-[#EDE8E1]/80">studio</span>
-                  </span>
-                  <span className="text-[#EDE8E1]/60">•</span>
-                  <span className="text-base sm:text-lg font-bold font-serif text-[#EAD3D5] drop-shadow-sm">
-                    GH₵{locationPricing.clientLocation} <span className="text-[10px] font-sans font-normal text-[#EDE8E1]/80">location</span>
-                  </span>
+          <div className="flex items-center justify-between gap-2 pt-2.5 sm:pt-3.5 border-t border-white/20 w-full">
+            <div className="min-w-0 flex-1">
+              {locationPricing ? (
+                <div>
+                  <span className="text-[9px] sm:text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Pricing</span>
+                  <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                    <span className="text-sm sm:text-base font-bold font-serif text-[#F7E7C4] drop-shadow-sm whitespace-nowrap">
+                      GH₵{locationPricing.studio} <span className="text-[9px] font-sans font-normal text-[#EDE8E1]/80">studio</span>
+                    </span>
+                    <span className="text-[#EDE8E1]/60">•</span>
+                    <span className="text-sm sm:text-base font-bold font-serif text-[#EAD3D5] drop-shadow-sm whitespace-nowrap">
+                      GH₵{locationPricing.clientLocation} <span className="text-[9px] font-sans font-normal text-[#EDE8E1]/80">location</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div>
-                <span className="text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Price</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold font-serif text-[#F7E7C4] drop-shadow-sm">GH₵{price}</span>
-                  <span className="text-xs text-[#EDE8E1]/80">/ session</span>
+              ) : (
+                <div>
+                  <span className="text-[9px] sm:text-[10px] text-[#EDE8E1]/80 uppercase font-semibold block">Price</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl sm:text-2xl font-bold font-serif text-[#F7E7C4] drop-shadow-sm">GH₵{price}</span>
+                    <span className="text-[11px] sm:text-xs text-[#EDE8E1]/80 whitespace-nowrap">/ session</span>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="w-full sm:w-auto shrink-0">
-            {isFull ? (
-              <button
-                type="button"
-                disabled
-                className="w-full sm:w-auto rounded-xl bg-white/20 text-white/50 px-4 py-2.5 text-xs font-medium cursor-not-allowed text-center"
-              >
-                Waitlist Only
-              </button>
-            ) : isSelected ? (
-              <div className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-[#5A6952] px-4 py-2.5 text-xs font-semibold text-white shadow-lg border border-white/30 text-center">
-                <Check className="h-3.5 w-3.5" />
-                <span>Selected</span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="w-full sm:w-auto rounded-xl bg-[#A44A4A] hover:bg-[#8C3E3E] text-white px-4 py-2.5 text-xs font-semibold shadow-xl border border-white/20 transition-all text-center"
-              >
-                Select Experience
-              </button>
-            )}
+            <div className="shrink-0">
+              {isFull ? (
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-xl bg-white/20 text-white/50 px-3.5 py-2 text-xs font-medium cursor-not-allowed text-center whitespace-nowrap"
+                >
+                  Waitlist Only
+                </button>
+              ) : isSelected ? (
+                <div className="flex items-center justify-center gap-1.5 rounded-xl bg-[#5A6952] px-3.5 py-2 text-xs font-semibold text-white shadow-lg border border-white/30 text-center whitespace-nowrap">
+                  <Check className="h-3.5 w-3.5" />
+                  <span>Selected</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="rounded-xl bg-[#A44A4A] hover:bg-[#8C3E3E] text-white px-3.5 py-2 text-xs font-semibold shadow-xl border border-white/20 transition-all text-center whitespace-nowrap"
+                >
+                  Select Experience
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 );
 }
