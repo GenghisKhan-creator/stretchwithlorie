@@ -61,13 +61,20 @@ async function initDatabase() {
   }
 
   // Step 2: Connect to target database and execute schema.sql
-  const targetPool = new Pool({
-    user: dbUser,
-    host: dbHost,
-    database: targetDb,
-    password: dbPassword,
-    port: dbPort
-  });
+  const targetPool = new Pool(
+    process.env.DATABASE_URL
+      ? {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+        }
+      : {
+          user: dbUser,
+          host: dbHost,
+          database: targetDb,
+          password: dbPassword,
+          port: dbPort
+        }
+  );
 
   try {
     const schemaPath = path.join(__dirname, 'schema.sql');
