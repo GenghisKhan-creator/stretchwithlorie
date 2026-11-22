@@ -10,7 +10,12 @@ const STORAGE_KEY_REFERRALS = 'stretchwithlorie_referrals_v12';
 const STORAGE_KEY_EVENT_INQUIRIES = 'stretchwithlorie_event_inquiries_v12';
 const STORAGE_KEY_GIFT_CARDS = 'stretchwithlorie_gift_cards_v12';
 const STORAGE_KEY_ADMIN_TOKEN = 'stretchwithlorie_admin_token';
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+const rawBackendUrl = (import.meta.env.VITE_BACKEND_URL || '').trim().replace(/\/+$/, '');
+const API_BASE_URL = rawBackendUrl
+  ? rawBackendUrl.endsWith('/api')
+    ? rawBackendUrl
+    : `${rawBackendUrl}/api`
+  : '/api';
 
 const INITIAL_EVENT_INQUIRIES = [];
 
