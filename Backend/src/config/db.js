@@ -5,16 +5,32 @@ dotenv.config();
 
 const { Pool } = pkg;
 
-export const pool = new Pool({
-  user: process.env.PG_USER || 'postgres',
-  host: process.env.PG_HOST || 'localhost',
-  database: process.env.PG_DATABASE?.trim() || 'stretchwithlorie',
-  password: process.env.PG_PASSWORD,
-  port: parseInt(process.env.PG_PORT || '5432', 10),
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000
-});
+const isProduction = process.env.NODE_ENV === 'production';
+const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+
+export const pool = new Pool(
+  hasDatabaseUrl
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.DATABASE_URL.includes('localhost')
+          ? false
+          : { rejectUnauthorized: false },
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000
+      }
+    : {
+        user: process.env.PG_USER || 'postgres',
+        host: process.env.PG_HOST || 'localhost',
+        database: process.env.PG_DATABASE?.trim() || 'stretchwithlorie',
+        password: process.env.PG_PASSWORD,
+        port: parseInt(process.env.PG_PORT || '5432', 10),
+        ssl: process.env.PG_SSL === 'true' || isProduction ? { rejectUnauthorized: false } : false,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000
+      }
+);
 
 pool.on('error', (err) => {
   console.error('[PostgreSQL Pool Error]:', err.message);

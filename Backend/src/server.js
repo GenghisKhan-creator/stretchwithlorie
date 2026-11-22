@@ -36,7 +36,21 @@ app.use(securityHeaders);
 // CORS Policy
 app.use(
   cors({
-    origin: [CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        origin === CLIENT_URL ||
+        origin === CLIENT_URL?.replace(/\/$/, '') ||
+        origin === 'http://localhost:5173' ||
+        origin === 'http://127.0.0.1:5173' ||
+        origin.endsWith('.onrender.com') ||
+        origin.endsWith('.vercel.app');
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
   })
