@@ -801,8 +801,8 @@ export default function RegistrationForm({
 
               {/* Code Input & Verification Action */}
               <div className="space-y-2 pt-0.5">
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
+                <div className="flex items-center gap-2 w-full min-w-0">
+                  <div className="relative flex-1 min-w-0">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#7A8B71]">
                       <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
                     </div>
@@ -820,7 +820,7 @@ export default function RegistrationForm({
                         }
                       }}
                       placeholder="e.g. SWL-GIFT-XXXX or SWL-PASS-XXXX"
-                      className="w-full rounded-xl border border-[#E6E1D8] bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:text-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20 transition-all"
+                      className="w-full min-w-0 rounded-xl border border-[#E6E1D8] bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:text-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20 transition-all"
                     />
                   </div>
                   <button
@@ -1743,7 +1743,7 @@ export default function RegistrationForm({
 
         {/* Creator Referral / Promo Code Section */}
         <div className="pt-4 border-t border-[#E6E1D8]">
-          <div className="rounded-2xl bg-[#FAF8F5] border border-[#E6E1D8] p-3.5 sm:p-4 space-y-2.5">
+          <div className="rounded-2xl bg-[#FAF8F5] border border-[#E6E1D8] p-3.5 sm:p-4 space-y-2.5 overflow-hidden">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-wider text-[#2B2E31] flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5 text-[#C8A253]" />
@@ -1762,7 +1762,7 @@ export default function RegistrationForm({
             </div>
 
             {!appliedReferral ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full min-w-0">
                 <input
                   type="text"
                   value={promoCodeInput}
@@ -1770,14 +1770,20 @@ export default function RegistrationForm({
                     setPromoCodeInput(e.target.value.toUpperCase());
                     setPromoError('');
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleApplyPromoCode();
+                    }
+                  }}
                   placeholder="Enter code (e.g. AMA15 or LORIEVIP)"
-                  className="flex-1 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
+                  className="flex-1 min-w-0 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
                 />
                 <button
                   type="button"
                   onClick={handleApplyPromoCode}
                   disabled={isValidatingPromo || !promoCodeInput.trim()}
-                  className="rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] px-4 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  className="shrink-0 rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] active:scale-[0.98] text-[#F7E7C4] px-4 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isValidatingPromo ? 'Checking...' : 'Apply'}
                 </button>
@@ -1880,17 +1886,18 @@ export default function RegistrationForm({
           )}
 
           {/* Payment Method Selector: MoMo vs Card vs Monthly Pass */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Mobile Money Option */}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'momo' })}
-              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'momo'
+              className={`relative flex items-center sm:flex-col sm:items-start justify-between sm:justify-start gap-2.5 sm:gap-2 rounded-2xl p-3 sm:p-3.5 border transition-all text-left cursor-pointer ${
+                formData.paymentChannel === 'momo'
                   ? 'border-[#7A8B71] bg-[#F1F4EF] shadow-sm ring-2 ring-[#7A8B71]/20'
                   : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
-                }`}
+              }`}
             >
-              <div className="flex items-center justify-between w-full">
+              <div className="flex items-center sm:justify-between sm:w-full gap-2 shrink-0">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E5ECE2] text-[#5A6952]">
                   <Smartphone className="h-4 w-4" />
                 </div>
@@ -1898,7 +1905,8 @@ export default function RegistrationForm({
                   Popular
                 </span>
               </div>
-              <div className="min-w-0 flex-1">
+
+              <div className="min-w-0 flex-1 sm:w-full">
                 <span className="text-xs font-bold text-[#2B2E31] block">Mobile Money</span>
                 <div className="flex items-center gap-1.5 mt-1">
                   <MobileMoneyLogo network="MTN" variant="image" size="xs" className="h-3.5 w-auto rounded-xs shadow-2xs" />
@@ -1906,46 +1914,67 @@ export default function RegistrationForm({
                   <MobileMoneyLogo network="AT" variant="image" size="xs" className="h-3.5 w-auto rounded-xs" />
                 </div>
               </div>
+
+              <span className="sm:hidden shrink-0 rounded bg-[#FAF5EB] text-[#8C6D23] border border-[#E8D7B0] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider">
+                Popular
+              </span>
             </button>
 
             {/* Debit/Credit Card Option */}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'card' })}
-              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'card'
+              className={`relative flex items-center sm:flex-col sm:items-start justify-between sm:justify-start gap-2.5 sm:gap-2 rounded-2xl p-3 sm:p-3.5 border transition-all text-left cursor-pointer ${
+                formData.paymentChannel === 'card'
                   ? 'border-[#7A8B71] bg-[#F1F4EF] shadow-sm ring-2 ring-[#7A8B71]/20'
                   : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
-                }`}
+              }`}
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E5ECE2] text-[#5A6952]">
-                <CreditCard className="h-4 w-4" />
+              <div className="flex items-center sm:justify-between sm:w-full gap-2 shrink-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E5ECE2] text-[#5A6952]">
+                  <CreditCard className="h-4 w-4" />
+                </div>
+                <span className="hidden sm:inline rounded bg-[#FAF8F5] text-[#5C6260] border border-[#E6E1D8] px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-wider">
+                  Cards
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
+
+              <div className="min-w-0 flex-1 sm:w-full">
                 <span className="text-xs font-bold text-[#2B2E31] block">Debit / Credit Card</span>
                 <p className="text-[10px] text-[#5C6260] truncate mt-0.5">
                   Visa, Mastercard, Verve
                 </p>
               </div>
+
+              <span className="sm:hidden shrink-0 rounded bg-[#FAF8F5] text-[#5C6260] border border-[#E6E1D8] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider">
+                Cards
+              </span>
             </button>
 
             {/* Monthly Flow Pass / Voucher */}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'pass' })}
-              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'pass'
+              className={`relative flex items-center sm:flex-col sm:items-start justify-between sm:justify-start gap-2.5 sm:gap-2 rounded-2xl p-3 sm:p-3.5 border transition-all text-left cursor-pointer ${
+                formData.paymentChannel === 'pass'
                   ? 'border-[#C8A253] bg-gradient-to-br from-[#FAF8F5] to-[#F1F4EF] shadow-sm ring-2 ring-[#C8A253]/40'
                   : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
-                }`}
+              }`}
             >
-              <div className="flex items-center justify-between w-full">
+              <div className="flex items-center sm:justify-between sm:w-full gap-2 shrink-0">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#232D21] text-[#C8A253]">
                   <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
                 </div>
-                <span className={`rounded border px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-wider ${isClassPassEligible ? 'bg-[#E5ECE2] text-[#232D21] border-[#7A8B71]/40' : 'bg-[#FAF5EB] text-[#8C6D23] border-[#E8D7B0]'}`}>
+                <span className={`hidden sm:inline rounded border px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-wider ${
+                  isClassPassEligible
+                    ? 'bg-[#E5ECE2] text-[#232D21] border-[#7A8B71]/40'
+                    : 'bg-[#FAF5EB] text-[#8C6D23] border-[#E8D7B0]'
+                }`}>
                   {isClassPassEligible ? 'Prepaid' : 'Voucher'}
                 </span>
               </div>
-              <div className="min-w-0 flex-1">
+
+              <div className="min-w-0 flex-1 sm:w-full">
                 <span className="text-xs font-bold text-[#2B2E31] block truncate">
                   {isClassPassEligible ? 'Monthly Pass / Voucher' : 'Cash Gift Voucher'}
                 </span>
@@ -1955,6 +1984,14 @@ export default function RegistrationForm({
                     : (isClassPassEligible ? 'Redeem 0 GHS' : 'Redeem Balance')}
                 </p>
               </div>
+
+              <span className={`sm:hidden shrink-0 rounded border px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${
+                isClassPassEligible
+                  ? 'bg-[#E5ECE2] text-[#232D21] border-[#7A8B71]/40'
+                  : 'bg-[#FAF5EB] text-[#8C6D23] border-[#E8D7B0]'
+              }`}>
+                {isClassPassEligible ? 'Prepaid' : 'Voucher'}
+              </span>
             </button>
           </div>
 
@@ -2146,7 +2183,7 @@ export default function RegistrationForm({
 
               {!appliedPass ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full min-w-0">
                     <input
                       type="text"
                       value={passCodeInput}
@@ -2161,13 +2198,13 @@ export default function RegistrationForm({
                         }
                       }}
                       placeholder="Enter code (e.g. SWL-PASS-XXXX)"
-                      className="flex-1 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
+                      className="flex-1 min-w-0 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
                     />
                     <button
                       type="button"
                       onClick={() => handleApplyPassCode()}
                       disabled={isValidatingPass || !passCodeInput.trim()}
-                      className="rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] px-4 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                      className="shrink-0 rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] px-4 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
                     >
                       {isValidatingPass ? 'Checking...' : 'Apply Pass'}
                     </button>
