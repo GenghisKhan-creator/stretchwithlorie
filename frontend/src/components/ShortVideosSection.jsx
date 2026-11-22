@@ -28,6 +28,25 @@ import thaiStretchImg from '../assets/thai_yoga_stretches.jpg';
 import privateYogaImg from '../assets/private_yoga_class.jpg';
 import couplesYogaImg from '../assets/couples_yoga.jpg';
 
+const VIDEO_FALLBACK_THUMBNAILS = {
+  'vid-full-spine': flexibilityImg,
+  'vid-full-hips': thaiStretchImg,
+  'vid-full-desk': privateYogaImg,
+  'vid-full-sleep': couplesYogaImg
+};
+
+function resolveVideoThumbnail(video) {
+  const fallback = (video && VIDEO_FALLBACK_THUMBNAILS[video.id]) || flexibilityImg;
+  if (!video || !video.thumbnail) return fallback;
+  if (typeof video.thumbnail === 'string') {
+    if (video.thumbnail.startsWith('/src/assets/')) {
+      const filename = video.thumbnail.replace('/src/assets/', '');
+      return `/images/${filename}`;
+    }
+  }
+  return video.thumbnail || fallback;
+}
+
 const STORAGE_KEY_VIDEOS = 'stretchwithlorie_full_videos_v2';
 const STORAGE_KEY_UNLOCKED = 'stretchwithlorie_unlocked_full_videos_v2';
 
@@ -553,9 +572,15 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
             >
               {/* VIDEO POSTER IMAGE COVERING THE ENTIRE CARD */}
               <img
-                src={video.thumbnail}
+                src={resolveVideoThumbnail(video)}
                 alt={video.title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                onError={(e) => {
+                  const fallback = (video && VIDEO_FALLBACK_THUMBNAILS[video.id]) || flexibilityImg;
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
               />
 
               {/* CLEAN CINEMATIC GRADIENT */}
@@ -666,9 +691,15 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
             <div className="bg-gradient-to-r from-[#1E261D] via-[#2A3728] to-[#1C231A] p-3.5 sm:p-5 text-white border-b border-[#C8A253]/35 flex items-start justify-between gap-3 shrink-0">
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 <img
-                  src={purchaseTargetVideo.thumbnail}
+                  src={resolveVideoThumbnail(purchaseTargetVideo)}
                   alt={purchaseTargetVideo.title}
                   className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl object-cover border border-[#C8A253]/50 shrink-0"
+                  onError={(e) => {
+                    const fallback = (purchaseTargetVideo && VIDEO_FALLBACK_THUMBNAILS[purchaseTargetVideo.id]) || flexibilityImg;
+                    if (e.currentTarget.src !== fallback) {
+                      e.currentTarget.src = fallback;
+                    }
+                  }}
                 />
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#C8A253]/25 border border-[#C8A253]/50 px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-[#F7E7C4]">
@@ -1170,7 +1201,7 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                 <video
                   ref={videoElementRef}
                   src={activePlayerVideo.videoUrl}
-                  poster={activePlayerVideo.thumbnail}
+                  poster={resolveVideoThumbnail(activePlayerVideo)}
                   autoPlay
                   muted={isMuted}
                   playsInline
@@ -1190,11 +1221,17 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                 />
               ) : (
                 <img
-                  src={activePlayerVideo.thumbnail}
+                  src={resolveVideoThumbnail(activePlayerVideo)}
                   alt={activePlayerVideo.title}
                   className={`h-full w-full object-cover transition-transform duration-1000 ${
                     isPlaying ? 'scale-105 brightness-95' : 'scale-100 brightness-85'
                   }`}
+                  onError={(e) => {
+                    const fallback = (activePlayerVideo && VIDEO_FALLBACK_THUMBNAILS[activePlayerVideo.id]) || flexibilityImg;
+                    if (e.currentTarget.src !== fallback) {
+                      e.currentTarget.src = fallback;
+                    }
+                  }}
                 />
               )}
 

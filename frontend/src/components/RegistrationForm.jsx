@@ -704,13 +704,26 @@ export default function RegistrationForm({
         </div>
 
         <div className="flex items-start gap-3.5 sm:gap-4">
-          {(selectedClass.image || CLASS_FALLBACK_IMAGES[selectedClass.id]) && (
-            <img
-              src={selectedClass.image || CLASS_FALLBACK_IMAGES[selectedClass.id]}
-              alt={selectedClass.title}
-              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover object-[center_25%] ring-2 ring-[#E6E1D8] shrink-0 shadow-xs"
-            />
-          )}
+          {(() => {
+            const fallback = CLASS_FALLBACK_IMAGES[selectedClass.id] || massYogaImg;
+            let imgSrc = selectedClass.image;
+            if (!imgSrc || imgSrc.startsWith('/src/assets/')) {
+              const fname = imgSrc ? imgSrc.replace('/src/assets/', '') : null;
+              imgSrc = fname ? `/images/${fname}` : fallback;
+            }
+            return (
+              <img
+                src={imgSrc}
+                alt={selectedClass.title}
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover object-[center_25%] ring-2 ring-[#E6E1D8] shrink-0 shadow-xs"
+                onError={(e) => {
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
+              />
+            );
+          })()}
           <div className="min-w-0 flex-1">
             <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31] leading-snug">
               {selectedClass.title}

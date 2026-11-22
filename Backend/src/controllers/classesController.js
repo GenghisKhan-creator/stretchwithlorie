@@ -13,7 +13,7 @@ export function formatClass(row) {
     instructor: {
       name: row.instructor_name || 'Lorie',
       role: row.instructor_role || 'Founder & Lead Yoga Specialist',
-      avatar: row.instructor_avatar || '/src/assets/lorie_avatar.jpg'
+      avatar: row.instructor_avatar || '/images/lorie_avatar.jpg'
     },
     date: row.date_text,
     time: row.time_text,

@@ -5,6 +5,7 @@ import flexibilityMasterclassImg from '../assets/flexibility_masterclass.jpg';
 import thaiYogaStretchesImg from '../assets/thai_yoga_stretches.jpg';
 import couplesYogaImg from '../assets/couples_yoga.jpg';
 import yogaChampagneImg from '../assets/yoga_champagne.jpg';
+import lorieAvatarImg from '../assets/lorie_avatar.jpg';
 
 const CLASS_FALLBACK_IMAGES = {
   'cls-mass': massYogaImg,
@@ -45,7 +46,12 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
     imagePosition
   } = yogaClass;
 
-  const displayImage = image || CLASS_FALLBACK_IMAGES[yogaClass.id] || null;
+  const fallbackImg = CLASS_FALLBACK_IMAGES[yogaClass.id] || massYogaImg;
+  let displayImage = image;
+  if (!displayImage || displayImage.startsWith('/src/assets/')) {
+    const filename = displayImage ? displayImage.replace('/src/assets/', '') : null;
+    displayImage = filename ? `/images/${filename}` : fallbackImg;
+  }
   const imagePos = imagePosition || CLASS_IMAGE_POSITIONS[yogaClass.id] || 'object-center';
 
   // Compute slot-aware or session-option-aware capacities
@@ -106,6 +112,11 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           src={displayImage}
           alt={title}
           className={`absolute inset-0 h-full w-full object-cover ${imagePos} transition-transform duration-700 ease-out group-hover:scale-105 select-none`}
+          onError={(e) => {
+            if (e.currentTarget.src !== fallbackImg) {
+              e.currentTarget.src = fallbackImg;
+            }
+          }}
         />
 
         {/* Ambient Gold & Botanical Lighting Sheen */}
@@ -474,11 +485,17 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
           {/* Instructor info row - perfectly centered vertically in between the lines, left-aligned */}
           <div className="flex items-center gap-3 py-2.5 sm:py-3.5 border-t border-white/20 w-full">
             <img
-              src={instructor.avatar}
-              alt={instructor.name}
+              src={
+                instructor?.avatar?.startsWith('/src/assets/')
+                  ? `/images/${instructor.avatar.replace('/src/assets/', '')}`
+                  : (instructor?.avatar || lorieAvatarImg)
+              }
+              alt={instructor?.name || 'Instructor'}
               className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover object-[center_20%] ring-2 ring-white/40 shadow-sm shrink-0"
               onError={(e) => {
-                e.target.style.display = 'none';
+                if (e.currentTarget.src !== lorieAvatarImg) {
+                  e.currentTarget.src = lorieAvatarImg;
+                }
               }}
             />
             <div className="min-w-0 flex-1">
