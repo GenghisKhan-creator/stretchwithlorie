@@ -17,7 +17,7 @@ import AdminLoginModal from './components/AdminLoginModal';
 import { api } from './services/api';
 import { studioSocket } from './services/websocket';
 import { STUDIO_SCHEDULES } from './data/mockData';
-import loriePoseImg from './assets/lorie_pose.png';
+import loriePoseImg from './assets/lorie_pose_raw.png';
 import flowClubPoseImg from './assets/flow_club_pose.jpg';
 import {
   Calendar,
@@ -1201,7 +1201,7 @@ export default function App() {
                 ref={poseImgRef}
                 src={loriePoseImg}
                 alt="Lorie holding a standing bow stretch"
-                className="relative z-10 h-[290px] sm:h-[420px] lg:h-[540px] w-auto max-w-none object-contain mix-blend-multiply select-none will-change-transform"
+                className="relative z-10 h-[390px] sm:h-[420px] lg:h-[540px] w-auto max-w-none object-contain mix-blend-multiply select-none will-change-transform"
               />
 
               <div
@@ -1362,9 +1362,8 @@ export default function App() {
                         type="button"
                         aria-label={`Show ${s.light} ${s.bold}`}
                         onClick={() => transitionToSlide(i)}
-                        className={`relative h-1.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer ${
-                          isActive ? 'w-9 bg-[#D5CEC2]' : 'w-2 bg-[#C9C2B6]'
-                        }`}
+                        className={`relative h-1.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer ${isActive ? 'w-9 bg-[#D5CEC2]' : 'w-2 bg-[#C9C2B6]'
+                          }`}
                       >
                         {isActive && (
                           <span
@@ -1416,11 +1415,10 @@ export default function App() {
                       />
                     )}
                     <span
-                      className={`rounded-full transition-all duration-300 ${
-                        isActive
-                          ? 'h-2.5 w-2.5 bg-[#2B2E31] ring-2 ring-[#C8A253]/40'
-                          : 'h-1.5 w-1.5 bg-[#C9C2B6] group-hover:bg-[#7A8B71] group-hover:scale-125'
-                      }`}
+                      className={`rounded-full transition-all duration-300 ${isActive
+                        ? 'h-2.5 w-2.5 bg-[#2B2E31] ring-2 ring-[#C8A253]/40'
+                        : 'h-1.5 w-1.5 bg-[#C9C2B6] group-hover:bg-[#7A8B71] group-hover:scale-125'
+                        }`}
                     />
                   </button>
                 );
