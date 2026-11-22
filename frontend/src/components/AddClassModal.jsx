@@ -11,9 +11,10 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
     duration: '60 min',
     price: 160,
     maxCapacity: 12,
-    room: 'Sun Studio',
-    category: 'Vinyasa',
-    level: 'All Levels',
+    room: 'Studio Sanctuary',
+    category: 'Yoga Classes',
+    style: 'Vinyasa Flow',
+    level: 'All Levels Welcome',
     description: '',
     intensity: 'Moderate'
   });
@@ -64,7 +65,8 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
       level: formData.level,
       intensity: formData.intensity,
       description: formData.description.trim(),
-      tags: [formData.category, formData.level, formData.intensity]
+      isPassEligible: formData.category === 'Yoga Classes',
+      tags: [formData.category, formData.style || 'Vinyasa Flow', formData.level, formData.intensity]
     });
 
     onClose();
@@ -134,7 +136,7 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
 
             <div>
               <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                Category & Style
+                Studio Category *
               </label>
               <select
                 name="category"
@@ -142,12 +144,11 @@ export default function AddClassModal({ isOpen, onClose, onAddClass }) {
                 onChange={handleChange}
                 className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               >
-                <option value="Vinyasa">Vinyasa Flow</option>
-                <option value="Restorative">Restorative & Sound</option>
-                <option value="Yin">Yin & Somatic</option>
-                <option value="Hatha">Hatha</option>
-                <option value="Power">Power Yoga</option>
-                <option value="Pranayama">Pranayama & Breathwork</option>
+                <option value="Yoga Classes">Yoga Classes (Group Flow)</option>
+                <option value="Private Bookings">Private Bookings (1-on-1 / Couples)</option>
+                <option value="Masterclass">Flexibility Masterclass</option>
+                <option value="Therapeutic">Therapeutic & Somatic Stretch</option>
+                <option value="Special Experiences">Special Experiences</option>
               </select>
             </div>
           </div>

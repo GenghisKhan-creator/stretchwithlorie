@@ -25,11 +25,14 @@ CREATE TABLE IF NOT EXISTS classes (
   has_session_options BOOLEAN DEFAULT FALSE,
   session_options JSONB DEFAULT NULL,
   is_private_one_on_one BOOLEAN DEFAULT FALSE,
+  is_pass_eligible BOOLEAN DEFAULT TRUE,
   image_url TEXT,
   image_position VARCHAR(100) DEFAULT 'object-center',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS is_pass_eligible BOOLEAN DEFAULT TRUE;
 
 -- 2. Registrations / Bookings
 CREATE TABLE IF NOT EXISTS registrations (
@@ -53,6 +56,8 @@ CREATE TABLE IF NOT EXISTS registrations (
   payment_gateway VARCHAR(50) DEFAULT 'Paystack',
   payment_method VARCHAR(100) DEFAULT 'Paystack (MTN MoMo)',
   health_notes TEXT DEFAULT 'None reported',
+  intake JSONB DEFAULT NULL,
+  is_first_time BOOLEAN DEFAULT TRUE,
   promo_code VARCHAR(50) DEFAULT NULL,
   discount_amount NUMERIC(10, 2) DEFAULT 0,
   creator_name VARCHAR(150) DEFAULT NULL,
@@ -64,6 +69,8 @@ CREATE TABLE IF NOT EXISTS registrations (
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS promo_code VARCHAR(50) DEFAULT NULL;
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10, 2) DEFAULT 0;
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS creator_name VARCHAR(150) DEFAULT NULL;
+ALTER TABLE registrations ADD COLUMN IF NOT EXISTS intake JSONB DEFAULT NULL;
+ALTER TABLE registrations ADD COLUMN IF NOT EXISTS is_first_time BOOLEAN DEFAULT TRUE;
 
 -- 3. Guided Stretch & Yoga Videos Library
 CREATE TABLE IF NOT EXISTS videos (
@@ -110,7 +117,7 @@ CREATE TABLE IF NOT EXISTS event_inquiries (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Wellness Gift Cards
+-- 6. Wellness Gift Cards & Monthly Subscriptions / Flow Passes
 CREATE TABLE IF NOT EXISTS gift_cards (
   id VARCHAR(60) PRIMARY KEY,
   code VARCHAR(50) UNIQUE NOT NULL,
@@ -126,6 +133,17 @@ CREATE TABLE IF NOT EXISTS gift_cards (
   status VARCHAR(50) DEFAULT 'active',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure extended pass & subscription columns exist on gift_cards table
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS card_type VARCHAR(50) DEFAULT 'gift';
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS plan_id VARCHAR(50) DEFAULT NULL;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS plan_name VARCHAR(150) DEFAULT NULL;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS total_classes INT DEFAULT 1;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS classes_remaining INT DEFAULT 1;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS classes_used INT DEFAULT 0;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS balance NUMERIC(10, 2) DEFAULT NULL;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS redeemed_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS redemption_history JSONB DEFAULT '[]'::jsonb;
 
 -- 7. Creator Collaborations, Referrals & Discount Codes
 CREATE TABLE IF NOT EXISTS referral_codes (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   User,
+  UserCheck,
   Mail,
   Phone,
   HeartPulse,
@@ -19,7 +20,8 @@ import {
   Check,
   AlertCircle,
   Tag,
-  X
+  X,
+  Gift
 } from 'lucide-react';
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { api } from '../services/api';
@@ -50,10 +52,26 @@ export function PaystackIcon({ className = 'h-4 w-4' }) {
   );
 }
 
+// Sacred Lotus Flower Emblem for Monthly Pass
+export function PassLotusIcon({ className = 'h-5 w-5 text-[#C8A253]' }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+      <path d="M50 14C50 14 59 34 59 55C59 69 50 79 50 79C50 79 41 69 41 55C41 34 50 14 50 14Z" fill="currentColor" fillOpacity="0.9" />
+      <path d="M48 23C48 23 31 39 31 60C31 71 41 78 48 78C48 78 42 66 44 52C45 42 48 23 48 23Z" fill="currentColor" fillOpacity="0.75" />
+      <path d="M52 23C52 23 69 39 69 60C69 71 59 78 52 78C52 78 58 66 56 52C55 42 52 23 52 23Z" fill="currentColor" fillOpacity="0.75" />
+      <path d="M43 38C43 38 18 47 16 67C15 76 27 80 37 78C37 78 27 72 29 60C31 50 43 38 43 38Z" fill="currentColor" fillOpacity="0.55" />
+      <path d="M57 38C57 38 82 47 84 67C85 76 73 80 63 78C63 78 73 72 71 60C69 50 57 38 57 38Z" fill="currentColor" fillOpacity="0.55" />
+      <path d="M22 84C34 88 66 88 78 84" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeOpacity="0.65" />
+      <path d="M32 90C41 92 59 92 68 90" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.45" />
+    </svg>
+  );
+}
+
 export default function RegistrationForm({
   selectedClass,
   preselectedSlot,
   initialData,
+  initialPassCode,
   onSubmitBooking,
   isSubmitting,
   onCancel
@@ -89,35 +107,49 @@ export default function RegistrationForm({
     return tomorrow.toISOString().split('T')[0];
   };
 
-  const [formData, setFormData] = useState({
-    fullName: initialData?.studentName || initialData?.fullName || '',
-    email: initialData?.email || '',
-    phone: initialData?.phone || '',
-    healthNotes: '',
-    paymentChannel: 'momo', // 'momo' (Mobile Money) or 'card'
-    momoNetwork: 'MTN', // 'MTN' | 'Telecel' | 'AirtelTigo'
-    momoNumber: initialData?.phone || '',
-    locationOption: 'studio', // 'studio' | 'clientLocation'
-    clientAddress: '',
-    selectedSlot: defaultSlot(),
-    selectedSessionId: defaultSessionId(),
-    preferredDate: defaultPrivateDate(),
-    selectedTimeWindow: 'Morning (7:00 AM - 10:00 AM)',
-    // New Client Questionnaire State
-    isFirstTime: initialData?.isFirstTime !== undefined ? initialData.isFirstTime : true,
-    intake: initialData?.intake || {
-      practicedBefore: 'Yes', // 'Yes' | 'No'
-      experienceLevel: 'Beginner', // 'Beginner' | 'Intermediate' | 'Advanced'
-      mainGoal: 'Flexibility & Mobility',
-      customGoal: '',
-      hasInjuries: 'No', // 'No' | 'Yes'
-      injuriesDetails: '',
-      pregnancyStatus: 'No', // 'No' | 'Pregnant' | 'Postpartum'
-      instructorNotes: '',
-      returningNotes: ''
-    },
-    // Mandatory Confirmation Before Payment
-    agreedToMandatoryTerms: false
+  const [formData, setFormData] = useState(() => {
+    let savedProfile = null;
+    try {
+      const raw = localStorage.getItem('stretchwithlorie_student_profile');
+      if (raw) savedProfile = JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+
+    const resolvedName = initialData?.studentName || initialData?.fullName || savedProfile?.fullName || '';
+    const resolvedEmail = initialData?.email || savedProfile?.email || '';
+    const resolvedPhone = initialData?.phone || savedProfile?.phone || '';
+
+    return {
+      fullName: resolvedName,
+      email: resolvedEmail,
+      phone: resolvedPhone,
+      healthNotes: '',
+      paymentChannel: initialPassCode ? 'pass' : 'momo', // 'momo' | 'card' | 'pass'
+      momoNetwork: 'MTN', // 'MTN' | 'Telecel' | 'AirtelTigo'
+      momoNumber: resolvedPhone || '',
+      locationOption: 'studio', // 'studio' | 'clientLocation'
+      clientAddress: '',
+      selectedSlot: defaultSlot(),
+      selectedSessionId: defaultSessionId(),
+      preferredDate: defaultPrivateDate(),
+      selectedTimeWindow: 'Morning (7:00 AM - 10:00 AM)',
+      // New Client Questionnaire State
+      isFirstTime: initialData?.isFirstTime !== undefined ? initialData.isFirstTime : true,
+      intake: initialData?.intake || {
+        practicedBefore: 'Yes', // 'Yes' | 'No'
+        experienceLevel: 'Beginner', // 'Beginner' | 'Intermediate' | 'Advanced'
+        mainGoal: 'Flexibility & Mobility',
+        customGoal: '',
+        hasInjuries: 'No', // 'No' | 'Yes'
+        injuriesDetails: '',
+        pregnancyStatus: 'No', // 'No' | 'Pregnant' | 'Postpartum'
+        instructorNotes: '',
+        returningNotes: ''
+      },
+      // Mandatory Confirmation Before Payment
+      agreedToMandatoryTerms: false
+    };
   });
 
   const handleIntakeChange = (field, value) => {
@@ -130,9 +162,28 @@ export default function RegistrationForm({
     }));
   };
 
+  // Base price before discount (handles studio Gh 300 vs client location Gh 500 for private sessions)
+  const basePrice = selectedClass
+    ? selectedClass.locationPricing
+      ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
+      : selectedClass.price
+    : 0;
+
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [submissionPhase, setSubmissionPhase] = useState(0);
+
+  // Monthly Flow Pass & Gift Voucher State
+  const [passCodeInput, setPassCodeInput] = useState(() => initialPassCode || '');
+  const [appliedPass, setAppliedPass] = useState(null);
+  const [passError, setPassError] = useState('');
+  const [isValidatingPass, setIsValidatingPass] = useState(false);
+  const [showCustomGuestFields, setShowCustomGuestFields] = useState(false);
+
+  // Option A: Standard Monthly Flow Passes are redeemable for Weekly Studio Group Classes only
+  const isClassPassEligible = selectedClass?.isPassEligible !== false &&
+    !selectedClass?.isPrivateOneOnOne &&
+    selectedClass?.category === 'Yoga Classes';
 
   // Creator Referral & Promo Code State
   const [promoCodeInput, setPromoCodeInput] = useState(() => {
@@ -146,12 +197,135 @@ export default function RegistrationForm({
   const [promoError, setPromoError] = useState('');
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
-  // Base price before discount (handles studio Gh 300 vs client location Gh 500 for private sessions)
-  const basePrice = selectedClass
-    ? selectedClass.locationPricing
-      ? selectedClass.locationPricing[formData.locationOption] || selectedClass.price
-      : selectedClass.price
-    : 0;
+  // Auto-apply initial pass code if provided
+  useEffect(() => {
+    if (!initialPassCode) return;
+    let mounted = true;
+    api.validatePassOrVoucher(initialPassCode)
+      .then((res) => {
+        if (!mounted) return;
+        if (res && res.status === 'active') {
+          // Check Option A class eligibility
+          if (res.cardType === 'subscription' && !isClassPassEligible) {
+            setPassError(`Monthly Flow Passes apply to Studio Group Classes only. "${selectedClass.title}" is a premium experience excluded from standard passes.`);
+            return;
+          }
+
+          setAppliedPass(res);
+          setPassCodeInput(res.code);
+          const safeEmail = (res.recipientEmail && !res.recipientEmail.includes('*'))
+            ? res.recipientEmail
+            : (res.buyerEmail && !res.buyerEmail.includes('*'))
+            ? res.buyerEmail
+            : '';
+          const safePhone = (res.recipientPhone && !res.recipientPhone.includes('*'))
+            ? res.recipientPhone
+            : (res.buyerPhone && !res.buyerPhone.includes('*'))
+            ? res.buyerPhone
+            : '';
+
+          const resolvedName = (res.recipientName || res.buyerName || '').trim();
+          const voucherBal = res.balance !== null && res.balance !== undefined ? Number(res.balance) : Number(res.amount || 0);
+          const shouldBePassChannel = res.cardType === 'subscription' || voucherBal >= basePrice;
+
+          setFormData((prev) => ({
+            ...prev,
+            paymentChannel: shouldBePassChannel ? 'pass' : (prev.paymentChannel === 'pass' ? 'momo' : prev.paymentChannel),
+            fullName: resolvedName || prev.fullName || '',
+            email: safeEmail || prev.email || '',
+            phone: safePhone || prev.phone || ''
+          }));
+          setErrors((prev) => ({
+            ...prev,
+            fullName: undefined,
+            email: undefined,
+            phone: undefined,
+            passCode: undefined
+          }));
+        }
+      })
+      .catch((err) => {
+        if (mounted) {
+          setPassError(err.message || 'Could not validate pass code.');
+        }
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [initialPassCode, isClassPassEligible, selectedClass?.title, basePrice]);
+
+  const handleApplyPassCode = async (codeToVerify) => {
+    const clean = String(codeToVerify || passCodeInput).trim().toUpperCase();
+    if (!clean) {
+      setPassError('Please enter your Monthly Pass or Gift Voucher code.');
+      return;
+    }
+    setIsValidatingPass(true);
+    setPassError('');
+    try {
+      const res = await api.validatePassOrVoucher(clean);
+      if (res.status !== 'active') {
+        throw new Error(`This pass is ${res.status} and cannot be used.`);
+      }
+      if (res.cardType === 'subscription' && !isClassPassEligible) {
+        throw new Error(`Monthly Flow Passes apply exclusively to Studio Group Classes. "${selectedClass.title}" is a premium experience that requires direct payment or a Cash Gift Voucher.`);
+      }
+      if (res.cardType === 'subscription' && (res.classesRemaining || 0) <= 0) {
+        throw new Error('All classes on this Monthly Flow Pass have already been used.');
+      }
+      if (res.cardType === 'gift' && (res.balance !== undefined ? res.balance : res.amount) <= 0) {
+        throw new Error('This gift voucher has a GH₵ 0 balance.');
+      }
+
+      setAppliedPass(res);
+      setPassCodeInput(res.code);
+
+      const safeEmail = (res.recipientEmail && !res.recipientEmail.includes('*'))
+        ? res.recipientEmail
+        : (res.buyerEmail && !res.buyerEmail.includes('*'))
+        ? res.buyerEmail
+        : '';
+      const safePhone = (res.recipientPhone && !res.recipientPhone.includes('*'))
+        ? res.recipientPhone
+        : (res.buyerPhone && !res.buyerPhone.includes('*'))
+        ? res.buyerPhone
+        : '';
+
+      const resolvedName = (res.recipientName || res.buyerName || '').trim();
+      const voucherBal = res.balance !== null && res.balance !== undefined ? Number(res.balance) : Number(res.amount || 0);
+      const shouldBePassChannel = res.cardType === 'subscription' || voucherBal >= basePrice;
+
+      setFormData((prev) => ({
+        ...prev,
+        paymentChannel: shouldBePassChannel ? 'pass' : (prev.paymentChannel === 'pass' ? 'momo' : prev.paymentChannel),
+        fullName: resolvedName || prev.fullName || '',
+        email: safeEmail || prev.email || '',
+        phone: safePhone || prev.phone || ''
+      }));
+      setErrors((prev) => ({
+        ...prev,
+        fullName: undefined,
+        email: undefined,
+        phone: undefined,
+        passCode: undefined
+      }));
+    } catch (err) {
+      setAppliedPass(null);
+      setPassError(err.message || 'Invalid or expired pass code.');
+    } finally {
+      setIsValidatingPass(false);
+    }
+  };
+
+  const handleRemovePass = () => {
+    setAppliedPass(null);
+    setPassCodeInput('');
+    setPassError('');
+    setFormData((prev) => ({
+      ...prev,
+      paymentChannel: 'momo'
+    }));
+  };
 
   // Auto-apply URL referral code or recalculate discount when basePrice changes
   useEffect(() => {
@@ -287,29 +461,58 @@ export default function RegistrationForm({
       opt.id !== currentOptionObj?.id
   ) || [];
 
-  // Calculate dynamic payable price (after any creator referral / discount code)
+  // Calculate dynamic payable price (after any creator referral / discount code and pass/voucher)
   const discountAmount = appliedReferral ? Number(appliedReferral.discountAmount || 0) : 0;
-  const currentPrice = Math.max(0, basePrice - discountAmount);
+  const priceAfterReferral = Math.max(0, basePrice - discountAmount);
+
+  let passDiscount = 0;
+  if (appliedPass) {
+    if (appliedPass.cardType === 'subscription') {
+      passDiscount = priceAfterReferral;
+    } else {
+      const voucherBal = appliedPass.balance !== null && appliedPass.balance !== undefined
+        ? Number(appliedPass.balance)
+        : Number(appliedPass.amount || 0);
+      passDiscount = Math.min(priceAfterReferral, voucherBal);
+    }
+  }
+
+  const currentPrice = Math.max(0, priceAfterReferral - passDiscount);
+  const isFullyCoveredByPass = Boolean(appliedPass && currentPrice === 0);
 
   // Form validation rules
   const validate = () => {
     const errs = {};
-    if (!formData.fullName.trim()) {
-      errs.fullName = 'Please enter your full name.';
-    } else if (formData.fullName.trim().length < 2) {
-      errs.fullName = 'Full name must be at least 2 characters.';
-    }
+    const isPassCheckout = formData.paymentChannel === 'pass' || Boolean(appliedPass);
 
-    if (!formData.email.trim()) {
-      errs.email = 'Please enter your email address.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errs.email = 'Please provide a valid email address.';
-    }
+    // If paying with Monthly Pass or Gift Voucher, user details are derived from the pass purchase
+    if (!isPassCheckout) {
+      if (!formData.fullName.trim()) {
+        errs.fullName = 'Please enter your full name.';
+      } else if (formData.fullName.trim().length < 2) {
+        errs.fullName = 'Full name must be at least 2 characters.';
+      }
 
-    if (!formData.phone.trim()) {
-      errs.phone = 'Please provide a phone / WhatsApp number.';
-    } else if (formData.phone.trim().length < 7) {
-      errs.phone = 'Please provide a valid phone number.';
+      if (!formData.email.trim()) {
+        errs.email = 'Please enter your email address.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        errs.email = 'Please provide a valid email address.';
+      }
+
+      if (!formData.phone.trim()) {
+        errs.phone = 'Please provide a phone / WhatsApp number.';
+      } else if (formData.phone.trim().length < 7) {
+        errs.phone = 'Please provide a valid phone number.';
+      }
+    } else {
+      // In pass mode, verify code is provided and valid
+      if (!appliedPass && !passCodeInput.trim()) {
+        errs.passCode = 'Please enter and verify your Monthly Flow Pass or Gift Voucher code.';
+      }
+      // If user toggled guest mode and entered an email, ensure it is formatted correctly
+      if (showCustomGuestFields && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        errs.email = 'Please provide a valid email address for your guest.';
+      }
     }
 
     // Capacity checks:
@@ -327,7 +530,7 @@ export default function RegistrationForm({
       }
     }
 
-    if (formData.paymentChannel === 'momo') {
+    if (formData.paymentChannel === 'momo' && !isFullyCoveredByPass) {
       const activeMoMo = formData.momoNumber || formData.phone;
       if (!activeMoMo.trim() || activeMoMo.trim().length < 7) {
         errs.momoNumber = 'Please provide your Mobile Money number for the prompt.';
@@ -373,17 +576,34 @@ export default function RegistrationForm({
     });
 
     if (Object.keys(currentErrors).length === 0) {
-      const momoProviderName =
-        formData.momoNetwork === 'Telecel'
-          ? 'Telecel Cash'
-          : formData.momoNetwork === 'AirtelTigo'
-            ? 'AT Money'
-            : 'MTN MoMo';
+      let paymentMethodName;
+      if (appliedPass) {
+        if (appliedPass.cardType === 'subscription') {
+          paymentMethodName = `Monthly Flow Pass (${appliedPass.planName || appliedPass.code})`;
+        } else if (currentPrice === 0) {
+          paymentMethodName = `Wellness Gift Voucher (${appliedPass.code})`;
+        } else {
+          const momoProviderName =
+            formData.momoNetwork === 'Telecel'
+              ? 'Telecel Cash'
+              : formData.momoNetwork === 'AirtelTigo'
+                ? 'AT Money'
+                : 'MTN MoMo';
+          paymentMethodName = `Voucher (${appliedPass.code}) + Paystack (${momoProviderName})`;
+        }
+      } else {
+        const momoProviderName =
+          formData.momoNetwork === 'Telecel'
+            ? 'Telecel Cash'
+            : formData.momoNetwork === 'AirtelTigo'
+              ? 'AT Money'
+              : 'MTN MoMo';
 
-      const paymentMethodName =
-        formData.paymentChannel === 'momo'
-          ? `Paystack (${momoProviderName})`
-          : 'Paystack (Card)';
+        paymentMethodName =
+          formData.paymentChannel === 'momo'
+            ? `Paystack (${momoProviderName})`
+            : 'Paystack (Card)';
+      }
 
       const sessionTitle = selectedClass.hasScheduleSlots
         ? `${selectedClass.title} (${formData.selectedSlot})`
@@ -404,8 +624,30 @@ export default function RegistrationForm({
           ].filter(Boolean).join(' • ')
         : `Returning Student. Updates: ${formData.intake.returningNotes?.trim() || 'No new updates'}`;
 
+      // Remember student details locally for instant auto-fill on subsequent bookings
+      try {
+        localStorage.setItem(
+          'stretchwithlorie_student_profile',
+          JSON.stringify({
+            fullName: formData.fullName.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim()
+          })
+        );
+      } catch {
+        // ignore localStorage errors
+      }
+
+      // Auto-fill student contact identity from pass/voucher if omitted by user
+      const resolvedStudentName = (formData.fullName || appliedPass?.recipientName || appliedPass?.buyerName || '').trim();
+      const resolvedStudentEmail = (formData.email || appliedPass?.recipientEmail || appliedPass?.buyerEmail || '').trim();
+      const resolvedStudentPhone = (formData.phone || appliedPass?.recipientPhone || appliedPass?.buyerPhone || '').trim();
+
       await onSubmitBooking({
         ...formData,
+        fullName: resolvedStudentName,
+        email: resolvedStudentEmail,
+        phone: resolvedStudentPhone,
         healthNotes: intakeSummary,
         intake: formData.intake,
         isFirstTime: formData.isFirstTime,
@@ -414,6 +656,8 @@ export default function RegistrationForm({
         promoCode: appliedReferral?.code || null,
         discountAmount: discountAmount || 0,
         creatorName: appliedReferral?.creatorName || null,
+        passCode: appliedPass?.code || null,
+        voucherCode: appliedPass?.code || null,
         paymentMethod: paymentMethodName,
         classTitle: sessionTitle,
         classId: selectedClass.id,
@@ -498,15 +742,20 @@ export default function RegistrationForm({
             </span>
           </div>
           <div className="text-right">
-            {discountAmount > 0 && (
+            {(discountAmount > 0 || passDiscount > 0) && (
               <span className="text-xs text-[#88908D] line-through mr-1.5">
                 GH₵{basePrice}.00
               </span>
             )}
-            <p className="text-xl sm:text-2xl font-bold text-[#2B2E31] inline">
+            <p className={`text-xl sm:text-2xl font-bold inline ${isFullyCoveredByPass ? 'text-[#5A6952]' : 'text-[#2B2E31]'}`}>
               GH₵{currentPrice}.00
             </p>
-            {appliedReferral && (
+            {appliedPass && (
+              <span className="block text-[10px] font-bold text-[#5A6952]">
+                {appliedPass.cardType === 'subscription' ? '🌸 Covered by Monthly Flow Pass' : '🎁 Covered by Gift Voucher'}
+              </span>
+            )}
+            {appliedReferral && !appliedPass && (
               <span className="block text-[10px] font-bold text-[#5A6952]">
                 Code {appliedReferral.code} (-GH₵{discountAmount})
               </span>
@@ -517,6 +766,153 @@ export default function RegistrationForm({
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-4 sm:p-7 space-y-5">
+
+        {/* Top Cash Gift Voucher & Monthly Flow Pass Redemption Section */}
+        <div className={`rounded-2xl border transition-all ${
+          appliedPass
+            ? 'border-[#7A8B71] bg-gradient-to-br from-[#F1F4EF] via-[#FAF8F5] to-[#F1F4EF] p-4 sm:p-5 shadow-xs'
+            : 'border-[#C8A253]/55 bg-gradient-to-br from-[#FAF8F5] via-[#FFFDF9] to-[#FAF8F5] p-3.5 sm:p-4.5 shadow-2xs'
+        } space-y-3`}>
+          {!appliedPass ? (
+            <>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#232D21] text-[#C8A253] shadow-xs">
+                    <Gift className="h-4.5 w-4.5 text-[#C8A253]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A8B71]">
+                        Express Voucher & Pass Redemption
+                      </span>
+                      <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2 py-0.2 text-[9px] font-bold text-[#5A6952]">
+                        Auto-Fills Member Details
+                      </span>
+                    </div>
+                    <h4 className="font-serif text-sm sm:text-base font-bold text-[#2B2E31] mt-0.5">
+                      Have a Cash Gift Voucher or Monthly Flow Pass?
+                    </h4>
+                    <p className="text-[11px] text-[#5C6260] mt-0.5 leading-relaxed">
+                      Enter your code here first to automatically link your details, avoid typing your contact info, and book with your credits.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Input & Verification Action */}
+              <div className="space-y-2 pt-0.5">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#7A8B71]">
+                      <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
+                    </div>
+                    <input
+                      type="text"
+                      value={passCodeInput}
+                      onChange={(e) => {
+                        setPassCodeInput(e.target.value.toUpperCase());
+                        setPassError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleApplyPassCode();
+                        }
+                      }}
+                      placeholder="e.g. SWL-GIFT-XXXX or SWL-PASS-XXXX"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:text-[#88908D] outline-none focus:border-[#7A8B71] focus:ring-2 focus:ring-[#7A8B71]/20 transition-all"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPassCode()}
+                    disabled={isValidatingPass || !passCodeInput.trim()}
+                    className="rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] active:scale-[0.98] text-[#F7E7C4] px-4 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                  >
+                    {isValidatingPass ? (
+                      <>
+                        <span className="inline-block h-3.5 w-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <span>Checking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#C8A253]" />
+                        <span>Apply Code</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {passError && (
+                  <p className="text-[11px] font-semibold text-[#A44A4A] flex items-center gap-1.5 animate-in fade-in">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <span>{passError}</span>
+                  </p>
+                )}
+
+                {!isClassPassEligible && (
+                  <p className="text-[10px] text-[#8C6D23] bg-[#FFF8F0] border border-[#F2D6B3] rounded-lg p-2 leading-relaxed">
+                    💡 <strong>Studio Note:</strong> Cash Gift Vouchers (Cedis) apply to all experiences. Monthly Flow Passes apply exclusively to Studio Group Classes.
+                  </p>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Verified Pass Chip Card at the Top */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#232D21] text-[#F7E7C4] shadow-xs">
+                    <PassLotusIcon className="h-5 w-5 text-[#C8A253]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="rounded-full bg-[#232D21] text-[#F7E7C4] px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+                        {appliedPass.cardType === 'subscription' ? '🌸 Flow Pass Active' : '🎁 Gift Voucher Active'}
+                      </span>
+                      <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2 py-0.5 text-[9px] font-bold text-[#5A6952]">
+                        ✓ Identity Linked
+                      </span>
+                    </div>
+                    <h4 className="font-serif text-base sm:text-lg font-bold text-[#232D21] mt-1">
+                      {appliedPass.planName || (appliedPass.cardType === 'subscription' ? 'Monthly Flow Pass' : 'Wellness Gift Voucher')}
+                    </h4>
+                    <p className="text-xs text-[#5A6952] font-semibold mt-0.5">
+                      Code: <span className="font-mono font-bold">{appliedPass.code}</span> •{' '}
+                      {appliedPass.cardType === 'subscription'
+                        ? `${appliedPass.classesRemaining} of ${appliedPass.totalClasses || 4} Flows Left`
+                        : `GH₵ ${appliedPass.balance}.00 Balance`}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRemovePass}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A44A4A] hover:underline cursor-pointer shrink-0 mt-0.5"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  <span>Remove</span>
+                </button>
+              </div>
+
+              {/* Status summary banner */}
+              <div className="rounded-xl bg-white/90 border border-[#DCE4D9] p-3 text-xs text-[#2B2E31] space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#5C6260]">
+                    Linked Passholder: <strong className="text-[#2B2E31]">{appliedPass.recipientName || appliedPass.buyerName || formData.fullName || 'Member'}</strong>
+                  </span>
+                  <span className="font-bold text-[#5A6952]">
+                    {currentPrice === 0 ? '✓ 100% Covered (GH₵ 0.00)' : `-GH₵ ${passDiscount}.00 Deducted`}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#7A8B71] font-medium">
+                  ✓ Your contact info has been linked below. Please complete your wellness intake questionnaire to reserve your mat.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Step 1: Session Preferences (Weekly Schedule Slot for Mass Yoga) */}
         {selectedClass.hasScheduleSlots && selectedClass.scheduleSlots?.length > 0 && (
@@ -897,105 +1293,200 @@ export default function RegistrationForm({
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#7A8B71] text-white text-xs font-semibold">
               1
             </span>
-            Your Details
+            {formData.paymentChannel === 'pass' || appliedPass ? 'Member Identity' : 'Your Details'}
           </h3>
           <span className="text-xs text-[#5C6260]">
-            * Required fields
+            {formData.paymentChannel === 'pass' || appliedPass ? 'Linked to your Pass' : '* Required fields'}
           </span>
         </div>
 
-        {/* Full Name */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
-            Full Name <span className="text-rose-500">*</span>
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
-              <User className="h-4 w-4" />
-            </div>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="e.g. Adjoa Mensah"
-              value={formData.fullName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              disabled={isSubmitting}
-              className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.fullName && errors.fullName
-                  ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
-                  : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
-                }`}
-            />
-          </div>
-          {touched.fullName && errors.fullName && (
-            <p className="mt-1 text-xs text-rose-600 font-medium">
-              {errors.fullName}
-            </p>
-          )}
-        </div>
-
-        {/* Email & Phone Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
-              Email Address <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
-                <Mail className="h-4 w-4" />
+        {/* Dynamic Identity Section: Automatic Passholder Identity (Zero Repetitive Typing) vs Standard Checkout */}
+        {formData.paymentChannel === 'pass' || appliedPass ? (
+          <div className="rounded-2xl border border-[#C8A253]/55 bg-gradient-to-br from-[#FAF8F5] via-[#F4F6F2] to-[#FAF8F5] p-4 sm:p-5 space-y-3.5 shadow-2xs">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#232D21] text-[#F7E7C4] shadow-xs">
+                  <UserCheck className="h-5 w-5 text-[#C8A253]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A8B71]">
+                      Passholder Identity Linked
+                    </span>
+                    <span className="rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-2 py-0.5 text-[9px] font-bold text-[#5A6952]">
+                      Zero Retyping Required
+                    </span>
+                  </div>
+                  <h4 className="font-serif text-base sm:text-lg font-bold text-[#232D21] mt-0.5">
+                    {appliedPass?.recipientName || appliedPass?.buyerName || formData.fullName || 'Registered Sanctuary Member'}
+                  </h4>
+                  <p className="text-xs text-[#5C6260] mt-0.5 leading-relaxed">
+                    The name and contact information provided when this pass was purchased are automatically used for your booking ticket and instructor mat check-in.
+                  </p>
+                </div>
               </div>
-              <input
-                type="email"
-                name="email"
-                placeholder="adjoa@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.email && errors.email
-                    ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
-                    : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
-                  }`}
-              />
+              <CheckCircle2 className="h-5 w-5 text-[#7A8B71] shrink-0 mt-1" />
             </div>
-            {touched.email && errors.email && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">
-                {errors.email}
-              </p>
+
+            {/* Optional switch if booking for a friend or guest */}
+            <div className="pt-2 border-t border-[#E6E1D8]/80 flex items-center justify-between text-xs">
+              <span className="text-[11px] text-[#5C6260]">
+                {showCustomGuestFields ? 'Entering alternative guest attendee:' : 'Booking for yourself? No extra typing needed.'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowCustomGuestFields((prev) => !prev)}
+                className="text-[11px] font-semibold text-[#7A8B71] hover:text-[#5A6952] underline cursor-pointer"
+              >
+                {showCustomGuestFields ? 'Use Passholder Info' : 'Booking for a guest?'}
+              </button>
+            </div>
+
+            {showCustomGuestFields && (
+              <div className="pt-2 space-y-3 animate-in fade-in duration-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2B2E31] mb-1">
+                      Guest Name
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      placeholder="Guest full name"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2B2E31] mb-1">
+                      Guest Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="guest@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-[10px] text-rose-600 font-medium">{errors.email}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2B2E31] mb-1">
+                      Guest Phone
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="024 XXX XXXX"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Phone / WhatsApp */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
-              Phone / WhatsApp <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
-                <Phone className="h-4 w-4" />
+        ) : (
+          <>
+            {/* Full Name */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
+                Full Name <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
+                  <User className="h-4 w-4" />
+                </div>
+                <input
+                  type="text"
+                  name="fullName"
+                  placeholder="e.g. Adjoa Mensah"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  disabled={isSubmitting}
+                  className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.fullName && errors.fullName
+                      ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
+                      : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
+                    }`}
+                />
               </div>
-              <input
-                type="tel"
-                name="phone"
-                placeholder="024 123 4567"
-                value={formData.phone}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                disabled={isSubmitting}
-                className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.phone && errors.phone
-                    ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
-                    : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
-                  }`}
-              />
+              {touched.fullName && errors.fullName && (
+                <p className="mt-1 text-xs text-rose-600 font-medium">
+                  {errors.fullName}
+                </p>
+              )}
             </div>
-            {touched.phone && errors.phone && (
-              <p className="mt-1 text-xs text-rose-600 font-medium">
-                {errors.phone}
-              </p>
-            )}
-          </div>
-        </div>
+
+            {/* Email & Phone Grid */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
+                  Email Address <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="adjoa@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={isSubmitting}
+                    className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.email && errors.email
+                        ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
+                        : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
+                      }`}
+                  />
+                </div>
+                {touched.email && errors.email && (
+                  <p className="mt-1 text-xs text-rose-600 font-medium">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Phone / WhatsApp */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#2B2E31] mb-1.5">
+                  Phone / WhatsApp <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5C6260]">
+                    <Phone className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="024 123 4567"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={isSubmitting}
+                    className={`w-full rounded-2xl border bg-[#FAF8F5] py-3 pl-10 pr-4 text-base sm:text-sm text-[#2B2E31] placeholder-[#88908D] outline-none transition-all ${touched.phone && errors.phone
+                        ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/20'
+                        : 'border-[#E6E1D8] focus:border-[#7A8B71] focus:bg-white focus:ring-3 focus:ring-[#7A8B71]/20'
+                      }`}
+                  />
+                </div>
+                {touched.phone && errors.phone && (
+                  <p className="mt-1 text-xs text-rose-600 font-medium">
+                    {errors.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* New Client Wellness & Intake Questionnaire */}
         <div className="rounded-2xl border border-[#E6E1D8] bg-[#FAF8F5] p-4 sm:p-5 space-y-4">
@@ -1315,46 +1806,104 @@ export default function RegistrationForm({
           </div>
         </div>
 
-        {/* Step 2: Payment via Paystack */}
+        {/* Step 2: Payment & Pass Redemption */}
         <div className="pt-4 border-t border-[#E6E1D8] space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-base sm:text-lg font-bold text-[#2B2E31] flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#7A8B71] text-white text-xs font-semibold">
                 2
               </span>
-              Payment via Paystack
+              Payment & Pass Redemption
             </h3>
           </div>
 
           <p className="text-xs text-[#5C6260]">
-            All transactions are powered securely by Paystack. Choose <strong>Mobile Money</strong> for an instant prompt on your phone or pay by card.
+            Pay securely with <strong>Mobile Money</strong>, card, or redeem your <strong>Monthly Flow Pass / Gift Voucher</strong>.
           </p>
 
-          {/* Paystack Channel Selector: Mobile Money (Primary) vs Card */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-            {/* Mobile Money Option (Highlighted as default) */}
+          {/* Quick Notice Banner if Pass is Available / Active */}
+          {!appliedPass ? (
+            isClassPassEligible ? (
+              <div className="rounded-2xl bg-[#FAF5EB] border border-[#E8D7B0] p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 text-[#8C6D23] min-w-0">
+                  <PassLotusIcon className="h-5 w-5 text-[#C8A253] shrink-0" />
+                  <div>
+                    <span className="font-bold text-[#2B2E31] block">Have an active Monthly Pass or Gift Voucher?</span>
+                    <span className="text-[11px] text-[#8C6D23]">Redeem your code to reserve your spot without paying.</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentChannel: 'pass' })}
+                  className="shrink-0 text-xs font-bold text-[#232D21] bg-white border border-[#C8A253]/80 hover:bg-[#FAF8F5] px-3 py-1.5 rounded-xl shadow-2xs transition-all cursor-pointer"
+                >
+                  Enter Pass Code
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[#F8F6F2] border border-[#E6E1D8] p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 text-[#5C6260] min-w-0">
+                  <PassLotusIcon className="h-5 w-5 text-[#7A8B71] shrink-0" />
+                  <div>
+                    <span className="font-bold text-[#2B2E31] block">Have a Cash Gift Voucher?</span>
+                    <span className="text-[11px] text-[#5C6260]">Cash vouchers apply to all studio experiences. Monthly flow passes are for group classes only.</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, paymentChannel: 'pass' })}
+                  className="shrink-0 text-xs font-bold text-[#232D21] bg-white border border-[#E6E1D8] hover:bg-[#FAF8F5] px-3 py-1.5 rounded-xl shadow-2xs transition-all cursor-pointer"
+                >
+                  Enter Voucher
+                </button>
+              </div>
+            )
+          ) : (
+            <div className="rounded-2xl bg-[#E5ECE2] border border-[#DCE4D9] p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs text-[#232D21]">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#232D21] text-[#C8A253] shrink-0">
+                  <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold block truncate">
+                    {appliedPass.planName || (appliedPass.cardType === 'subscription' ? 'Monthly Flow Pass' : 'Wellness Gift Voucher')}
+                  </span>
+                  <span className="text-[11px] text-[#5A6952] font-mono">
+                    {appliedPass.code} • {appliedPass.cardType === 'subscription' ? `${appliedPass.classesRemaining} classes left` : `GH₵${appliedPass.balance} balance`}
+                  </span>
+                </div>
+              </div>
+              <span className="rounded-full bg-[#232D21] text-[#F7E7C4] text-[10px] font-bold px-2.5 py-1 shrink-0">
+                {currentPrice === 0 ? 'GH₵ 0.00 DUE' : `GH₵ ${currentPrice}.00 DUE`}
+              </span>
+            </div>
+          )}
+
+          {/* Payment Method Selector: MoMo vs Card vs Monthly Pass */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
+            {/* Mobile Money Option */}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'momo' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${formData.paymentChannel === 'momo'
+              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'momo'
                   ? 'border-[#7A8B71] bg-[#F1F4EF] shadow-sm ring-2 ring-[#7A8B71]/20'
                   : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
                 }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E5ECE2] text-[#5A6952]">
-                <Smartphone className="h-5 w-5" />
+              <div className="flex items-center justify-between w-full">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E5ECE2] text-[#5A6952]">
+                  <Smartphone className="h-4 w-4" />
+                </div>
+                <span className="hidden sm:inline rounded bg-[#FAF5EB] text-[#8C6D23] border border-[#E8D7B0] px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-wider">
+                  Popular
+                </span>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-[#2B2E31]">Mobile Money</span>
-                  <span className="rounded bg-[#FAF5EB] text-[#8C6D23] border border-[#E8D7B0] px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider">
-                    Popular
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <MobileMoneyLogo network="MTN" variant="image" size="xs" className="h-4.5 w-auto rounded-xs shadow-2xs" />
-                  <MobileMoneyLogo network="Telecel" variant="image" size="xs" className="h-4.5 w-auto rounded-xs" />
-                  <MobileMoneyLogo network="AT" variant="image" size="xs" className="h-4.5 w-auto rounded-xs" />
+                <span className="text-xs font-bold text-[#2B2E31] block">Mobile Money</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <MobileMoneyLogo network="MTN" variant="image" size="xs" className="h-3.5 w-auto rounded-xs shadow-2xs" />
+                  <MobileMoneyLogo network="Telecel" variant="image" size="xs" className="h-3.5 w-auto rounded-xs" />
+                  <MobileMoneyLogo network="AT" variant="image" size="xs" className="h-3.5 w-auto rounded-xs" />
                 </div>
               </div>
             </button>
@@ -1363,18 +1912,47 @@ export default function RegistrationForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, paymentChannel: 'card' })}
-              className={`relative flex items-center gap-3 rounded-2xl p-3 sm:p-3.5 border transition-all text-left ${formData.paymentChannel === 'card'
+              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'card'
                   ? 'border-[#7A8B71] bg-[#F1F4EF] shadow-sm ring-2 ring-[#7A8B71]/20'
                   : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
                 }`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E5ECE2] text-[#5A6952]">
-                <CreditCard className="h-5 w-5" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E5ECE2] text-[#5A6952]">
+                <CreditCard className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-bold text-[#2B2E31] block">Debit / Credit Card</span>
-                <p className="text-[11px] text-[#5C6260] truncate">
+                <p className="text-[10px] text-[#5C6260] truncate mt-0.5">
                   Visa, Mastercard, Verve
+                </p>
+              </div>
+            </button>
+
+            {/* Monthly Flow Pass / Voucher */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, paymentChannel: 'pass' })}
+              className={`relative flex items-center sm:flex-col sm:items-start gap-2.5 sm:gap-2 rounded-2xl p-3 border transition-all text-left cursor-pointer ${formData.paymentChannel === 'pass'
+                  ? 'border-[#C8A253] bg-gradient-to-br from-[#FAF8F5] to-[#F1F4EF] shadow-sm ring-2 ring-[#C8A253]/40'
+                  : 'border-[#E6E1D8] bg-[#FAF8F5] hover:bg-white'
+                }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#232D21] text-[#C8A253]">
+                  <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
+                </div>
+                <span className={`rounded border px-1.5 py-0.2 text-[8px] font-bold uppercase tracking-wider ${isClassPassEligible ? 'bg-[#E5ECE2] text-[#232D21] border-[#7A8B71]/40' : 'bg-[#FAF5EB] text-[#8C6D23] border-[#E8D7B0]'}`}>
+                  {isClassPassEligible ? 'Prepaid' : 'Voucher'}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[#2B2E31] block truncate">
+                  {isClassPassEligible ? 'Monthly Pass / Voucher' : 'Cash Gift Voucher'}
+                </span>
+                <p className="text-[10px] text-[#5A6952] font-semibold truncate mt-0.5">
+                  {appliedPass
+                    ? (appliedPass.cardType === 'subscription' ? `${appliedPass.classesRemaining || 1} classes left` : `GH₵${appliedPass.balance} bal`)
+                    : (isClassPassEligible ? 'Redeem 0 GHS' : 'Redeem Balance')}
                 </p>
               </div>
             </button>
@@ -1513,7 +2091,7 @@ export default function RegistrationForm({
               </div>
 
             </div>
-          ) : (
+          ) : formData.paymentChannel === 'card' ? (
             /* Card Option Box */
             <div className="rounded-2xl bg-[#FAF8F5] p-4 sm:p-5 border border-[#E6E1D8] space-y-3">
               <div className="flex items-center justify-between text-[#5C6260] text-xs">
@@ -1534,6 +2112,123 @@ export default function RegistrationForm({
                 Your card will be securely charged in Ghana Cedis (GHS) via Paystack's PCI-DSS compliant checkout window.
               </p>
             </div>
+          ) : (
+            /* Monthly Pass / Voucher Box */
+            <div className="rounded-2xl bg-[#FAF8F5] p-3.5 sm:p-5 border border-[#E6E1D8] space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#2B2E31] flex items-center gap-1.5">
+                  <PassLotusIcon className="h-4 w-4 text-[#C8A253]" />
+                  <span>Sanctuary Pass / Voucher Code</span>
+                </label>
+                {appliedPass && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePass}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#A44A4A] hover:underline cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                    <span>Change Pass</span>
+                  </button>
+                )}
+              </div>
+
+              {!isClassPassEligible && (
+                <div className="rounded-xl bg-[#FFF8F0] border border-[#F2D6B3] p-3 text-xs text-[#8C6D23] flex items-start gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-[#C8A253] shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-[#2B2E31] block">Studio Pass Policy</span>
+                    <p className="text-[11px] text-[#5C6260] leading-relaxed">
+                      "{selectedClass.title}" is a premium experience. Standard <strong>Monthly Flow Passes</strong> apply exclusively to Weekly Studio Group Classes. <strong>Cash Gift Vouchers (Cedis)</strong> are welcomed here!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {!appliedPass ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={passCodeInput}
+                      onChange={(e) => {
+                        setPassCodeInput(e.target.value.toUpperCase());
+                        setPassError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleApplyPassCode();
+                        }
+                      }}
+                      placeholder="Enter code (e.g. SWL-PASS-XXXX)"
+                      className="flex-1 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2.5 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#2B2E31] placeholder:font-sans placeholder:font-normal placeholder:normal-case outline-none focus:border-[#7A8B71]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleApplyPassCode()}
+                      disabled={isValidatingPass || !passCodeInput.trim()}
+                      className="rounded-xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] px-4 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {isValidatingPass ? 'Checking...' : 'Apply Pass'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-[#5C6260]">
+                    Enter the code you received when activating your Monthly Flow Pass or Gift Card to book for GH₵ 0.
+                  </p>
+                </div>
+              ) : (
+                /* Tactile Luxury Pass Chip Card */
+                <div className="rounded-2xl bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] p-4 text-white border border-[#C8A253]/60 shadow-md space-y-3">
+                  <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <PassLotusIcon className="h-5 w-5 text-[#C8A253]" />
+                      <div>
+                        <span className="font-mono text-[9px] tracking-widest text-[#C8A253] uppercase font-bold block">
+                          ACTIVE SANCTUARY PASS
+                        </span>
+                        <h4 className="font-serif text-sm font-bold text-[#F7F4EF]">
+                          {appliedPass.planName || 'Monthly Flow Pass'}
+                        </h4>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#E5ECE2] text-[#232D21] px-2.5 py-0.5 text-[10px] font-bold">
+                      <CheckCircle2 className="h-3 w-3 text-[#5A6952]" />
+                      Verified Active
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-white/5 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-[10px] text-[#E6E1D8]/70 block">Pass Code</span>
+                      <span className="font-mono font-bold text-[#F7E7C4] text-xs sm:text-sm">
+                        {appliedPass.code}
+                      </span>
+                    </div>
+
+                    <div className="bg-white/5 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-[10px] text-[#E6E1D8]/70 block">Sessions Remaining</span>
+                      <span className="font-bold text-[#F7E7C4] text-xs sm:text-sm">
+                        {appliedPass.cardType === 'subscription'
+                          ? `${appliedPass.classesRemaining} of ${appliedPass.totalClasses || 4} Flows Left`
+                          : `GH₵ ${appliedPass.balance}.00 Credit`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-[#E6E1D8]/85 border-t border-white/10">
+                    <span>Member: {appliedPass.recipientName || formData.fullName}</span>
+                    <span className="text-[#C8A253] font-semibold">1 class deducted for this booking</span>
+                  </div>
+                </div>
+              )}
+
+              {passError && (
+                <p className="text-[11px] font-semibold text-[#A44A4A] flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>{passError}</span>
+                </p>
+              )}
+            </div>
           )}
 
           {/* Included perks reminder */}
@@ -1548,22 +2243,34 @@ export default function RegistrationForm({
         {isSubmitting && (
           <div className="rounded-2xl bg-[#F0F9FF] border border-[#BAE6FD] p-4 text-xs space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center gap-2.5 text-[#0369A1] font-bold">
-              {formData.paymentChannel === 'momo' ? (
+              {isFullyCoveredByPass ? (
+                <PassLotusIcon className="h-5 w-5 text-[#C8A253] shrink-0" />
+              ) : formData.paymentChannel === 'momo' ? (
                 <MobileMoneyLogo network={formData.momoNetwork} variant="image" size="xs" className="h-5 w-auto shrink-0 rounded-xs shadow-2xs" />
               ) : (
                 <CreditCard className="h-4 w-4 text-[#0288D1] shrink-0" />
               )}
               <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0288D1] border-t-transparent shrink-0" />
               <span>
-                {currentPhase === 1 && 'Connecting to Paystack Secure Gateway...'}
-                {currentPhase === 2 &&
-                  (formData.paymentChannel === 'momo'
-                    ? `Sending MoMo PIN prompt to ${formData.momoNetwork === 'Telecel' ? 'Telecel Cash' : formData.momoNetwork === 'AirtelTigo' ? 'AT Money' : 'MTN MoMo'} (${formData.momoNumber || formData.phone})...`
-                    : 'Verifying 3D-Secure Card Authorization...')}
-                {currentPhase === 3 && 'Payment Authorized! Generating Class Pass...'}
+                {isFullyCoveredByPass ? (
+                  currentPhase === 1
+                    ? 'Verifying Sanctuary Member Pass...'
+                    : currentPhase === 2
+                      ? 'Deducting Session from Active Pass...'
+                      : 'Pass Confirmed! Reserving Your Manduka Mat...'
+                ) : (
+                  <>
+                    {currentPhase === 1 && 'Connecting to Paystack Secure Gateway...'}
+                    {currentPhase === 2 &&
+                      (formData.paymentChannel === 'momo'
+                        ? `Sending MoMo PIN prompt to ${formData.momoNetwork === 'Telecel' ? 'Telecel Cash' : formData.momoNetwork === 'AirtelTigo' ? 'AT Money' : 'MTN MoMo'} (${formData.momoNumber || formData.phone})...`
+                        : 'Verifying 3D-Secure Card Authorization...')}
+                    {currentPhase === 3 && 'Payment Authorized! Generating Class Pass...'}
+                  </>
+                )}
               </span>
             </div>
-            {formData.paymentChannel === 'momo' && (
+            {!isFullyCoveredByPass && formData.paymentChannel === 'momo' && (
               <p className="text-[11px] text-[#0288D1] pl-1">
                 📲 Please check your mobile phone and approve the prompt with your Mobile Money PIN.
               </p>
@@ -1673,15 +2380,17 @@ export default function RegistrationForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold text-white shadow-lg transition-all duration-300 ${isSubmitting
-                  ? 'bg-[#A44A4A]/80 cursor-wait'
-                  : 'bg-[#A44A4A] hover:bg-[#8C3E3E] active:scale-[0.99] hover:shadow-xl cursor-pointer'
+              className={`w-full relative flex items-center justify-center gap-2.5 rounded-2xl py-4 px-6 text-base font-bold shadow-lg transition-all duration-300 ${isSubmitting
+                  ? isFullyCoveredByPass ? 'bg-[#232D21]/80 text-[#F7E7C4] cursor-wait' : 'bg-[#A44A4A]/80 text-white cursor-wait'
+                  : isFullyCoveredByPass
+                    ? 'bg-gradient-to-r from-[#232D21] via-[#2F3C2C] to-[#1C241B] text-[#F7E7C4] border border-[#C8A253]/60 hover:border-[#C8A253] active:scale-[0.99] hover:shadow-xl cursor-pointer'
+                    : 'bg-[#A44A4A] hover:bg-[#8C3E3E] text-white active:scale-[0.99] hover:shadow-xl cursor-pointer'
                 }`}
             >
               {isSubmitting ? (
                 <>
                   <svg
-                    className="h-5 w-5 animate-spin text-white"
+                    className={`h-5 w-5 animate-spin ${isFullyCoveredByPass ? 'text-[#F7E7C4]' : 'text-white'}`}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -1700,7 +2409,19 @@ export default function RegistrationForm({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  <span>Processing Paystack Reservation...</span>
+                  <span>
+                    {isFullyCoveredByPass ? 'Reserving Your Sanctuary Spot...' : 'Processing Paystack Reservation...'}
+                  </span>
+                </>
+              ) : isFullyCoveredByPass ? (
+                <>
+                  <PassLotusIcon className="h-5 w-5 text-[#C8A253]" />
+                  <span>
+                    {appliedPass.cardType === 'subscription'
+                      ? `Confirm Booking with Pass (0 GHS)`
+                      : `Confirm Booking with Voucher (0 GHS)`}
+                  </span>
+                  <CheckCircle2 className="h-4 w-4 text-[#7A8B71]" />
                 </>
               ) : (
                 <>

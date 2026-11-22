@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import { isSafeMediaUrl } from '../middleware/securityMiddleware.js';
+import { broadcast } from '../websocket.js';
 
 // Format database row to frontend-friendly camelCase object
 export function formatClass(row) {
@@ -30,6 +31,7 @@ export function formatClass(row) {
     hasSessionOptions: row.has_session_options,
     sessionOptions: row.session_options || null,
     isPrivateOneOnOne: row.is_private_one_on_one,
+    isPassEligible: row.is_pass_eligible !== undefined && row.is_pass_eligible !== null ? Boolean(row.is_pass_eligible) : (!row.is_private_one_on_one && row.category === 'Yoga Classes'),
     image: row.image_url,
     imagePosition: row.image_position || 'object-center',
     createdAt: row.created_at,
@@ -100,14 +102,17 @@ export async function createClass(req, res, next) {
 
     const safePrice = Math.min(50000, Math.max(0, Number(price) || 0));
     const safeMaxCapacity = Math.min(500, Math.max(1, parseInt(maxCapacity, 10) || 15));
+    const resolvedIsPassEligible = req.body.isPassEligible !== undefined
+      ? Boolean(req.body.isPassEligible)
+      : (!isPrivateOneOnOne && category === 'Yoga Classes');
 
     const { rows } = await pool.query(
       `INSERT INTO classes (
         id, title, badge, category, instructor_name, instructor_role, instructor_avatar,
         date_text, time_text, duration, price, location_pricing, max_capacity, booked_count,
         level, room, description, tagline, has_schedule_slots, schedule_slots,
-        has_session_options, session_options, is_private_one_on_one, image_url, image_position
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 0, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+        has_session_options, session_options, is_private_one_on_one, is_pass_eligible, image_url, image_position
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 0, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
       RETURNING *`,
       [
         id,
@@ -132,12 +137,15 @@ export async function createClass(req, res, next) {
         hasSessionOptions,
         sessionOptions ? JSON.stringify(sessionOptions) : null,
         isPrivateOneOnOne,
+        resolvedIsPassEligible,
         image || null,
         imagePosition
       ]
     );
 
-    res.status(201).json({ success: true, data: formatClass(rows[0]) });
+    const formatted = formatClass(rows[0]);
+    broadcast('CLASS_CREATED', formatted);
+    res.status(201).json({ success: true, data: formatted });
   } catch (err) {
     next(err);
   }
@@ -153,33 +161,56 @@ export async function updateClass(req, res, next) {
       category,
       price,
       maxCapacity,
+      room,
+      duration,
+      level,
+      date,
+      dateText,
+      time,
+      timeText,
       description,
       scheduleSlots,
-      sessionOptions
+      sessionOptions,
+      isPassEligible
     } = req.body;
+
+    const resolvedDateText = dateText || date;
+    const resolvedTimeText = timeText || time;
 
     const { rows } = await pool.query(
       `UPDATE classes SET
         title = COALESCE($1, title),
         badge = COALESCE($2, badge),
         category = COALESCE($3, category),
-        price = COALESCE($4, price),
-        max_capacity = COALESCE($5, max_capacity),
-        description = COALESCE($6, description),
-        schedule_slots = COALESCE($7, schedule_slots),
-        session_options = COALESCE($8, session_options),
+        price = COALESCE($4::numeric, price),
+        max_capacity = COALESCE($5::int, max_capacity),
+        room = COALESCE($6, room),
+        duration = COALESCE($7, duration),
+        level = COALESCE($8, level),
+        date_text = COALESCE($9, date_text),
+        time_text = COALESCE($10, time_text),
+        description = COALESCE($11, description),
+        schedule_slots = COALESCE($12::jsonb, schedule_slots),
+        session_options = COALESCE($13::jsonb, session_options),
+        is_pass_eligible = COALESCE($14::boolean, is_pass_eligible),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      WHERE id = $15
       RETURNING *`,
       [
-        title,
-        badge,
-        category,
-        price,
-        maxCapacity,
-        description,
+        title || null,
+        badge || null,
+        category || null,
+        price !== undefined ? Number(price) : null,
+        maxCapacity !== undefined ? Number(maxCapacity) : null,
+        room || null,
+        duration || null,
+        level || null,
+        resolvedDateText || null,
+        resolvedTimeText || null,
+        description || null,
         scheduleSlots ? JSON.stringify(scheduleSlots) : null,
         sessionOptions ? JSON.stringify(sessionOptions) : null,
+        isPassEligible !== undefined ? Boolean(isPassEligible) : null,
         id
       ]
     );
@@ -188,7 +219,9 @@ export async function updateClass(req, res, next) {
       return res.status(404).json({ success: false, error: 'Class not found' });
     }
 
-    res.json({ success: true, data: formatClass(rows[0]) });
+    const formatted = formatClass(rows[0]);
+    broadcast('CLASS_UPDATED', formatted);
+    res.json({ success: true, data: formatted });
   } catch (err) {
     next(err);
   }
@@ -202,6 +235,7 @@ export async function deleteClass(req, res, next) {
     if (rowCount === 0) {
       return res.status(404).json({ success: false, error: 'Class not found' });
     }
+    broadcast('CLASS_DELETED', { id });
     res.json({ success: true, message: 'Class deleted successfully' });
   } catch (err) {
     next(err);

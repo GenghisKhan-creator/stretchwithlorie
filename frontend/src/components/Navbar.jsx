@@ -11,7 +11,11 @@ export default function Navbar({
 }) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#E6E1D8] bg-[#F7F4EF]/95 backdrop-blur-md transition-all pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-3.5 py-3 sm:px-6 sm:py-4 lg:px-8">
+      <div className={`mx-auto flex items-center justify-between py-3 sm:py-4 transition-all ${
+        isAdminRoute
+          ? 'w-full max-w-none px-3.5 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'
+          : 'max-w-7xl px-3.5 sm:px-6 lg:px-8'
+      }`}>
         
         {/* Brand identity with official lockup placement */}
         <div

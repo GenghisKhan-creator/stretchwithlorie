@@ -1,8 +1,10 @@
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { testConnection, pool } from './config/db.js';
+import { initWebSocketServer } from './websocket.js';
 
 import classesRoutes from './routes/classesRoutes.js';
 import bookingsRoutes from './routes/bookingsRoutes.js';
@@ -92,11 +94,15 @@ app.use((req, res) => {
 // Global Error Handler
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, async () => {
+// Start Server & WebSocket Listener
+const server = http.createServer(app);
+initWebSocketServer(server);
+
+server.listen(PORT, async () => {
   console.log(`====================================================`);
   console.log(`🚀 Stretch With Lorie Backend Server running on port ${PORT}`);
   console.log(`📡 URL: http://localhost:${PORT}`);
+  console.log(`⚡ WebSocket Server: ws://localhost:${PORT}/ws`);
   console.log(`🌐 Allowed Client: ${CLIENT_URL}`);
   console.log(`====================================================`);
 

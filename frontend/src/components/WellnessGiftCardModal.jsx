@@ -24,6 +24,7 @@ import {
 import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportGiftPassPDF } from '../utils/pdfExport';
+import { api } from '../services/api';
 import loriePoseImg from '../assets/lorie_pose.png';
 
 // SACRED LOTUS FLOWER SVG EMBLEM
@@ -143,7 +144,8 @@ const SUBSCRIPTION_PLANS = [
       '35-Day Flex Grace'
     ],
     features: [
-      '2 Studio Sessions per month (GH₵ 190/class)',
+      '2 Studio Group Classes per month (GH₵ 190/class)',
+      'Valid for all weekly studio group classes',
       'Complimentary Manduka Pro mat & blocks',
       'Fresh organic herbal tea ritual after flow',
       '35-day flexibility grace period',
@@ -328,7 +330,8 @@ export default function WellnessGiftCardModal({
   isOpen,
   onClose,
   initialTab = 'subscription', // 'subscription' | 'gift'
-  onSuccessBooking
+  onSuccessBooking,
+  onBookWithPass
 }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'subscription' | 'gift'
 
@@ -522,8 +525,8 @@ export default function WellnessGiftCardModal({
     return Object.keys(errs).length === 0;
   };
 
-  // Process Simulated Payment
-  const handleProcessOrder = () => {
+  // Process Payment & Generate Official Pass/Card
+  const handleProcessOrder = async () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -536,16 +539,55 @@ export default function WellnessGiftCardModal({
       .filter((r) => selectedRitualPerks.includes(r.id))
       .map((r) => r.short);
 
-    setTimeout(() => {
+    try {
+      let createdCard = null;
+      if (activeTab === 'subscription') {
+        createdCard = await api.createPassOrGiftCard({
+          cardType: 'subscription',
+          planId: selectedPlan.id,
+          planName: `${selectedPlan.name} (${selectedPlan.subtitle || 'Monthly Flow Pass'})`,
+          totalClasses: selectedPlan.classesPerMonth,
+          classesRemaining: selectedPlan.classesPerMonth,
+          amount: selectedPlan.price,
+          buyerName: subFormData.fullName.trim(),
+          buyerPhone: subFormData.phone.trim(),
+          buyerEmail: subFormData.email.trim(),
+          recipientName: subFormData.fullName.trim(),
+          recipientPhone: subFormData.phone.trim(),
+          recipientEmail: subFormData.email.trim(),
+          personalNote: `Preferred time: ${subFormData.preferredTime || 'Flexible'}. Ritual perks: ${activeRitualLabels.join(', ')}`
+        });
+      } else {
+        createdCard = await api.createPassOrGiftCard({
+          cardType: 'gift',
+          amount: finalGiftAmount,
+          balance: finalGiftAmount,
+          buyerName: giftFormData.senderName.trim(),
+          buyerPhone: giftFormData.senderPhone.trim(),
+          buyerEmail: giftFormData.senderEmail.trim(),
+          recipientName: giftFormData.recipientName.trim(),
+          recipientPhone: giftFormData.recipientPhone.trim(),
+          recipientEmail: giftFormData.recipientEmail.trim(),
+          personalNote: giftFormData.personalNote.trim()
+        });
+      }
+
+      const generatedCode = createdCard?.code || 'SWL-SANCTUARY-PASS';
+      const orderId = createdCard?.id || (activeTab === 'subscription' ? 'SUB-FLOW' : 'GFT-CARD');
+      const dateIssued = createdCard?.createdAt
+        ? new Date(createdCard.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Active Today';
+
       const order = activeTab === 'subscription'
         ? {
-          orderId: `SUB-${Date.now().toString().slice(-6)}`,
+          orderId,
           type: 'subscription',
           title: selectedPlan.name,
           subtitle: selectedPlan.subtitle,
           planId: selectedPlan.id,
           amount: selectedPlan.price,
           classesCount: selectedPlan.classesPerMonth,
+          classesRemaining: selectedPlan.classesPerMonth,
           buyerName: subFormData.fullName,
           buyerPhone: subFormData.phone,
           buyerEmail: subFormData.email,
@@ -553,13 +595,13 @@ export default function WellnessGiftCardModal({
           startDate: subFormData.startDate,
           preferredTime: subFormData.preferredTime,
           ritualPerks: activeRitualLabels,
-          voucherCode: `SWL-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-          dateIssued: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+          voucherCode: generatedCode,
+          dateIssued,
           paymentMethod: subFormData.paymentChannel === 'momo' ? `${subFormData.momoNetwork} MoMo` : 'Card',
           theme: 'sage'
         }
         : {
-          orderId: `GFT-${Date.now().toString().slice(-6)}`,
+          orderId,
           type: 'gift',
           title: `Wellness Gift Card (GH₵ ${finalGiftAmount})`,
           amount: finalGiftAmount,
@@ -570,18 +612,25 @@ export default function WellnessGiftCardModal({
           recipientPhone: giftFormData.recipientPhone || '',
           recipientEmail: giftFormData.recipientEmail || '',
           personalNote: giftFormData.personalNote,
-          voucherCode: `GIFT-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-          dateIssued: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+          voucherCode: generatedCode,
+          dateIssued,
           paymentMethod: giftFormData.paymentChannel === 'momo' ? `${giftFormData.momoNetwork} MoMo` : 'Card',
           theme: giftTheme,
           paletteName: activePalette.name
         };
 
-      setCompletedOrder(order);
+      setTimeout(() => {
+        setCompletedOrder(order);
+        setIsSubmitting(false);
+        setSubmissionStep(0);
+        if (onSuccessBooking) onSuccessBooking(order);
+      }, 700);
+    } catch (err) {
+      console.error('Failed to issue pass/card:', err);
       setIsSubmitting(false);
       setSubmissionStep(0);
-      if (onSuccessBooking) onSuccessBooking(order);
-    }, 2100);
+      setErrors({ form: err.message || 'Payment processing error. Please try again.' });
+    }
   };
 
   const copyVoucherCode = () => {
@@ -852,7 +901,7 @@ export default function WellnessGiftCardModal({
                               How to Use at the Sanctuary
                             </span>
                             <p className="leading-snug">
-                              Present code <span className="font-mono font-bold text-[#F7E7C4]">{completedOrder.voucherCode}</span> on WhatsApp or at Suite 4B, East Legon.
+                              Use code <span className="font-mono font-bold text-[#F7E7C4]">{completedOrder.voucherCode}</span> at checkout when booking any studio class to reserve for GH₵ 0, or present on WhatsApp.
                             </p>
                             <p className="text-[9px] sm:text-[10px] text-[#E6E1D8]/75">
                               Includes Manduka Pro mat reservation & organic herbal tea ritual.
@@ -870,10 +919,32 @@ export default function WellnessGiftCardModal({
 
                   {/* ACTION BUTTONS ON SUCCESS */}
                   <div className="space-y-3">
+                    {onBookWithPass && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onBookWithPass(completedOrder.voucherCode, {
+                            studentName: completedOrder.recipientName || completedOrder.buyerName,
+                            email: completedOrder.recipientEmail || completedOrder.buyerEmail,
+                            phone: completedOrder.recipientPhone || completedOrder.buyerPhone
+                          });
+                        }}
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#232D21] via-[#2F3C2C] to-[#1C241B] text-[#F7E7C4] border border-[#C8A253]/60 py-3.5 px-4 font-bold text-sm shadow-md hover:border-[#C8A253] transition-all hover:scale-[1.01] cursor-pointer"
+                      >
+                        <LotusEmblem className="h-4 w-4 text-[#C8A253]" />
+                        <span>
+                          {completedOrder.type === 'subscription'
+                            ? 'Book a Class With This Pass Now (0 GHS)'
+                            : 'Redeem Gift Voucher on a Class'}
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-[#C8A253]" />
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={handleShareWhatsApp}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-white py-3.5 px-4 font-bold text-sm shadow-md hover:bg-[#20ba5a] transition-all hover:scale-[1.01] cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-white py-3 px-4 font-bold text-xs sm:text-sm shadow-sm hover:bg-[#20ba5a] transition-all hover:scale-[1.01] cursor-pointer"
                     >
                       <Send className="h-4 w-4" />
                       <span>

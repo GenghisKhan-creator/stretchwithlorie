@@ -3,6 +3,7 @@ import { pool } from '../config/db.js';
 import { formatClass } from './classesController.js';
 import { computeDiscount } from './referralsController.js';
 import { maskEmail, maskPhone } from '../middleware/securityMiddleware.js';
+import { broadcast } from '../websocket.js';
 
 // Format registration row to camelCase
 export function formatRegistration(row) {
@@ -28,6 +29,8 @@ export function formatRegistration(row) {
     paymentGateway: row.payment_gateway,
     paymentMethod: row.payment_method,
     healthNotes: row.health_notes,
+    intake: typeof row.intake === 'string' ? JSON.parse(row.intake) : (row.intake || null),
+    isFirstTime: row.is_first_time !== false,
     promoCode: row.promo_code || null,
     discountAmount: Number(row.discount_amount || 0),
     creatorName: row.creator_name || null,
@@ -57,10 +60,29 @@ export async function createBooking(req, res, next) {
       clientAddress = '',
       paymentMethod = 'Paystack (MTN MoMo)',
       healthNotes = 'None reported',
-      promoCode = null
+      intake = null,
+      isFirstTime = true,
+      promoCode = null,
+      passCode = null,
+      voucherCode = null
     } = req.body;
 
-    if (!classId || !fullName || !email || !phone) {
+    const providedPassCode = passCode || voucherCode;
+
+    let resolvedFullName = fullName ? String(fullName).trim() : '';
+    let resolvedEmail = email ? String(email).trim() : '';
+    let resolvedPhone = phone ? String(phone).trim() : '';
+
+    if (!classId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Class ID is required.'
+      });
+    }
+
+    // Name, Email, and Phone are strictly required for non-pass bookings.
+    // If booking with a pass/voucher, identity is derived directly from the pass purchase record.
+    if (!providedPassCode && (!resolvedFullName || !resolvedEmail || !resolvedPhone)) {
       return res.status(400).json({
         success: false,
         error: 'Class ID, Full Name, Email, and Phone number are required.'
@@ -68,9 +90,9 @@ export async function createBooking(req, res, next) {
     }
 
     if (
-      String(fullName).length > 150 ||
-      String(email).length > 150 ||
-      String(phone).length > 40 ||
+      (resolvedFullName && resolvedFullName.length > 150) ||
+      (resolvedEmail && resolvedEmail.length > 150) ||
+      (resolvedPhone && resolvedPhone.length > 40) ||
       String(healthNotes).length > 2000 ||
       String(clientAddress).length > 300
     ) {
@@ -226,6 +248,165 @@ export async function createBooking(req, res, next) {
       }
     }
 
+    // Check and apply Monthly Flow Pass / Wellness Gift Voucher if provided
+    let appliedPass = null;
+    let finalPaymentGateway = 'Paystack';
+    let finalPaymentMethod = paymentMethod;
+
+    if (providedPassCode && String(providedPassCode).trim()) {
+      const cleanPassCode = String(providedPassCode).trim().toUpperCase();
+      const passRes = await client.query(
+        'SELECT * FROM gift_cards WHERE UPPER(code) = $1 FOR UPDATE',
+        [cleanPassCode]
+      );
+
+      if (passRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({
+          success: false,
+          error: `Pass or voucher code "${cleanPassCode}" was not found.`
+        });
+      }
+
+      const passRow = passRes.rows[0];
+      if (passRow.status !== 'active') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: `This pass (${cleanPassCode}) is ${passRow.status} and cannot be redeemed.`
+        });
+      }
+
+      // Auto-populate attendee identity directly from pass record if omitted by user
+      if (!resolvedFullName) {
+        resolvedFullName = passRow.recipient_name || passRow.buyer_name || 'Passholder';
+      }
+      if (!resolvedEmail) {
+        resolvedEmail = passRow.recipient_email || passRow.buyer_email || 'passholder@stretchwithlorie.com';
+      }
+      if (!resolvedPhone) {
+        resolvedPhone = passRow.recipient_phone || passRow.buyer_phone || '0240000000';
+      }
+
+      if (passRow.card_type === 'subscription') {
+        // Enforce Tier-Scoped Pass Policy (Option A):
+        // Standard Monthly Flow Passes are only redeemable for Weekly Studio Group Classes.
+        const isClassEligible = targetClass.is_pass_eligible !== false &&
+          !targetClass.is_private_one_on_one &&
+          targetClass.category === 'Yoga Classes';
+
+        if (!isClassEligible) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            error: `Monthly Flow Passes are valid for Weekly Studio Group Classes only. "${targetClass.title}" is a premium experience that requires direct payment or a Cash Gift Voucher.`
+          });
+        }
+
+        const remaining = passRow.classes_remaining !== null ? Number(passRow.classes_remaining) : 1;
+        if (remaining <= 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            error: `All ${passRow.total_classes || 4} classes on your Monthly Flow Pass have been used.`
+          });
+        }
+
+        const newRemaining = remaining - 1;
+        const newUsed = Number(passRow.classes_used || 0) + 1;
+        const newStatus = newRemaining === 0 ? 'exhausted' : 'active';
+        const redemptionEvent = {
+          timestamp: new Date().toISOString(),
+          action: 'online_booking',
+          bookingRef,
+          classId: targetClass.id,
+          className: targetClass.title,
+          studentName: resolvedFullName,
+          slot: selectedSlotObj?.label || targetClass.time_text || 'Scheduled Session',
+          classesRemainingAfter: newRemaining
+        };
+
+        const updatePassRes = await client.query(
+          `UPDATE gift_cards
+           SET classes_remaining = $1, classes_used = $2, status = $3,
+               redeemed_at = CURRENT_TIMESTAMP,
+               redemption_history = COALESCE(redemption_history, '[]'::jsonb) || $4::jsonb
+           WHERE id = $5
+           RETURNING *`,
+          [newRemaining, newUsed, newStatus, JSON.stringify([redemptionEvent]), passRow.id]
+        );
+
+        appliedPass = updatePassRes.rows[0];
+        finalAmount = 0;
+        finalPaymentGateway = 'Monthly Pass';
+        finalPaymentMethod = `Monthly Flow Pass (${passRow.plan_name || cleanPassCode})`;
+      } else {
+        // Gift card voucher
+        const currentBalance = passRow.balance !== null ? Number(passRow.balance) : Number(passRow.amount);
+        if (currentBalance <= 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            error: `This gift voucher (${cleanPassCode}) has a zero balance.`
+          });
+        }
+
+        if (currentBalance >= finalAmount) {
+          const newBalance = currentBalance - finalAmount;
+          const newStatus = newBalance === 0 ? 'redeemed' : 'active';
+          const redemptionEvent = {
+            timestamp: new Date().toISOString(),
+            action: 'online_booking',
+            bookingRef,
+            classId: targetClass.id,
+            className: targetClass.title,
+            studentName: resolvedFullName,
+            amountDeducted: finalAmount,
+            balanceAfter: newBalance
+          };
+          const updatePassRes = await client.query(
+            `UPDATE gift_cards
+             SET balance = $1, status = $2,
+                 redeemed_at = CURRENT_TIMESTAMP,
+                 redemption_history = COALESCE(redemption_history, '[]'::jsonb) || $3::jsonb
+             WHERE id = $4
+             RETURNING *`,
+            [newBalance, newStatus, JSON.stringify([redemptionEvent]), passRow.id]
+          );
+          appliedPass = updatePassRes.rows[0];
+          finalAmount = 0;
+          finalPaymentGateway = 'Gift Voucher';
+          finalPaymentMethod = `Wellness Gift Voucher (${cleanPassCode})`;
+        } else {
+          // Partial coverage
+          const coveredAmount = currentBalance;
+          const redemptionEvent = {
+            timestamp: new Date().toISOString(),
+            action: 'online_booking',
+            bookingRef,
+            classId: targetClass.id,
+            className: targetClass.title,
+            studentName: resolvedFullName,
+            amountDeducted: coveredAmount,
+            balanceAfter: 0
+          };
+          const updatePassRes = await client.query(
+            `UPDATE gift_cards
+             SET balance = 0, status = 'redeemed',
+                 redeemed_at = CURRENT_TIMESTAMP,
+                 redemption_history = COALESCE(redemption_history, '[]'::jsonb) || $1::jsonb
+             WHERE id = $2
+             RETURNING *`,
+            [JSON.stringify([redemptionEvent]), passRow.id]
+          );
+          appliedPass = updatePassRes.rows[0];
+          finalAmount = finalAmount - coveredAmount;
+          finalPaymentGateway = 'Partial Voucher + Paystack';
+          finalPaymentMethod = `Voucher (-GH₵${coveredAmount}) + ${paymentMethod}`;
+        }
+      }
+    }
+
     let finalClassName = targetClass.title;
     if (selectedSlotObj) {
       finalClassName = `${targetClass.title} (${selectedSlotObj.label})`;
@@ -249,16 +430,17 @@ export async function createBooking(req, res, next) {
         id, booking_ref, paystack_ref, student_name, email, phone, class_id,
         class_name, class_date, class_time, slot_id, slot_label, location_type,
         client_address, instructor, amount, payment_status, payment_gateway,
-        payment_method, health_notes, promo_code, discount_amount, creator_name, checked_in
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, false)
+        payment_method, health_notes, promo_code, discount_amount, creator_name, checked_in,
+        intake, is_first_time
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, false, $24, $25)
       RETURNING *`,
       [
         regId,
         bookingRef,
         paystackRef,
-        fullName.trim(),
-        email.trim().toLowerCase(),
-        phone.trim(),
+        resolvedFullName,
+        resolvedEmail.toLowerCase(),
+        resolvedPhone,
         targetClass.id,
         finalClassName,
         finalDate,
@@ -270,12 +452,14 @@ export async function createBooking(req, res, next) {
         targetClass.instructor_name || 'Lorie',
         finalAmount,
         'Paid',
-        'Paystack',
-        paymentMethod,
+        finalPaymentGateway,
+        finalPaymentMethod,
         healthNotes.trim(),
         appliedCode,
         appliedDiscount,
-        appliedCreator
+        appliedCreator,
+        intake ? (typeof intake === 'string' ? intake : JSON.stringify(intake)) : null,
+        isFirstTime !== false
       ]
     );
 
@@ -302,10 +486,38 @@ export async function createBooking(req, res, next) {
 
     await client.query('COMMIT');
 
+    const formattedReg = formatRegistration(insertRegRes.rows[0]);
+    const formattedClass = formatClass(updateClassRes.rows[0]);
+
+    // Live broadcast to connected admin clients
+    broadcast('NEW_REGISTRATION', {
+      registration: formattedReg,
+      updatedClass: formattedClass
+    });
+
+    if (appliedPass) {
+      broadcast('GIFT_CARD_REDEEMED', {
+        id: appliedPass.id,
+        code: appliedPass.code,
+        cardType: appliedPass.card_type,
+        planName: appliedPass.plan_name,
+        classesRemaining: appliedPass.classes_remaining,
+        classesUsed: appliedPass.classes_used,
+        balance: appliedPass.balance,
+        status: appliedPass.status
+      });
+    }
+
     res.status(201).json({
       success: true,
-      registration: formatRegistration(insertRegRes.rows[0]),
-      updatedClass: formatClass(updateClassRes.rows[0])
+      registration: formattedReg,
+      updatedClass: formattedClass,
+      appliedPass: appliedPass ? {
+        code: appliedPass.code,
+        cardType: appliedPass.card_type,
+        classesRemaining: appliedPass.classes_remaining,
+        status: appliedPass.status
+      } : null
     });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -341,7 +553,12 @@ export async function toggleCheckIn(req, res, next) {
       return res.status(404).json({ success: false, error: 'Registration not found' });
     }
 
-    res.json({ success: true, data: formatRegistration(rows[0]) });
+    const formatted = formatRegistration(rows[0]);
+    broadcast('CHECKIN_UPDATED', {
+      registration: formatted
+    });
+
+    res.json({ success: true, data: formatted });
   } catch (err) {
     next(err);
   }

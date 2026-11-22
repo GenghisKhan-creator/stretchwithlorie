@@ -21,8 +21,8 @@ export const STUDIO_SCHEDULES = [
     focus: "Morning Stretch & Flow",
     classId: "cls-mass",
     maxCapacity: 15,
-    bookedCount: 11,
-    spotsLeft: 4,
+    bookedCount: 0,
+    spotsLeft: 15,
     isFull: false
   },
   {
@@ -35,8 +35,8 @@ export const STUDIO_SCHEDULES = [
     focus: "Weekend Awakening & Mobility",
     classId: "cls-mass",
     maxCapacity: 15,
-    bookedCount: 13,
-    spotsLeft: 2,
+    bookedCount: 0,
+    spotsLeft: 15,
     isFull: false
   },
   {
@@ -49,9 +49,9 @@ export const STUDIO_SCHEDULES = [
     focus: "Sunset Grounding & Unwind",
     classId: "cls-mass",
     maxCapacity: 15,
-    bookedCount: 15,
-    spotsLeft: 0,
-    isFull: true
+    bookedCount: 0,
+    spotsLeft: 15,
+    isFull: false
   }
 ];
 
@@ -123,10 +123,11 @@ export const INITIAL_CLASSES = [
     duration: "60 min",
     price: 200,
     maxCapacity: 45,
-    bookedCount: 39, // 6 spots left total (Wed: 4, Sat: 2, Sun: 0)
+    bookedCount: 0,
     level: "All Levels Welcome",
     intensity: "Moderate / Accessible",
     room: "Studio Sanctuary",
+    isPassEligible: true,
     hasScheduleSlots: true,
     scheduleSlots: [
       {
@@ -136,8 +137,8 @@ export const INITIAL_CLASSES = [
         label: "Wednesday 7:00 AM",
         focus: "Morning Stretch & Flow",
         maxCapacity: 15,
-        bookedCount: 11,
-        spotsLeft: 4,
+        bookedCount: 0,
+        spotsLeft: 15,
         isFull: false
       },
       {
@@ -147,8 +148,8 @@ export const INITIAL_CLASSES = [
         label: "Saturday 8:30 AM",
         focus: "Weekend Awakening & Mobility",
         maxCapacity: 15,
-        bookedCount: 13,
-        spotsLeft: 2,
+        bookedCount: 0,
+        spotsLeft: 15,
         isFull: false
       },
       {
@@ -158,9 +159,9 @@ export const INITIAL_CLASSES = [
         label: "Sunday 6:00 PM",
         focus: "Sunset Grounding & Unwind",
         maxCapacity: 15,
-        bookedCount: 15,
-        spotsLeft: 0,
-        isFull: true
+        bookedCount: 0,
+        spotsLeft: 15,
+        isFull: false
       }
     ],
     description: "Join our group yoga sessions designed to improve flexibility, strength, balance and overall well-being. A beautiful opportunity to move, stretch, relax and connect with others.",
@@ -188,16 +189,17 @@ export const INITIAL_CLASSES = [
       clientLocation: 500
     },
     maxCapacity: 6,
-    bookedCount: 2,
+    bookedCount: 0,
     level: "Tailored to You",
     intensity: "Custom",
     room: "Studio Sanctuary or Client's Location",
     isPrivateOneOnOne: true,
+    isPassEligible: false,
     hasSessionOptions: true,
     sessionOptions: [
       { id: "opt-morn", timeWindow: "Morning (7:00 AM - 10:00 AM)", label: "Morning Energy Flow", desc: "Best for early focus & flexibility", spotsLeft: 2, isFull: false },
       { id: "opt-mid", timeWindow: "Midday (11:00 AM - 2:00 PM)", label: "Midday Reset", desc: "Lunchtime de-stress & spinal relief", spotsLeft: 2, isFull: false },
-      { id: "opt-eve", timeWindow: "Sunset / Evening (4:00 PM - 7:00 PM)", label: "Evening Restoration", desc: "Wind down & nervous system release", spotsLeft: 0, isFull: true }
+      { id: "opt-eve", timeWindow: "Sunset / Evening (4:00 PM - 7:00 PM)", label: "Evening Restoration", desc: "Wind down & nervous system release", spotsLeft: 2, isFull: false }
     ],
     description: "Enjoy a personalised yoga session tailored to your individual needs, goals and flexibility level. Perfect for anyone who prefers personal attention and a more intimate experience.\n\nAvailable in our serene studio (Gh 300) or at your own private location (Gh 500).",
     tags: ["1-on-1", "Custom Goals", "Studio or Home"]
@@ -220,16 +222,17 @@ export const INITIAL_CLASSES = [
     duration: "60 min",
     price: 250,
     maxCapacity: 36, // across 3 dates
-    bookedCount: 23,
+    bookedCount: 0,
     level: "All Committed Yogis",
     intensity: "Intensive & Focused",
     room: "Studio Sanctuary",
     tagline: "Set your goals. Put in the work. Unlock your flexibility.",
+    isPassEligible: false,
     hasSessionOptions: true,
     sessionOptions: [
-      { id: "mc-sess-1", date: "Saturday, 21 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 21 Nov (10:30 AM)", spotsLeft: 3, isFull: false },
-      { id: "mc-sess-2", date: "Saturday, 28 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 28 Nov (10:30 AM)", spotsLeft: 8, isFull: false },
-      { id: "mc-sess-3", date: "Saturday, 5 Dec 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 5 Dec (10:30 AM)", spotsLeft: 0, isFull: true }
+      { id: "mc-sess-1", date: "Saturday, 21 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 21 Nov (10:30 AM)", spotsLeft: 12, isFull: false },
+      { id: "mc-sess-2", date: "Saturday, 28 Nov 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 28 Nov (10:30 AM)", spotsLeft: 12, isFull: false },
+      { id: "mc-sess-3", date: "Saturday, 5 Dec 2026", time: "10:30 AM - 11:30 AM", label: "Saturday, 5 Dec (10:30 AM)", spotsLeft: 12, isFull: false }
     ],
     description: "Set your goals. Put in the work. Unlock your flexibility.\n\nThis is an intensive, goal-driven flexibility class designed for individuals who are serious about improving their flexibility and willing to put in the work.\n\nThrough focused stretches, progressive flexibility training and guided techniques, you will work towards achieving your personal flexibility goals safely and progressively.\n\nThis is not a casual stretching class. It requires commitment, consistency, patience and a willingness to challenge yourself within your body’s limits.\n\nWhether your goal is to achieve your splits, improve your back flexibility or develop greater overall mobility, this class provides a structured environment to work towards it.\n\nCome ready to work. Leave one step closer to your flexibility goals.",
     tags: ["Goal-Driven", "Splits & Backbends", "Progressive Training"]
@@ -252,15 +255,16 @@ export const INITIAL_CLASSES = [
     duration: "60 min",
     price: 500,
     maxCapacity: 6,
-    bookedCount: 3,
+    bookedCount: 0,
     level: "All Levels (Restorative)",
     intensity: "Assisted / Deep Release",
     room: "Studio Sanctuary (Dedicated Props)",
+    isPassEligible: false,
     hasSessionOptions: true,
     sessionOptions: [
-      { id: "thai-sess-1", day: "Weekday Morning", time: "09:00 AM - 11:00 AM", label: "Weekday Morning Window", spotsLeft: 1, isFull: false },
+      { id: "thai-sess-1", day: "Weekday Morning", time: "09:00 AM - 11:00 AM", label: "Weekday Morning Window", spotsLeft: 2, isFull: false },
       { id: "thai-sess-2", day: "Weekday Afternoon", time: "02:00 PM - 05:00 PM", label: "Weekday Afternoon Window", spotsLeft: 2, isFull: false },
-      { id: "thai-sess-3", day: "Weekend Studio Slot", time: "11:30 AM - 01:30 PM", label: "Saturday Studio Slot", spotsLeft: 0, isFull: true }
+      { id: "thai-sess-3", day: "Weekend Studio Slot", time: "11:30 AM - 01:30 PM", label: "Saturday Studio Slot", spotsLeft: 2, isFull: false }
     ],
     description: "A therapeutic assisted-stretching experience combining gentle yoga movements, guided stretches and mindful pressure to release tension, improve mobility and promote deep relaxation.",
     tags: ["Assisted Stretches", "Mindful Pressure", "Tension Release"]
@@ -283,13 +287,14 @@ export const INITIAL_CLASSES = [
     duration: "60 min",
     price: 500,
     maxCapacity: 6,
-    bookedCount: 2,
+    bookedCount: 0,
     level: "All Couples",
     intensity: "Gentle Partner Flow",
     room: "Studio Sanctuary",
+    isPassEligible: false,
     hasSessionOptions: true,
     sessionOptions: [
-      { id: "cpl-sess-1", day: "Friday Date Night", time: "06:00 PM - 07:00 PM", label: "Friday Date Night (6:00 PM)", spotsLeft: 1, isFull: false },
+      { id: "cpl-sess-1", day: "Friday Date Night", time: "06:00 PM - 07:00 PM", label: "Friday Date Night (6:00 PM)", spotsLeft: 2, isFull: false },
       { id: "cpl-sess-2", day: "Saturday Sunset", time: "05:00 PM - 06:00 PM", label: "Saturday Sunset (5:00 PM)", spotsLeft: 2, isFull: false },
       { id: "cpl-sess-3", day: "Sunday Morning", time: "09:30 AM - 10:30 AM", label: "Sunday Morning (9:30 AM)", spotsLeft: 2, isFull: false }
     ],
@@ -314,172 +319,18 @@ export const INITIAL_CLASSES = [
     duration: "60 min",
     price: 400,
     maxCapacity: 20,
-    bookedCount: 14, // 6 spots left
+    bookedCount: 0,
     level: "All Levels Celebration",
     intensity: "Uplifting & Relaxing",
     room: "Sanctuary & Terrace Lounge",
+    isPassEligible: false,
     tagline: "A little movement. A little celebration. A beautiful Sunday.",
     description: "A little movement. A little celebration. A beautiful Sunday.\n\nYoga & Champagne is our signature monthly wellness experience, happening on the last Sunday of every month.\n\nIt is an opportunity to slow down, stretch, unwind, connect with beautiful people and enjoy a refreshing yoga experience followed by champagne.\n\nExpect good energy, relaxing music, movement, connection and a touch of indulgence.\n\nWhether you are coming alone, with your partner or with your friends, there is always room for you.\n\nWhen: Last Sunday of every month\nBooking: Advance booking available. Reserve your spot ahead of time.",
     tags: ["Signature Monthly", "Champagne Celebration", "Social Wellness"]
   }
 ];
 
-export const INITIAL_REGISTRATIONS = [
-  {
-    id: "reg-101",
-    bookingRef: "SWL-8491",
-    paystackRef: "pstk_tr_9xa7bf101",
-    studentName: "Chloe Dubois",
-    email: "chloe.dubois@example.com",
-    phone: "024 234 8901",
-    classId: "cls-mass",
-    className: "Mass Yoga Class (Saturdays 8.30am)",
-    classDate: "Saturday, Nov 21, 2026",
-    classTime: "08:30 AM - 09:45 AM",
-    instructor: "Lorie",
-    amount: 200,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (MTN MoMo)",
-    locationType: "Studio",
-    healthNotes: "Recovering from mild left knee strain; avoids deep pigeon pose without block.",
-    registeredAt: "2026-11-16T08:15:00Z",
-    formattedTime: "Today at 08:15 AM",
-    checkedIn: false
-  },
-  {
-    id: "reg-102",
-    bookingRef: "SWL-8492",
-    paystackRef: "pstk_tr_4kb2cd204",
-    studentName: "Amara Okafor",
-    email: "amara.okafor@wellness.io",
-    phone: "020 349 1122",
-    classId: "cls-champagne",
-    className: "YOGA & CHAMPAGNE",
-    classDate: "Sunday, Nov 29, 2026 (Last Sunday)",
-    classTime: "04:30 PM - 06:30 PM",
-    instructor: "Lorie",
-    amount: 350,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (Telecel Cash)",
-    locationType: "Studio",
-    healthNotes: "None. Excited for the champagne social!",
-    registeredAt: "2026-11-16T08:42:00Z",
-    formattedTime: "Today at 08:42 AM",
-    checkedIn: true
-  },
-  {
-    id: "reg-103",
-    bookingRef: "SWL-8493",
-    paystackRef: "pstk_tr_7mn9gh309",
-    studentName: "Nana Kwame Asante",
-    email: "kwame.asante@ghmail.com",
-    phone: "024 902 4411",
-    classId: "cls-masterclass",
-    className: "Flexibility MASTERCLASS",
-    classDate: "Saturday, Nov 21, 2026",
-    classTime: "10:30 AM - 12:00 PM",
-    instructor: "Lorie",
-    amount: 250,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (MTN MoMo)",
-    locationType: "Studio",
-    healthNotes: "Goal is to unlock middle splits and open tight shoulders.",
-    registeredAt: "2026-11-16T07:20:00Z",
-    formattedTime: "Today at 07:20 AM",
-    checkedIn: false
-  },
-  {
-    id: "reg-104",
-    bookingRef: "SWL-8494",
-    paystackRef: "pstk_tr_1jk5pq412",
-    studentName: "Priya & Daniel Mensah",
-    email: "priya.mensah@global.org",
-    phone: "026 671 8890",
-    classId: "cls-couples",
-    className: "Couples Yoga",
-    classDate: "Sunday, Nov 22, 2026",
-    classTime: "05:00 PM - 06:15 PM",
-    instructor: "Lorie",
-    amount: 500,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (Card)",
-    locationType: "Studio",
-    healthNotes: "Anniversary celebration session. Request gentle partner stretches.",
-    registeredAt: "2026-11-15T18:30:00Z",
-    formattedTime: "Yesterday at 06:30 PM",
-    checkedIn: false
-  },
-  {
-    id: "reg-105",
-    bookingRef: "SWL-8495",
-    paystackRef: "pstk_tr_8uv3wx551",
-    studentName: "Kofi Boateng",
-    email: "kofi.b@techventures.gh",
-    phone: "024 812 9904",
-    classId: "cls-private",
-    className: "Private Yoga Class (One-on-One) - Client's Location",
-    classDate: "Thursday, Nov 19, 2026",
-    classTime: "06:00 PM - 07:15 PM",
-    instructor: "Lorie",
-    amount: 500,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (MTN MoMo)",
-    locationType: "Client Location (Airport Residential)",
-    healthNotes: "Chronic lower back stiffness from desk work.",
-    registeredAt: "2026-11-15T16:10:00Z",
-    formattedTime: "Yesterday at 04:10 PM",
-    checkedIn: true
-  },
-  {
-    id: "reg-106",
-    bookingRef: "SWL-8496",
-    paystackRef: "pstk_tr_3ab8ef672",
-    studentName: "Esi Sutherland",
-    email: "esi.sutherland@accraart.com",
-    phone: "054 438 7712",
-    classId: "cls-thai",
-    className: "Thai Yoga Stretches (Studio)",
-    classDate: "Friday, Nov 20, 2026",
-    classTime: "04:00 PM - 05:15 PM",
-    instructor: "Lorie",
-    amount: 400,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (AT Money)",
-    locationType: "Studio",
-    healthNotes: "Assisted mobility for hips and thoracic spine release.",
-    registeredAt: "2026-11-15T14:05:00Z",
-    formattedTime: "Yesterday at 02:05 PM",
-    checkedIn: false
-  },
-  {
-    id: "reg-107",
-    bookingRef: "SWL-8497",
-    paystackRef: "pstk_tr_6cd4gh890",
-    studentName: "Abena Darko",
-    email: "adarko@legonlaw.com",
-    phone: "024 765 4321",
-    classId: "cls-mass",
-    className: "Mass Yoga Class (Wednesdays 7am)",
-    classDate: "Wednesday, Nov 18, 2026",
-    classTime: "07:00 AM - 08:00 AM",
-    instructor: "Lorie",
-    amount: 200,
-    paymentStatus: "Paid",
-    paymentGateway: "Paystack",
-    paymentMethod: "Paystack (MTN MoMo)",
-    locationType: "Studio",
-    healthNotes: "Morning practitioner. Looking forward to Wednesday flow.",
-    registeredAt: "2026-11-15T11:40:00Z",
-    formattedTime: "Yesterday at 11:40 AM",
-    checkedIn: false
-  }
-];
+export const INITIAL_REGISTRATIONS = [];
 
 export const INSTRUCTORS_LIST = [
   { name: "Lorie", role: "Founder & Lead Yoga Specialist" },

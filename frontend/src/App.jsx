@@ -16,6 +16,7 @@ import WellnessGiftCardModal from './components/WellnessGiftCardModal';
 import WellnessPassHeroCard from './components/WellnessPassHeroCard';
 import AdminLoginModal from './components/AdminLoginModal';
 import { api } from './services/api';
+import { studioSocket } from './services/websocket';
 import { STUDIO_SCHEDULES } from './data/mockData';
 import loriePoseImg from './assets/lorie_pose.png';
 import {
@@ -44,6 +45,7 @@ export default function App() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [preselectedSlot, setPreselectedSlot] = useState(null);
   const [bookingInitialData, setBookingInitialData] = useState(null);
+  const [activePassCode, setActivePassCode] = useState(null);
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
   const isAdminRoute = checkIsAdminPath(currentPath);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => api.isAdminLoggedIn());
@@ -120,18 +122,21 @@ export default function App() {
 
     const ctx = gsap.context(() => {
       // Hero headline & content staggered reveal
-      gsap.fromTo(
-        '.gsap-hero-elem',
-        { opacity: 0, y: 22 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          stagger: 0.08,
-          ease: 'power2.out',
-          clearProps: 'transform'
-        }
-      );
+      const heroElems = heroSectionRef.current?.querySelectorAll('.gsap-hero-elem');
+      if (heroElems && heroElems.length > 0) {
+        gsap.fromTo(
+          heroElems,
+          { opacity: 0, y: 22 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.08,
+            ease: 'power2.out',
+            clearProps: 'transform'
+          }
+        );
+      }
 
       // Hero pose image fade in & subtle organic breathing pulse
       if (poseImgRef.current) {
@@ -157,38 +162,44 @@ export default function App() {
       }
 
       // VIP Wellness Card entrance
-      gsap.fromTo(
-        '.gsap-hero-card',
-        { opacity: 0, y: 28, scale: 0.97 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.9,
-          delay: 0.15,
-          ease: 'power3.out',
-          clearProps: 'transform'
-        }
-      );
+      const heroCards = heroSectionRef.current?.querySelectorAll('.gsap-hero-card');
+      if (heroCards && heroCards.length > 0) {
+        gsap.fromTo(
+          heroCards,
+          { opacity: 0, y: 28, scale: 0.97 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.9,
+            delay: 0.15,
+            ease: 'power3.out',
+            clearProps: 'transform'
+          }
+        );
+      }
 
-      // Schedule slots reveal
-      gsap.fromTo(
-        '.gsap-sched-slot',
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.55,
-          stagger: 0.06,
-          delay: 0.25,
-          ease: 'power2.out',
-          clearProps: 'transform'
-        }
-      );
+      // Schedule slots reveal (only animate if slots exist in DOM)
+      const schedSlots = heroSectionRef.current?.querySelectorAll('.gsap-sched-slot');
+      if (schedSlots && schedSlots.length > 0) {
+        gsap.fromTo(
+          schedSlots,
+          { opacity: 0, y: 16 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.55,
+            stagger: 0.06,
+            delay: 0.25,
+            ease: 'power2.out',
+            clearProps: 'transform'
+          }
+        );
+      }
     }, heroSectionRef);
 
     return () => ctx.revert();
-  }, [isAdminRoute]);
+  }, [isAdminRoute, classes.length]);
 
   // GSAP: Class Cards Grid stagger entrance on category change or initial load
   useGSAP(() => {
@@ -298,6 +309,84 @@ export default function App() {
     loadData();
   }, []);
 
+  // Real-Time WebSocket Listener (Syncs bookings, class updates, inquiries live across all screens)
+  useEffect(() => {
+    studioSocket.connect();
+
+    const unsubReg = studioSocket.subscribe('NEW_REGISTRATION', (data) => {
+      if (data?.registration) {
+        setRegistrations((prev) => [
+          data.registration,
+          ...prev.filter((r) => r.id !== data.registration.id)
+        ]);
+
+        if (isAdminRoute) {
+          showToast(
+            'info',
+            `✨ New booking: ${data.registration.studentName} enrolled in ${data.registration.className}!`
+          );
+        }
+      }
+
+      if (data?.updatedClass) {
+        setClasses((prev) =>
+          prev.map((c) => (c.id === data.updatedClass.id ? { ...c, ...data.updatedClass } : c))
+        );
+      }
+    });
+
+    const unsubCheckin = studioSocket.subscribe('CHECKIN_UPDATED', (data) => {
+      if (data?.registration) {
+        setRegistrations((prev) =>
+          prev.map((r) => (r.id === data.registration.id ? data.registration : r))
+        );
+      }
+    });
+
+    const unsubClassCreated = studioSocket.subscribe('CLASS_CREATED', (newClass) => {
+      setClasses((prev) => [newClass, ...prev.filter((c) => c.id !== newClass.id)]);
+      showToast('info', `🗓️ New session "${newClass.title}" published!`);
+    });
+
+    const unsubClassUpdated = studioSocket.subscribe('CLASS_UPDATED', (updatedClass) => {
+      setClasses((prev) =>
+        prev.map((c) => (c.id === updatedClass.id ? { ...c, ...updatedClass } : c))
+      );
+    });
+
+    const unsubClassDeleted = studioSocket.subscribe('CLASS_DELETED', ({ id }) => {
+      setClasses((prev) => prev.filter((c) => c.id !== id));
+    });
+
+    const unsubInquiry = studioSocket.subscribe('NEW_EVENT_INQUIRY', (inq) => {
+      if (isAdminRoute) {
+        showToast(
+          'info',
+          `💌 New celebration inquiry: ${inq.occasion_type || inq.occasionType} from ${inq.full_name || inq.fullName}!`
+        );
+      }
+    });
+
+    const unsubGiftCard = studioSocket.subscribe('NEW_GIFT_CARD', (card) => {
+      if (isAdminRoute) {
+        showToast(
+          'info',
+          `🎁 New gift voucher issued: GH₵${card.amount} for ${card.recipient_name || card.recipientName}!`
+        );
+      }
+    });
+
+    return () => {
+      unsubReg();
+      unsubCheckin();
+      unsubClassCreated();
+      unsubClassUpdated();
+      unsubClassDeleted();
+      unsubInquiry();
+      unsubGiftCard();
+    };
+  }, [isAdminRoute]);
+
   // Verify active admin session and fetch protected registrations ONLY on the /admin route
   useEffect(() => {
     if (!isAdminRoute) return;
@@ -399,8 +488,12 @@ export default function App() {
 
       // Trigger success screen and close registration drawer
       setIsRegistrationDrawerOpen(false);
+      setActivePassCode(null);
       setSuccessBooking(result.registration);
-      showToast('success', `Payment authorized via Paystack! Reservation ${result.registration.bookingRef} confirmed.`);
+      const toastMsg = result.appliedPass
+        ? `Reservation confirmed with ${result.appliedPass.cardType === 'subscription' ? 'Monthly Flow Pass' : 'Gift Voucher'}! Ref: ${result.registration.bookingRef}`
+        : `Payment authorized via Paystack! Reservation ${result.registration.bookingRef} confirmed.`;
+      showToast('success', toastMsg);
     } catch (err) {
       console.error('Booking error:', err);
       showToast('warning', err.message || 'Payment simulation failed.');
@@ -417,6 +510,33 @@ export default function App() {
       showToast('success', `Session "${created.title}" published to schedule!`);
     } catch {
       showToast('warning', 'Failed to create new class.');
+    }
+  };
+
+  // Handle updating an existing class (Instructor view)
+  const handleUpdateClass = async (classId, updatedClassData) => {
+    try {
+      const updated = await api.updateClass(classId, updatedClassData);
+      setClasses((prev) =>
+        prev.map((c) => (c.id === classId ? { ...c, ...updated } : c))
+      );
+      showToast('success', `Session "${updated.title}" updated successfully!`);
+      return updated;
+    } catch (err) {
+      showToast('warning', err.message || 'Failed to update class.');
+      throw err;
+    }
+  };
+
+  // Handle deleting a class (Instructor view)
+  const handleDeleteClass = async (classId) => {
+    try {
+      await api.deleteClass(classId);
+      setClasses((prev) => prev.filter((c) => c.id !== classId));
+      showToast('success', 'Class removed from studio schedule.');
+    } catch (err) {
+      showToast('warning', err.message || 'Failed to delete class.');
+      throw err;
     }
   };
 
@@ -483,8 +603,12 @@ export default function App() {
         onLogoutAdmin={handleLogoutAdmin}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-3.5 sm:px-6 lg:px-8 pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12">
+      {/* Main Container: Full width for dedicated admin portal, centered max-w-7xl for public client pages */}
+      <main className={`flex-1 mx-auto w-full pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 transition-all ${
+        isAdminRoute
+          ? 'max-w-none px-3.5 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'
+          : 'max-w-7xl px-3.5 sm:px-6 lg:px-8'
+      }`}>
 
         {/* ROUTE 1: PUBLIC STUDENT BOOKING FLOW (/) */}
         {!isAdminRoute && (
@@ -748,6 +872,8 @@ export default function App() {
               classes={classes}
               registrations={registrations}
               onAddClass={handleAddClass}
+              onUpdateClass={handleUpdateClass}
+              onDeleteClass={handleDeleteClass}
               onToggleCheckIn={handleToggleCheckIn}
               onRefreshData={() => {
                 api.getClasses().then(setClasses);
@@ -823,10 +949,11 @@ export default function App() {
             <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 overscroll-contain">
               {selectedClass && (
                 <RegistrationForm
-                  key={`${selectedClass?.id || 'none'}-${preselectedSlot || 'none'}-${bookingInitialData ? bookingInitialData.studentName : 'fresh'}`}
+                  key={`${selectedClass?.id || 'none'}-${preselectedSlot || 'none'}-${activePassCode || 'nopass'}-${bookingInitialData ? bookingInitialData.studentName : 'fresh'}`}
                   selectedClass={selectedClass}
                   preselectedSlot={preselectedSlot}
                   initialData={bookingInitialData}
+                  initialPassCode={activePassCode}
                   onSubmitBooking={handleBookingSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCloseRegistration}
@@ -851,6 +978,19 @@ export default function App() {
         isOpen={isGiftModalOpen}
         initialTab={giftModalTab}
         onClose={() => setIsGiftModalOpen(false)}
+        onBookWithPass={(passCode, passUser) => {
+          setIsGiftModalOpen(false);
+          setActivePassCode(passCode);
+          if (passUser) {
+            setBookingInitialData(passUser);
+          }
+          // Ensure the pre-selected experience is an eligible studio group class
+          const eligibleGroupClass = classes.find((c) => c.isPassEligible !== false && c.category === 'Yoga Classes') || classes[0];
+          if (eligibleGroupClass) {
+            setSelectedClass(eligibleGroupClass);
+          }
+          setIsRegistrationDrawerOpen(true);
+        }}
         onSuccessBooking={(order) => {
           showToast('success', `${order.title} completed successfully!`);
           if (isAdminRoute && isAdminAuthenticated) {
@@ -867,7 +1007,11 @@ export default function App() {
 
       {/* Earthy Botanical Footer */}
       <footer className="mt-16 border-t border-[#E6E1D8] bg-[#F1F4EF]/70 py-8 text-center text-xs text-[#5C6260]">
-        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className={`mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 ${
+          isAdminRoute
+            ? 'w-full max-w-none px-4 sm:px-8 xl:px-12 2xl:px-16'
+            : 'max-w-7xl px-4'
+        }`}>
           <div className="flex items-center gap-3">
             <BrandLogo variant="image" size="sm" />
             <span className="hidden sm:inline text-[#2B2E31] font-medium">• Yoga Classes, Private Bookings & Special Experiences</span>

@@ -129,6 +129,15 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
                     {badge}
                   </span>
                 )}
+                {yogaClass.isPassEligible !== false && yogaClass.category === 'Yoga Classes' ? (
+                  <span className="rounded-full bg-[#C8A253]/30 backdrop-blur-md border border-[#C8A253]/70 px-2.5 py-0.5 text-[10px] font-bold text-[#F7E7C4] shadow-xs">
+                    ✦ Flow Pass Eligible
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2 py-0.5 text-[10px] font-medium text-[#E6E1D8]/80">
+                    Premium Experience
+                  </span>
+                )}
                 <span className="rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2 py-0.5 text-[11px] font-medium text-[#F7F4EF]">
                   {level}
                 </span>
@@ -355,6 +364,15 @@ export default function ClassCard({ yogaClass, isSelected, onSelect }) {
               {badge && (
                 <span className="rounded-full bg-[#A44A4A] border border-white/25 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
                   {badge}
+                </span>
+              )}
+              {yogaClass.isPassEligible !== false && yogaClass.category === 'Yoga Classes' ? (
+                <span className="rounded-full bg-[#C8A253]/30 backdrop-blur-md border border-[#C8A253]/70 px-2.5 py-0.5 text-[10px] font-bold text-[#F7E7C4] shadow-xs">
+                  ✦ Flow Pass Eligible
+                </span>
+              ) : (
+                <span className="rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-2 py-0.5 text-[10px] font-medium text-[#E6E1D8]/80">
+                  Premium Experience
                 </span>
               )}
               <span className="rounded-full bg-[#1C241B]/60 backdrop-blur-md border border-[#C8A253]/30 px-2 py-0.5 text-[11px] font-medium text-[#F7E7C4]">

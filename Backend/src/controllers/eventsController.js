@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { pool } from '../config/db.js';
+import { broadcast } from '../websocket.js';
 
 const ALLOWED_EVENT_STATUSES = ['pending', 'contacted', 'confirmed', 'cancelled'];
 
@@ -61,6 +62,8 @@ export async function createEventInquiry(req, res, next) {
       ]
     );
 
+    broadcast('NEW_EVENT_INQUIRY', rows[0]);
+
     res.status(201).json({
       success: true,
       message: 'Inquiry received! Lorie will reach out via WhatsApp / phone to curate your celebration.',
@@ -103,6 +106,8 @@ export async function updateEventStatus(req, res, next) {
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Inquiry not found' });
     }
+
+    broadcast('EVENT_STATUS_UPDATED', rows[0]);
 
     res.json({ success: true, data: rows[0] });
   } catch (err) {

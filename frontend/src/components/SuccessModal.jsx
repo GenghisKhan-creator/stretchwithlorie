@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import MobileMoneyLogo from './MobileMoneyLogo';
-import { PaystackIcon } from './RegistrationForm';
+import { PaystackIcon, PassLotusIcon } from './RegistrationForm';
 import { exportBookingPassPDF } from '../utils/pdfExport';
 import { STUDIO_SCHEDULES, DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
 
@@ -66,11 +66,14 @@ export default function SuccessModal({
     }
 
     // Stagger ticket elements
-    gsap.fromTo(
-      '.gsap-success-elem',
-      { opacity: 0, y: 12 },
-      { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, delay: 0.22, ease: 'power2.out' }
-    );
+    const successElems = modalCardRef.current?.querySelectorAll('.gsap-success-elem');
+    if (successElems && successElems.length > 0) {
+      gsap.fromTo(
+        successElems,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, delay: 0.22, ease: 'power2.out' }
+      );
+    }
   }, [booking?.bookingRef]);
 
   if (!booking) return null;
@@ -204,12 +207,22 @@ export default function SuccessModal({
                 )}
               </div>
               <div className="text-right shrink-0">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F8FD] border border-[#B6EEFC] px-2.5 py-0.5 text-xs font-bold text-[#0288D1] whitespace-nowrap shadow-2xs">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                  PAID • GH₵{amount}.00
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap shadow-2xs ${
+                  paymentMethod && (paymentMethod.includes('Pass') || paymentMethod.includes('Voucher'))
+                    ? 'bg-[#E5ECE2] border border-[#7A8B71]/40 text-[#232D21]'
+                    : 'bg-[#E6F8FD] border border-[#B6EEFC] text-[#0288D1]'
+                }`}>
+                  <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${paymentMethod && (paymentMethod.includes('Pass') || paymentMethod.includes('Voucher')) ? 'text-[#5A6952]' : 'text-[#0288D1]'}`} />
+                  {paymentMethod && paymentMethod.includes('Pass')
+                    ? 'MONTHLY PASS • COVERED'
+                    : paymentMethod && paymentMethod.includes('Voucher')
+                      ? 'VOUCHER • COVERED'
+                      : `PAID • GH₵${amount}.00`}
                 </span>
                 <div className="text-[11px] text-[#5C6260] mt-1 font-medium flex items-center justify-end gap-1.5">
-                  {paymentMethod && (paymentMethod.includes('MTN') || paymentMethod.includes('Telecel') || paymentMethod.includes('Airtel') || paymentMethod.includes('AT') || paymentMethod.includes('MoMo')) ? (
+                  {paymentMethod && (paymentMethod.includes('Pass') || paymentMethod.includes('Voucher')) ? (
+                    <PassLotusIcon className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
+                  ) : paymentMethod && (paymentMethod.includes('MTN') || paymentMethod.includes('Telecel') || paymentMethod.includes('Airtel') || paymentMethod.includes('AT') || paymentMethod.includes('MoMo')) ? (
                     <MobileMoneyLogo network={paymentMethod} variant="image" size="xs" className="h-4 w-auto rounded-xs shadow-2xs inline-block shrink-0" />
                   ) : (
                     <CreditCard className="h-3 w-3 text-[#7A8B71] shrink-0" />

@@ -563,6 +563,140 @@ async function seed() {
     }
     console.log(`[Seed] Seeded ${INITIAL_REFERRALS.length} creator referral & discount codes.`);
 
+    // 5. Seed Initial Event Inquiries
+    const INITIAL_INQUIRIES = [
+      {
+        id: 'evt-bridal-101',
+        occasion_type: 'Bridal Showers',
+        full_name: 'Akua Mensah',
+        phone: '024 492 8812',
+        email: 'akua.mensah@example.com',
+        guest_count: 10,
+        preferred_date: 'Saturday, Dec 12, 2026',
+        location_preference: 'Studio Sanctuary',
+        notes: 'Pre-wedding champagne stretch for bride & bridesmaids. Please include relaxation herbal teas.',
+        status: 'pending'
+      },
+      {
+        id: 'evt-corp-102',
+        occasion_type: 'Corporate Wellness Events',
+        full_name: 'Kofi Asare',
+        phone: '020 819 4431',
+        email: 'k.asare@fintechgh.com',
+        guest_count: 25,
+        preferred_date: 'Friday, Dec 18, 2026',
+        location_preference: 'Client Location (Cantonments HQ)',
+        notes: 'End-of-year executive desk posture & breathwork mobility session for tech team.',
+        status: 'contacted'
+      },
+      {
+        id: 'evt-bday-103',
+        occasion_type: 'Birthdays',
+        full_name: 'Nana Adwoa',
+        phone: '055 310 9940',
+        email: 'nana.adwoa@gmail.com',
+        guest_count: 8,
+        preferred_date: 'Sunday, Nov 29, 2026',
+        location_preference: 'Studio Sanctuary',
+        notes: '30th birthday mindful movement and private sunset yoga flow.',
+        status: 'confirmed'
+      }
+    ];
+
+    for (const inq of INITIAL_INQUIRIES) {
+      await client.query(
+        `INSERT INTO event_inquiries (
+          id, occasion_type, full_name, phone, email, guest_count,
+          preferred_date, location_preference, notes, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (id) DO NOTHING`,
+        [
+          inq.id,
+          inq.occasion_type,
+          inq.full_name,
+          inq.phone,
+          inq.email,
+          inq.guest_count,
+          inq.preferred_date,
+          inq.location_preference,
+          inq.notes,
+          inq.status
+        ]
+      );
+    }
+    console.log(`[Seed] Seeded ${INITIAL_INQUIRIES.length} sample event inquiries.`);
+
+    // 6. Seed Initial Gift Cards
+    const INITIAL_GIFT_CARDS = [
+      {
+        id: 'gift-101',
+        code: 'SWL-GIFT-98B2-A1',
+        recipient_name: 'Efua Hanson',
+        recipient_phone: '024 883 1190',
+        recipient_email: 'efua.hanson@gmail.com',
+        buyer_name: 'Kojo Hanson',
+        buyer_phone: '020 551 2284',
+        buyer_email: 'kojo.hanson@gmail.com',
+        amount: 300,
+        personal_note: 'Happy Birthday my love! Enjoy this serene sanctuary time with Lorie.',
+        status: 'active',
+        paystack_ref: 'pstk_gift_98b2a1_live'
+      },
+      {
+        id: 'gift-102',
+        code: 'SWL-GIFT-7C14-B2',
+        recipient_name: 'Sandra Appiah',
+        recipient_phone: '055 994 3321',
+        recipient_email: 'sandra.appiah@yahoo.com',
+        buyer_name: 'Michael Appiah',
+        buyer_phone: '024 330 1198',
+        buyer_email: 'michael.appiah@gmail.com',
+        amount: 200,
+        personal_note: 'Congratulations on completing your master thesis! Breathe & stretch.',
+        status: 'redeemed',
+        paystack_ref: 'pstk_gift_7c14b2_live'
+      },
+      {
+        id: 'gift-103',
+        code: 'SWL-GIFT-5D88-C3',
+        recipient_name: 'Naa Koshie',
+        recipient_phone: '027 114 9023',
+        recipient_email: 'naa.koshie@outlook.com',
+        buyer_name: 'David Boateng',
+        buyer_phone: '020 772 3341',
+        buyer_email: 'david.b@gmail.com',
+        amount: 500,
+        personal_note: 'For a wonderful sister. Take time out of your busy schedule for wellness.',
+        status: 'active',
+        paystack_ref: 'pstk_gift_5d88c3_live'
+      }
+    ];
+
+    for (const card of INITIAL_GIFT_CARDS) {
+      await client.query(
+        `INSERT INTO gift_cards (
+          id, code, recipient_name, recipient_phone, recipient_email,
+          buyer_name, buyer_phone, buyer_email, amount, personal_note, status, paystack_ref
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (code) DO NOTHING`,
+        [
+          card.id,
+          card.code,
+          card.recipient_name,
+          card.recipient_phone,
+          card.recipient_email,
+          card.buyer_name,
+          card.buyer_phone,
+          card.buyer_email,
+          card.amount,
+          card.personal_note,
+          card.status,
+          card.paystack_ref
+        ]
+      );
+    }
+    console.log(`[Seed] Seeded ${INITIAL_GIFT_CARDS.length} sample gift cards.`);
+
     await client.query('COMMIT');
     console.log('[Seed] Database seeding completed successfully!');
   } catch (err) {
