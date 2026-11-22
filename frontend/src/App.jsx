@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import Navbar from './components/Navbar';
@@ -13,12 +13,12 @@ import ScrollToTop from './components/ScrollToTop';
 import Toast from './components/Toast';
 import BrandLogo from './components/BrandLogo';
 import WellnessGiftCardModal from './components/WellnessGiftCardModal';
-import WellnessPassHeroCard from './components/WellnessPassHeroCard';
 import AdminLoginModal from './components/AdminLoginModal';
 import { api } from './services/api';
 import { studioSocket } from './services/websocket';
 import { STUDIO_SCHEDULES } from './data/mockData';
 import loriePoseImg from './assets/lorie_pose.png';
+import flowClubPoseImg from './assets/flow_club_pose.jpg';
 import {
   Calendar,
   Clock,
@@ -34,6 +34,40 @@ import {
 } from 'lucide-react';
 
 const ADMIN_PATHS = ['/admin', '/portal', '/instructor'];
+const HERO_SLIDE_DURATION = 6.5;
+const ORB_RING_RADIUS = 94;
+const ORB_RING_CIRCUMFERENCE = 2 * Math.PI * ORB_RING_RADIUS;
+
+// Rotating featured offerings for the editorial hero (right column + vertical rail)
+const HERO_SLIDES = [
+  {
+    id: 'classes',
+    category: 'Yoga Classes',
+    eyebrow: 'Group Sessions • Wed, Sat & Sun',
+    light: 'Yoga',
+    bold: 'Classes',
+    image: '/images/mass_yoga_class.jpg',
+    text: 'Group sessions designed to improve flexibility, strength, balance and overall well-being. Move, stretch, relax and connect with others.'
+  },
+  {
+    id: 'private',
+    category: 'Private Bookings',
+    eyebrow: 'One-on-One • Studio or Your Space',
+    light: 'Private',
+    bold: 'Bookings',
+    image: '/images/private_yoga_class.jpg',
+    text: 'A personalised session tailored to your needs, goals and flexibility level — in our serene studio or at your own location.'
+  },
+  {
+    id: 'special',
+    category: 'Special Experiences',
+    eyebrow: 'Couples • Celebrations • Champagne',
+    light: 'Special',
+    bold: 'Experiences',
+    image: '/images/yoga_champagne.jpg',
+    text: 'A unique way to celebrate a special occasion. A little movement, a little celebration and beautiful memories together.'
+  }
+];
 
 function checkIsAdminPath(pathname) {
   const clean = (pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
@@ -55,6 +89,256 @@ export default function App() {
   const [successBooking, setSuccessBooking] = useState(null);
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const activeHeroSlide = HERO_SLIDES[heroSlideIndex];
+
+  // GSAP Animation Refs
+  const heroSectionRef = useRef(null);
+  const heroSplitBgRef = useRef(null);
+  const poseImgRef = useRef(null);
+  const poseShadowRef = useRef(null);
+  const centerHaloRef = useRef(null);
+  const centerRingRef = useRef(null);
+  const verticalTextRef = useRef(null);
+  const slideOrbWrapRef = useRef(null);
+  const slideOrbImgRefs = useRef([]);
+  const slideOrbShimmerRef = useRef(null);
+  const slideProgressRef = useRef(null);
+  const mobileProgressRef = useRef(null);
+  const slideContentRef = useRef(null);
+  const railCounterRef = useRef(null);
+  const heroRailRef = useRef(null);
+  const catalogGridRef = useRef(null);
+  const drawerBackdropRef = useRef(null);
+  const drawerPanelRef = useRef(null);
+  const isClosingDrawerRef = useRef(false);
+
+  // Slide orchestration refs (frame-accurate synced countdown + zero-flash transitions)
+  const heroSlideIndexRef = useRef(0);
+  const hasMountedSlideRef = useRef(false);
+  const isHeroSlidePausedRef = useRef(false);
+  const slideAutoTweenRef = useRef(null);
+  const slideExitTlRef = useRef(null);
+  const orbKenBurnsTweenRef = useRef(null);
+
+  // Seamless futuristic slide transition (aperture iris orb morph + kinetic text cross-fade)
+  const transitionToSlide = useCallback((targetIndex) => {
+    const nextIdx = ((targetIndex % HERO_SLIDES.length) + HERO_SLIDES.length) % HERO_SLIDES.length;
+    if (nextIdx === heroSlideIndexRef.current) return;
+
+    const prevIdx = heroSlideIndexRef.current;
+
+    if (slideAutoTweenRef.current) {
+      slideAutoTweenRef.current.kill();
+      slideAutoTweenRef.current = null;
+    }
+    if (slideExitTlRef.current) {
+      slideExitTlRef.current.kill();
+      slideExitTlRef.current = null;
+    }
+    if (orbKenBurnsTweenRef.current) {
+      orbKenBurnsTweenRef.current.kill();
+      orbKenBurnsTweenRef.current = null;
+    }
+
+    // 1. Immediate cross-morph on the stacked circular offering orb images (zero unmount flash)
+    const prevImg = slideOrbImgRefs.current[prevIdx];
+    const nextImg = slideOrbImgRefs.current[nextIdx];
+
+    slideOrbImgRefs.current.forEach((imgEl, idx) => {
+      if (!imgEl) return;
+      if (idx !== prevIdx && idx !== nextIdx) {
+        gsap.killTweensOf(imgEl);
+        gsap.set(imgEl, { opacity: 0, zIndex: 0, clipPath: 'circle(75% at 50% 50%)', filter: 'blur(0px)' });
+      }
+    });
+
+    if (prevImg) {
+      gsap.killTweensOf(prevImg);
+      gsap.set(prevImg, { zIndex: 1 });
+      gsap.to(prevImg, {
+        opacity: 0,
+        scale: 1.14,
+        filter: 'blur(8px)',
+        duration: 0.65,
+        ease: 'power2.inOut'
+      });
+    }
+
+    if (nextImg) {
+      gsap.killTweensOf(nextImg);
+      gsap.set(nextImg, { zIndex: 2 });
+      gsap.fromTo(
+        nextImg,
+        {
+          opacity: 0.2,
+          scale: 1.24,
+          clipPath: 'circle(0% at 50% 50%)',
+          filter: 'blur(8px)'
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          clipPath: 'circle(75% at 50% 50%)',
+          filter: 'blur(0px)',
+          duration: 0.92,
+          ease: 'expo.out',
+          onComplete: () => {
+            orbKenBurnsTweenRef.current = gsap.to(nextImg, {
+              scale: 1.06,
+              duration: HERO_SLIDE_DURATION,
+              ease: 'sine.inOut'
+            });
+          }
+        }
+      );
+    }
+
+    // Luminous futuristic prism sweep across the circular orb
+    if (slideOrbShimmerRef.current) {
+      gsap.killTweensOf(slideOrbShimmerRef.current);
+      gsap.fromTo(
+        slideOrbShimmerRef.current,
+        { xPercent: -140, opacity: 0 },
+        {
+          xPercent: 165,
+          keyframes: [
+            { opacity: 0.9, duration: 0.28 },
+            { opacity: 0, duration: 0.52 }
+          ],
+          duration: 0.8,
+          ease: 'power2.inOut'
+        }
+      );
+    }
+
+    // 2. Smooth kinetic exit of current text & rail counter, then swap state at invisible peak
+    const slideItems = slideContentRef.current?.querySelectorAll('.gsap-slide-item');
+    const railItems = railCounterRef.current?.querySelectorAll('.gsap-rail-item');
+    const exitTargets = [
+      ...(slideItems ? Array.from(slideItems) : []),
+      ...(railItems ? Array.from(railItems) : [])
+    ];
+
+    if (exitTargets.length > 0) {
+      slideExitTlRef.current = gsap.timeline({
+        onComplete: () => {
+          heroSlideIndexRef.current = nextIdx;
+          setHeroSlideIndex(nextIdx);
+        }
+      });
+      slideExitTlRef.current.to(exitTargets, {
+        opacity: 0,
+        y: -14,
+        filter: 'blur(5px)',
+        duration: 0.24,
+        stagger: 0.025,
+        ease: 'power3.in'
+      });
+    } else {
+      heroSlideIndexRef.current = nextIdx;
+      setHeroSlideIndex(nextIdx);
+    }
+  }, []);
+
+  const handleHeroSlidePause = useCallback(() => {
+    isHeroSlidePausedRef.current = true;
+    slideAutoTweenRef.current?.pause();
+  }, []);
+
+  const handleHeroSlideResume = useCallback(() => {
+    isHeroSlidePausedRef.current = false;
+    slideAutoTweenRef.current?.play();
+  }, []);
+
+  // Synced futuristic orbital progress ring + seamless slide text entrance + auto-advance
+  useEffect(() => {
+    if (isAdminRoute) {
+      hasMountedSlideRef.current = false;
+      return;
+    }
+
+    // Entrance choreography whenever slide index changes after initial mount
+    if (hasMountedSlideRef.current) {
+      const slideItems = slideContentRef.current?.querySelectorAll('.gsap-slide-item');
+      if (slideItems && slideItems.length > 0) {
+        gsap.fromTo(
+          slideItems,
+          { opacity: 0, y: 24, filter: 'blur(7px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.72,
+            stagger: 0.065,
+            ease: 'expo.out',
+            clearProps: 'transform,filter'
+          }
+        );
+      }
+
+      const railItems = railCounterRef.current?.querySelectorAll('.gsap-rail-item');
+      if (railItems && railItems.length > 0) {
+        gsap.fromTo(
+          railItems,
+          { opacity: 0, y: 18, filter: 'blur(5px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.65,
+            stagger: 0.05,
+            ease: 'expo.out',
+            clearProps: 'transform,filter'
+          }
+        );
+      }
+    } else {
+      hasMountedSlideRef.current = true;
+    }
+
+    // Frame-accurate countdown driving both the desktop orbital ring and mobile progress bar
+    const progressState = { value: 0 };
+    if (slideProgressRef.current) {
+      slideProgressRef.current.style.strokeDashoffset = String(ORB_RING_CIRCUMFERENCE);
+    }
+    if (mobileProgressRef.current) {
+      mobileProgressRef.current.style.transform = 'scaleX(0)';
+    }
+
+    const tween = gsap.to(progressState, {
+      value: 1,
+      duration: HERO_SLIDE_DURATION,
+      ease: 'none',
+      onUpdate: () => {
+        if (slideProgressRef.current) {
+          slideProgressRef.current.style.strokeDashoffset = String(
+            ORB_RING_CIRCUMFERENCE * (1 - progressState.value)
+          );
+        }
+        if (mobileProgressRef.current) {
+          mobileProgressRef.current.style.transform = `scaleX(${progressState.value})`;
+        }
+      },
+      onComplete: () => {
+        transitionToSlide((heroSlideIndexRef.current + 1) % HERO_SLIDES.length);
+      }
+    });
+
+    slideAutoTweenRef.current = tween;
+    if (isHeroSlidePausedRef.current) {
+      tween.pause();
+    }
+
+    return () => {
+      tween.kill();
+    };
+  }, [heroSlideIndex, isAdminRoute, transitionToSlide]);
+
+  const handleHeroSlideAction = (slide) => {
+    setCategoryFilter(slide.category);
+    document.getElementById('class-catalog')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Filtered classes list
   const filteredClasses = classes.filter((cls) => {
@@ -64,14 +348,6 @@ export default function App() {
 
   // Registration Slide-In Drawer State
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
-
-  // GSAP Animation Refs
-  const heroSectionRef = useRef(null);
-  const poseImgRef = useRef(null);
-  const catalogGridRef = useRef(null);
-  const drawerBackdropRef = useRef(null);
-  const drawerPanelRef = useRef(null);
-  const isClosingDrawerRef = useRef(false);
 
   // Wellness Gift Card & Subscription Modal State
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
@@ -117,90 +393,254 @@ export default function App() {
     }
   };
 
-  // GSAP: Hero section entrance & gentle breathing float animation
+  // GSAP: Futuristic Hero entrance, synchronized levitation physics & spatial parallax
   useGSAP(() => {
-    if (isAdminRoute) return;
+    if (isAdminRoute || !heroSectionRef.current) return;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let cleanupParallax = null;
 
     const ctx = gsap.context(() => {
-      // Hero headline & content staggered reveal
-      const heroElems = heroSectionRef.current?.querySelectorAll('.gsap-hero-elem');
-      if (heroElems && heroElems.length > 0) {
+      // Initialize stacked orb images once (GSAP owns all cross-morph transitions from here)
+      slideOrbImgRefs.current.forEach((imgEl, idx) => {
+        if (!imgEl) return;
+        const isCurrent = idx === heroSlideIndexRef.current;
+        gsap.set(imgEl, {
+          opacity: isCurrent ? 1 : 0,
+          zIndex: isCurrent ? 2 : 0,
+          scale: 1,
+          clipPath: 'circle(75% at 50% 50%)',
+          filter: 'blur(0px)'
+        });
+      });
+
+      if (prefersReducedMotion) return;
+
+      // 1. Two-tone split backdrop reveal
+      if (heroSplitBgRef.current) {
         gsap.fromTo(
-          heroElems,
-          { opacity: 0, y: 22 },
+          heroSplitBgRef.current,
+          { opacity: 0, clipPath: 'inset(0 0 0 18%)' },
           {
             opacity: 1,
-            y: 0,
-            duration: 0.8,
-            stagger: 0.08,
-            ease: 'power2.out',
-            clearProps: 'transform'
+            clipPath: 'inset(0 0 0 0%)',
+            duration: 1.05,
+            ease: 'expo.out',
+            clearProps: 'clipPath'
           }
         );
       }
 
-      // Hero pose image fade in & subtle organic breathing pulse
-      if (poseImgRef.current) {
+      // 2. Left & right column elements: futuristic blur-to-sharp kinetic cascade
+      const heroElems = heroSectionRef.current.querySelectorAll('.gsap-hero-elem');
+      if (heroElems.length > 0) {
         gsap.fromTo(
-          poseImgRef.current,
-          { opacity: 0, scale: 0.94 },
+          heroElems,
+          { opacity: 0, y: 26, filter: 'blur(8px)' },
           {
-            opacity: 0.38,
-            scale: 1,
-            duration: 1.2,
-            ease: 'power2.out'
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.9,
+            stagger: 0.08,
+            ease: 'expo.out',
+            clearProps: 'transform,filter'
           }
         );
+      }
 
-        // Gentle ambient floating breathing motion
-        gsap.to(poseImgRef.current, {
-          y: -8,
-          duration: 4,
+      // 3. Champagne gold hairline rule draw-in
+      const heroRule = heroSectionRef.current.querySelector('.gsap-hero-rule');
+      if (heroRule) {
+        gsap.fromTo(
+          heroRule,
+          { scaleX: 0, transformOrigin: 'left center' },
+          { scaleX: 1, duration: 0.85, delay: 0.25, ease: 'expo.out' }
+        );
+      }
+
+      // 4. Center architectural halo & white portal ring expansion
+      if (centerHaloRef.current) {
+        gsap.fromTo(
+          centerHaloRef.current,
+          { opacity: 0, scale: 0.82 },
+          { opacity: 1, scale: 1, duration: 1.25, delay: 0.1, ease: 'expo.out' }
+        );
+      }
+      if (centerRingRef.current) {
+        gsap.fromTo(
+          centerRingRef.current,
+          { opacity: 0, scale: 0.86 },
+          { opacity: 1, scale: 1, duration: 1.1, delay: 0.05, ease: 'expo.out' }
+        );
+      }
+
+      // 5. Center Lorie pose focus-pull reveal -> continuous levitation physics
+      if (poseImgRef.current) {
+        const poseTl = gsap.timeline();
+        poseTl.fromTo(
+          poseImgRef.current,
+          { opacity: 0, y: 30, scale: 0.92, filter: 'blur(10px)' },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: 'blur(0px)',
+            duration: 1.2,
+            ease: 'expo.out',
+            clearProps: 'filter'
+          }
+        );
+        poseTl.to(poseImgRef.current, {
+          y: -9,
+          duration: 3.8,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut'
         });
       }
 
-      // VIP Wellness Card entrance
-      const heroCards = heroSectionRef.current?.querySelectorAll('.gsap-hero-card');
-      if (heroCards && heroCards.length > 0) {
+      // Synchronized inverse floor shadow breathing beneath the levitating pose
+      if (poseShadowRef.current) {
+        const shadowTl = gsap.timeline();
+        shadowTl.fromTo(
+          poseShadowRef.current,
+          { opacity: 0, scaleX: 0.55 },
+          { opacity: 1, scaleX: 1, duration: 1.2, ease: 'expo.out' }
+        );
+        shadowTl.to(poseShadowRef.current, {
+          scaleX: 0.84,
+          opacity: 0.55,
+          duration: 3.8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+      }
+
+      // 6. Vertical STRETCH editorial lettering glide-in
+      if (verticalTextRef.current) {
         gsap.fromTo(
-          heroCards,
-          { opacity: 0, y: 28, scale: 0.97 },
+          verticalTextRef.current,
+          { opacity: 0, y: 34, filter: 'blur(6px)' },
           {
             opacity: 1,
             y: 0,
-            scale: 1,
-            duration: 0.9,
-            delay: 0.15,
-            ease: 'power3.out',
-            clearProps: 'transform'
+            filter: 'blur(0px)',
+            duration: 1.0,
+            delay: 0.35,
+            ease: 'expo.out',
+            clearProps: 'filter'
           }
         );
       }
 
-      // Schedule slots reveal (only animate if slots exist in DOM)
-      const schedSlots = heroSectionRef.current?.querySelectorAll('.gsap-sched-slot');
-      if (schedSlots && schedSlots.length > 0) {
+      // 7. Right offering orbital portal entrance + initial slow Ken Burns drift
+      if (slideOrbWrapRef.current) {
         gsap.fromTo(
-          schedSlots,
-          { opacity: 0, y: 16 },
+          slideOrbWrapRef.current,
+          { opacity: 0, scale: 0.84, filter: 'blur(8px)' },
+          {
+            opacity: 1,
+            scale: 1,
+            filter: 'blur(0px)',
+            duration: 1.0,
+            delay: 0.25,
+            ease: 'expo.out',
+            clearProps: 'filter'
+          }
+        );
+      }
+      const initialOrbImg = slideOrbImgRefs.current[heroSlideIndexRef.current];
+      if (initialOrbImg) {
+        orbKenBurnsTweenRef.current = gsap.to(initialOrbImg, {
+          scale: 1.06,
+          duration: HERO_SLIDE_DURATION,
+          ease: 'sine.inOut'
+        });
+      }
+
+      // Initial entrance for the right rotating offering text items
+      const initialSlideItems = slideContentRef.current?.querySelectorAll('.gsap-slide-item');
+      if (initialSlideItems && initialSlideItems.length > 0) {
+        gsap.fromTo(
+          initialSlideItems,
+          { opacity: 0, y: 24, filter: 'blur(7px)' },
           {
             opacity: 1,
             y: 0,
-            duration: 0.55,
-            stagger: 0.06,
-            delay: 0.25,
-            ease: 'power2.out',
-            clearProps: 'transform'
+            filter: 'blur(0px)',
+            duration: 0.88,
+            delay: 0.28,
+            stagger: 0.075,
+            ease: 'expo.out',
+            clearProps: 'transform,filter'
           }
         );
+      }
+
+      // 8. Right-edge vertical telemetry rail entrance
+      if (heroRailRef.current) {
+        gsap.fromTo(
+          heroRailRef.current,
+          { opacity: 0, x: 18 },
+          { opacity: 1, x: 0, duration: 0.9, delay: 0.42, ease: 'expo.out', clearProps: 'transform' }
+        );
+      }
+
+      // 9. Interactive Desktop Spatial Depth Parallax (60fps quickTo inertia)
+      if (window.matchMedia?.('(pointer: fine)').matches) {
+        const heroEl = heroSectionRef.current;
+        const poseX = poseImgRef.current ? gsap.quickTo(poseImgRef.current, 'x', { duration: 0.9, ease: 'power3.out' }) : null;
+        const poseRot = poseImgRef.current ? gsap.quickTo(poseImgRef.current, 'rotation', { duration: 1.0, ease: 'power3.out' }) : null;
+        const haloX = centerHaloRef.current ? gsap.quickTo(centerHaloRef.current, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
+        const haloY = centerHaloRef.current ? gsap.quickTo(centerHaloRef.current, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
+        const textX = verticalTextRef.current ? gsap.quickTo(verticalTextRef.current, 'x', { duration: 0.85, ease: 'power3.out' }) : null;
+        const textY = verticalTextRef.current ? gsap.quickTo(verticalTextRef.current, 'y', { duration: 0.85, ease: 'power3.out' }) : null;
+        const orbX = slideOrbWrapRef.current ? gsap.quickTo(slideOrbWrapRef.current, 'x', { duration: 0.95, ease: 'power3.out' }) : null;
+        const orbY = slideOrbWrapRef.current ? gsap.quickTo(slideOrbWrapRef.current, 'y', { duration: 0.95, ease: 'power3.out' }) : null;
+
+        const handlePointerMove = (e) => {
+          const rect = heroEl.getBoundingClientRect();
+          const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;  // -1 to +1
+          const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;  // -1 to +1
+          poseX?.(nx * 10);
+          poseRot?.(nx * 0.9);
+          haloX?.(-nx * 14);
+          haloY?.(-ny * 9);
+          textX?.(nx * 6);
+          textY?.(ny * 10);
+          orbX?.(nx * 8);
+          orbY?.(ny * 6);
+        };
+
+        const handlePointerLeave = () => {
+          poseX?.(0);
+          poseRot?.(0);
+          haloX?.(0);
+          haloY?.(0);
+          textX?.(0);
+          textY?.(0);
+          orbX?.(0);
+          orbY?.(0);
+        };
+
+        heroEl.addEventListener('pointermove', handlePointerMove, { passive: true });
+        heroEl.addEventListener('pointerleave', handlePointerLeave);
+        cleanupParallax = () => {
+          heroEl.removeEventListener('pointermove', handlePointerMove);
+          heroEl.removeEventListener('pointerleave', handlePointerLeave);
+        };
       }
     }, heroSectionRef);
 
-    return () => ctx.revert();
-  }, [isAdminRoute, classes.length]);
+    return () => {
+      cleanupParallax?.();
+      slideExitTlRef.current?.kill();
+      orbKenBurnsTweenRef.current?.kill();
+      ctx.revert();
+    };
+  }, [isAdminRoute]);
 
   // GSAP: Class Cards Grid stagger entrance on category change or initial load
   useGSAP(() => {
@@ -604,106 +1044,408 @@ export default function App() {
         onLogoutAdmin={handleLogoutAdmin}
       />
 
+      {/* FULL-WIDTH EDITORIAL SPLIT HERO (Public Route) */}
+      {!isAdminRoute && (
+        <section
+          ref={heroSectionRef}
+          className="relative overflow-hidden border-b border-[#E6E1D8] bg-[#FDFCFA] w-full"
+        >
+          {/* Two-tone split background spanning 100% viewport width */}
+          <div
+            ref={heroSplitBgRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%] lg:h-auto lg:inset-y-0 lg:left-1/2 lg:right-0 bg-[#EEE9E1]"
+          >
+            {/* Subtle futuristic champagne-gold light filament gliding down the 50% split seam */}
+            <div className="hidden lg:block absolute left-0 inset-y-0 w-px bg-[#C8A253]/15 overflow-hidden">
+              <div className="hero-seam-filament h-36 w-full bg-gradient-to-b from-transparent via-[#C8A253]/75 to-transparent" />
+            </div>
+          </div>
+
+          <div className="relative mx-auto max-w-[1440px] grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 px-5 sm:px-8 lg:px-14 xl:px-20 pt-8 sm:pt-10 pb-8 lg:py-14 lg:min-h-[660px]">
+
+            {/* LEFT: Brand headline, story & membership badge */}
+            <div className="lg:col-span-4 flex flex-col justify-between gap-8 lg:pr-4">
+              <div className="space-y-4 lg:pt-14">
+                <p className="gsap-hero-elem text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7A8B71]">
+                  Movement • Relaxation • Connection
+                </p>
+                <h1 className="gsap-hero-elem text-[#2B2E31]">
+                  <span className="block font-serif font-normal uppercase text-[2.25rem] sm:text-5xl lg:text-[3.5rem] leading-none tracking-[0.22em]">
+                    Stretch
+                  </span>
+                  <span className="mt-2.5 flex items-center gap-3 font-sans text-[11px] sm:text-xs font-semibold uppercase tracking-[0.34em] text-[#5A6952]">
+                    <span className="gsap-hero-rule h-px w-7 bg-[#C8A253]/80 inline-block" aria-hidden="true" />
+                    <span>With Lorie • Yoga Studio</span>
+                  </span>
+                </h1>
+                <p className="gsap-hero-elem font-serif italic text-xs sm:text-[13px] text-[#7A746B] leading-relaxed max-w-xs">
+                  &ldquo;You cannot always control what goes on outside, but you can always control what goes on inside.&rdquo;
+                </p>
+                <p className="gsap-hero-elem text-xs sm:text-sm text-[#5C6260] leading-relaxed max-w-sm">
+                  Yoga classes, private bookings &amp; special experiences — where movement meets relaxation, connection and beautiful memories.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleOpenGiftModal('subscription')}
+                  className="gsap-hero-elem group inline-flex items-center gap-2 text-xs font-semibold text-[#5C6260] hover:text-[#2B2E31] transition-colors cursor-pointer"
+                >
+                  <ArrowRight className="h-3.5 w-3.5 text-[#C8A253] group-hover:translate-x-1 transition-transform duration-300" />
+                  <span className="border-b border-transparent group-hover:border-[#2B2E31] transition-colors">Wellness Pass &amp; Gift Cards</span>
+                </button>
+              </div>
+
+              {/* Flow Club badge + studio highlights (desktop) */}
+              <div className="gsap-hero-elem hidden lg:block space-y-4">
+                <button
+                  type="button"
+                  onClick={() => handleOpenGiftModal('subscription')}
+                  className="group flex items-end gap-3 text-left cursor-pointer"
+                  title="Monthly Flow Pass & Gift Vouchers"
+                >
+                  <div className="relative h-24 w-24 shrink-0">
+                    <span className="hero-bubble-a absolute -top-1 right-0 h-7 w-7 rounded-full bg-[#E7E1D6]" />
+                    <span className="hero-bubble-b absolute top-3 -right-3 h-4 w-4 rounded-full bg-[#EEE9E1]" />
+                    <span className="absolute inset-2 rounded-full bg-[#E7E1D6] group-hover:bg-[#E0D8CA] transition-colors duration-300" />
+                    <img
+                      src={flowClubPoseImg}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 m-auto h-[88px] w-[88px] object-contain mix-blend-multiply transition-transform duration-500 ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="pb-1">
+                    <span className="block text-[9px] font-semibold uppercase tracking-[0.25em] text-[#7A8B71]">
+                      Monthly Flow Pass
+                    </span>
+                    <span className="block font-sans text-2xl leading-none tracking-tight text-[#CFC7B9] group-hover:text-[#B9AE9C] transition-colors">
+                      <span className="font-bold">FLOW</span><span className="font-light">CLUB</span>
+                    </span>
+                  </div>
+                </button>
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-[#5C6260]">
+                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />All Levels</span>
+                  <span className="inline-flex items-center gap-1.5"><Coffee className="h-3.5 w-3.5 text-[#C8A253]" />Mat &amp; Teas</span>
+                  <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5 text-[#A44A4A]" />Mobile Money</span>
+                </div>
+                <p className="text-[9px] font-medium uppercase tracking-[0.32em] text-[#9A9387]">
+                  5.60° N • Accra Sanctuary
+                </p>
+              </div>
+            </div>
+
+            {/* CENTER: Pose figure over orbital architectural ring with vertical editorial type */}
+            <div className="lg:col-span-4 relative flex items-center justify-center min-h-[300px] sm:min-h-[430px] lg:min-h-0">
+              {/* Futuristic rotating celestial SVG halo with subtle orbital gold nodes */}
+              <div
+                ref={centerHaloRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[290px] w-[290px] sm:h-[412px] sm:w-[412px] lg:h-[530px] lg:w-[530px] will-change-transform"
+              >
+                <svg viewBox="0 0 540 540" className="hero-orbit-slow h-full w-full overflow-visible">
+                  <circle
+                    cx="270"
+                    cy="270"
+                    r="260"
+                    fill="none"
+                    stroke="#2B2E31"
+                    strokeOpacity="0.09"
+                    strokeWidth="1"
+                    strokeDasharray="120 18 28 18 190 22"
+                  />
+                  <circle
+                    cx="270"
+                    cy="270"
+                    r="260"
+                    fill="none"
+                    stroke="#C8A253"
+                    strokeOpacity="0.45"
+                    strokeWidth="1.5"
+                    strokeDasharray="48 480"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="270" cy="10" r="3.5" fill="#C8A253" fillOpacity="0.85" />
+                  <circle cx="270" cy="10" r="8" fill="#C8A253" fillOpacity="0.16" />
+                  <circle cx="495" cy="400" r="2.5" fill="#7A8B71" fillOpacity="0.7" />
+                </svg>
+                <svg viewBox="0 0 540 540" className="hero-orbit-reverse absolute inset-0 h-full w-full">
+                  <circle
+                    cx="270"
+                    cy="270"
+                    r="246"
+                    fill="none"
+                    stroke="#C8A253"
+                    strokeOpacity="0.22"
+                    strokeWidth="1"
+                    strokeDasharray="4 14"
+                  />
+                </svg>
+              </div>
+
+              {/* Inner sculptural ring */}
+              <div
+                ref={centerRingRef}
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[250px] w-[250px] sm:h-[360px] sm:w-[360px] lg:h-[470px] lg:w-[470px] rounded-full border-[26px] sm:border-[36px] lg:border-[46px] border-white bg-[#E7E1D6] shadow-[0_12px_40px_-18px_rgba(43,46,49,0.12)]"
+              />
+
+              {/* Soft grounded studio floor shadow synchronized with pose levitation */}
+              <div
+                ref={poseShadowRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-3 sm:bottom-5 lg:bottom-8 left-1/2 -translate-x-1/2 h-4 w-44 sm:w-60 lg:w-72 rounded-full bg-[#2B2E31]/15 blur-md will-change-transform"
+              />
+
+              <img
+                ref={poseImgRef}
+                src={loriePoseImg}
+                alt="Lorie holding a standing bow stretch"
+                className="relative z-10 h-[290px] sm:h-[420px] lg:h-[540px] w-auto max-w-none object-contain mix-blend-multiply select-none will-change-transform"
+              />
+
+              <div
+                ref={verticalTextRef}
+                className="hidden sm:flex absolute z-20 right-0 lg:-right-2 top-1/2 -translate-y-1/2 gap-2 [writing-mode:vertical-rl] select-none pointer-events-none will-change-transform"
+              >
+                <span className="font-serif text-4xl lg:text-5xl tracking-[0.3em] text-[#2B2E31]">STRETCH</span>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-[#5C6260]">Yoga • Wellness • Accra</span>
+              </div>
+            </div>
+
+            {/* RIGHT: Seamless Futuristic Rotating Featured Offering */}
+            <div
+              onPointerEnter={handleHeroSlidePause}
+              onPointerLeave={handleHeroSlideResume}
+              className="lg:col-span-4 flex flex-col justify-between gap-6 lg:pl-10 lg:pr-14"
+            >
+              {/* Circular Portal Orb with Live SVG Orbital Progress Ring & Stacked Aperture Morph */}
+              <div className="hidden lg:flex justify-center pt-5">
+                <div
+                  ref={slideOrbWrapRef}
+                  className="relative h-48 w-48 xl:h-52 xl:w-52 flex items-center justify-center will-change-transform"
+                >
+                  {/* Counter-rotating segmented futuristic accent ring */}
+                  <svg
+                    viewBox="0 0 216 216"
+                    aria-hidden="true"
+                    className="hero-orbit-reverse pointer-events-none absolute -inset-2 h-[calc(100%+16px)] w-[calc(100%+16px)]"
+                  >
+                    <circle
+                      cx="108"
+                      cy="108"
+                      r="104"
+                      fill="none"
+                      stroke="#C8A253"
+                      strokeOpacity="0.28"
+                      strokeWidth="1"
+                      strokeDasharray="16 12 4 12"
+                    />
+                  </svg>
+
+                  {/* Live 6.5s Synced Countdown Progress Ring */}
+                  <svg
+                    viewBox="0 0 200 200"
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
+                  >
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r={ORB_RING_RADIUS}
+                      fill="none"
+                      stroke="#2B2E31"
+                      strokeOpacity="0.08"
+                      strokeWidth="1.5"
+                    />
+                    <circle
+                      ref={slideProgressRef}
+                      cx="100"
+                      cy="100"
+                      r={ORB_RING_RADIUS}
+                      fill="none"
+                      stroke="#C8A253"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeDasharray={ORB_RING_CIRCUMFERENCE}
+                      strokeDashoffset={ORB_RING_CIRCUMFERENCE}
+                    />
+                  </svg>
+
+                  {/* Stacked Cross-Morphing Image Aperture (all 3 slides mounted for zero flicker) */}
+                  <div className="relative h-40 w-40 xl:h-44 xl:w-44 rounded-full overflow-hidden ring-[6px] ring-white/90 shadow-xl bg-[#E7E1D6]">
+                    {HERO_SLIDES.map((slide, idx) => (
+                      <img
+                        key={slide.id}
+                        ref={(el) => {
+                          slideOrbImgRefs.current[idx] = el;
+                        }}
+                        src={slide.image}
+                        alt={`${slide.light} ${slide.bold}`}
+                        className="absolute inset-0 h-full w-full object-cover object-[center_30%] will-change-transform"
+                      />
+                    ))}
+
+                    {/* Diagonal holographic light sweep fired on each slide switch */}
+                    <div
+                      ref={slideOrbShimmerRef}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-0 -left-1/2 z-10 w-1/2 opacity-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/75 to-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                {/* Fixed min-height stage prevents any vertical layout shift during slide swaps */}
+                <div
+                  ref={slideContentRef}
+                  className="min-h-[168px] sm:min-h-[188px] flex flex-col justify-center space-y-3"
+                >
+                  <p className="gsap-slide-item text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7A8B71]">
+                    {activeHeroSlide.eyebrow}
+                  </p>
+                  <h2 className="gsap-slide-item font-serif uppercase text-2xl sm:text-3xl lg:text-[2.15rem] leading-[1.15] tracking-[0.16em] text-[#2B2E31]">
+                    <span className="font-normal">{activeHeroSlide.light}</span>{' '}
+                    <span className="font-normal text-[#5A6952]">{activeHeroSlide.bold}</span>
+                  </h2>
+                  <p className="gsap-slide-item text-xs sm:text-sm text-[#5C6260] leading-relaxed max-w-sm">
+                    {activeHeroSlide.text}
+                  </p>
+                  <div className="gsap-slide-item pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleHeroSlideAction(activeHeroSlide)}
+                      className="group inline-flex items-center gap-2 text-xs font-semibold text-[#5C6260] hover:text-[#2B2E31] transition-colors cursor-pointer"
+                    >
+                      <ArrowRight className="h-3.5 w-3.5 text-[#7A8B71] group-hover:translate-x-1 transition-transform duration-300" />
+                      <span className="border-b border-transparent group-hover:border-[#2B2E31] transition-colors">
+                        View {activeHeroSlide.light} {activeHeroSlide.bold}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Primary CTAs */}
+                <div className="gsap-hero-elem flex flex-wrap items-center gap-2.5">
+                  <a
+                    href="#class-catalog"
+                    className="hero-btn-sheen inline-flex items-center gap-2 rounded-full bg-[#232D21] text-[#F7E7C4] px-5 py-2.5 text-xs sm:text-sm font-semibold shadow-sm hover:bg-[#2F3C2C] hover:shadow-md transition-all duration-300"
+                  >
+                    <span>Book a Class</span>
+                    <ChevronDown className="h-3.5 w-3.5 text-[#C8A253]" />
+                  </a>
+                  <a
+                    href="#short-videos-vault"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#2B2E31]/15 bg-white/70 backdrop-blur-sm px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#2B2E31] hover:bg-white hover:border-[#7A8B71]/50 transition-all duration-300"
+                  >
+                    <Film className="h-3.5 w-3.5 text-[#C8A253]" />
+                    <span>Guided Videos</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenGiftModal('gift')}
+                    className="lg:hidden inline-flex items-center gap-1.5 rounded-full bg-[#A44A4A] text-white px-4 py-2.5 text-xs font-semibold hover:bg-[#8f3e3e] transition-colors cursor-pointer"
+                  >
+                    <Gift className="h-3.5 w-3.5" />
+                    <span>Gift a Pass</span>
+                  </button>
+                </div>
+
+                {/* Mobile slide dots with live futuristic progress fill */}
+                <div className="flex lg:hidden items-center gap-2 pt-1">
+                  {HERO_SLIDES.map((s, i) => {
+                    const isActive = i === heroSlideIndex;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        aria-label={`Show ${s.light} ${s.bold}`}
+                        onClick={() => transitionToSlide(i)}
+                        className={`relative h-1.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer ${
+                          isActive ? 'w-9 bg-[#D5CEC2]' : 'w-2 bg-[#C9C2B6]'
+                        }`}
+                      >
+                        {isActive && (
+                          <span
+                            ref={mobileProgressRef}
+                            className="absolute inset-0 origin-left bg-[#2B2E31] rounded-full"
+                            style={{ transform: 'scaleX(0)' }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT RAIL (desktop): vertical title, kinetic index, glowing dots & scroll cue */}
+          <div
+            ref={(el) => {
+              heroRailRef.current = el;
+              railCounterRef.current = el;
+            }}
+            onPointerEnter={handleHeroSlidePause}
+            onPointerLeave={handleHeroSlideResume}
+            className="hidden lg:flex absolute right-5 xl:right-8 inset-y-10 z-20 flex-col items-center justify-between"
+          >
+            <span className="gsap-rail-item [writing-mode:vertical-rl] rotate-180 text-[11px] uppercase tracking-[0.3em] text-[#5C6260]">
+              <span className="font-bold text-[#2B2E31]">{activeHeroSlide.light}</span> {activeHeroSlide.bold}
+            </span>
+
+            <div className="flex flex-col items-center gap-3.5">
+              <span className="gsap-rail-item [writing-mode:vertical-rl] rotate-180 font-sans text-3xl font-bold text-[#2B2E31] leading-none">
+                0{heroSlideIndex + 1}
+              </span>
+              {HERO_SLIDES.map((s, i) => {
+                const isActive = i === heroSlideIndex;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    aria-label={`Show ${s.light} ${s.bold}`}
+                    onClick={() => transitionToSlide(i)}
+                    className="relative flex h-4 w-4 items-center justify-center cursor-pointer group"
+                  >
+                    {isActive && (
+                      <span
+                        aria-hidden="true"
+                        className="hero-dot-pulse absolute h-3.5 w-3.5 rounded-full border border-[#C8A253]"
+                      />
+                    )}
+                    <span
+                      className={`rounded-full transition-all duration-300 ${
+                        isActive
+                          ? 'h-2.5 w-2.5 bg-[#2B2E31] ring-2 ring-[#C8A253]/40'
+                          : 'h-1.5 w-1.5 bg-[#C9C2B6] group-hover:bg-[#7A8B71] group-hover:scale-125'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <a href="#class-catalog" className="flex flex-col items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-[#5C6260] hover:text-[#2B2E31] transition-colors">
+              <span className="[writing-mode:vertical-rl] rotate-180">Scroll</span>
+              <span className="flex h-7 w-4 justify-center rounded-full border border-current pt-1">
+                <span className="h-1.5 w-0.5 rounded-full bg-current animate-bounce" />
+              </span>
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* Main Container: Full width for dedicated admin portal, centered max-w-7xl for public client pages */}
-      <main className={`flex-1 mx-auto w-full pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 transition-all ${
-        isAdminRoute
-          ? 'max-w-none px-3.5 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'
-          : 'max-w-7xl px-3.5 sm:px-6 lg:px-8'
-      }`}>
+      <main className={`flex-1 mx-auto w-full pt-6 sm:pt-10 space-y-8 sm:space-y-10 pb-28 sm:pb-12 transition-all ${isAdminRoute
+        ? 'max-w-none px-3.5 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'
+        : 'max-w-7xl px-3.5 sm:px-6 lg:px-8'
+        }`}>
 
         {/* ROUTE 1: PUBLIC STUDENT BOOKING FLOW (/) */}
         {!isAdminRoute && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-300 w-full max-w-full">
-
-            {/* Hero Banner with Botanical Calm, Architectural Warmth & Wellness Pass Spotlight */}
-            <div ref={heroSectionRef} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EBF0E9] via-[#F7F4EF] to-[#F5ECEE] p-5 sm:p-8 lg:p-10 border border-[#E6E1D8] shadow-sm w-full max-w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
-
-                {/* Left Column: Headline, Story & Quick CTAs (7 cols) */}
-                <div className="lg:col-span-7 relative space-y-4">
-                  {/* Layered Yoga Stretch Pose (Positioned under the text with lower z-index, shifted right) */}
-                  <div className="pointer-events-none absolute left-2 sm:left-8 lg:left-16 top-1/2 -translate-y-1/2 z-0 opacity-35 sm:opacity-40 select-none">
-                    <img
-                      ref={poseImgRef}
-                      src={loriePoseImg}
-                      alt=""
-                      aria-hidden="true"
-                      className="h-[380px] sm:h-[520px] lg:h-[620px] w-auto max-w-none object-contain filter drop-shadow-sm will-change-transform"
-                    />
-                  </div>
-
-                  {/* Text & CTAs Content Layer (Layered on top of image, z-10) */}
-                  <div className="relative z-10 space-y-4">
-                    <h1 className="gsap-hero-elem font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#2B2E31] leading-tight drop-shadow-2xs">
-                      YOGA CLASSES, PRIVATE BOOKINGS & SPECIAL EXPERIENCES
-                    </h1>
-
-                    <p className="gsap-hero-elem text-xs sm:text-base text-[#5C6260] leading-relaxed">
-                      Welcome to our yoga and wellness experiences, where movement meets relaxation, connection and beautiful memories.
-                    </p>
-
-                    <p className="gsap-hero-elem text-xs sm:text-sm text-[#2B2E31] font-medium leading-relaxed">
-                      Whether you are looking for a regular yoga session, a private class or a unique way to celebrate a special occasion, we have an experience for you.
-                    </p>
-
-                    {/* Studio Highlights Bar */}
-                    <div className="gsap-hero-elem flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-semibold text-[#5A6952] pt-0.5">
-                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                        <ShieldCheck className="h-3.5 w-3.5 text-[#7A8B71]" />
-                        All Levels Welcome
-                      </span>
-                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                        <Coffee className="h-3.5 w-3.5 text-[#C8A253]" />
-                        Complimentary Mat & Teas
-                      </span>
-                      <span className="flex items-center gap-1.5 rounded-xl bg-white/85 backdrop-blur-xs px-2.5 sm:px-3 py-1.5 border border-[#E6E1D8] shadow-2xs">
-                        <Heart className="h-3.5 w-3.5 text-[#A44A4A]" />
-                        Paystack Mobile Money
-                      </span>
-                    </div>
-
-                    {/* Hero Action Buttons */}
-                    <div className="gsap-hero-elem flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenGiftModal('subscription')}
-                        className="flex items-center gap-2 rounded-xl bg-[#A44A4A] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:bg-[#8f3e3e] transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        <Gift className="h-4 w-4" />
-                        <span>Buy Wellness Pass / Gift Card</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-
-                      <a
-                        href="#class-catalog"
-                        className="flex items-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white/85 backdrop-blur-sm px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#2B2E31] hover:bg-white hover:border-[#7A8B71] transition-colors"
-                      >
-                        <span>Explore Single Classes</span>
-                        <ChevronDown className="h-3.5 w-3.5 text-[#7A8B71]" />
-                      </a>
-
-                      <a
-                        href="#short-videos-vault"
-                        className="flex items-center gap-1.5 rounded-xl border border-[#C8A253]/70 bg-[#232D21] text-[#F7E7C4] px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-[#2F3C2C] transition-colors shadow-xs"
-                      >
-                        <Film className="h-3.5 w-3.5 text-[#C8A253]" />
-                        <span>Guided Videos (30s Preview • From GH₵ 30)</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column: Physical VIP Wellness Card Spotlight (5 cols) */}
-                <div className="lg:col-span-5 w-full gsap-hero-card">
-                  <WellnessPassHeroCard onOpenGiftModal={handleOpenGiftModal} />
-                </div>
-
-              </div>
-
-              {/* Decorative Subtle Ambient Rings */}
-              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[#C8A253]/15 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-10 right-24 h-64 w-64 rounded-full bg-[#7A8B71]/15 blur-2xl" />
-            </div>
 
             {/* STUDIO SCHEDULES QUICK BAR */}
             <div className="rounded-3xl border border-[#E6E1D8] bg-white p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
@@ -897,9 +1639,8 @@ export default function App() {
 
       {/* Slide-In Registration Drawer (Slides in on class selection, zero page scrolling) */}
       <div
-        className={`fixed inset-0 z-50 transition-all duration-300 ${
-          isRegistrationDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-50 transition-all duration-300 ${isRegistrationDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         aria-modal="true"
         role="dialog"
         aria-label="Class Registration Drawer"
@@ -907,9 +1648,8 @@ export default function App() {
         {/* Soft Dark Backdrop */}
         <div
           ref={drawerBackdropRef}
-          className={`fixed inset-0 bg-[#232D21]/60 backdrop-blur-xs transition-opacity duration-300 ${
-            isRegistrationDrawerOpen ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`fixed inset-0 bg-[#232D21]/60 backdrop-blur-xs transition-opacity duration-300 ${isRegistrationDrawerOpen ? 'opacity-100' : 'opacity-0'
+            }`}
           onClick={handleCloseRegistration}
           aria-hidden="true"
         />
@@ -918,9 +1658,8 @@ export default function App() {
         <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10 w-full justify-end pointer-events-none">
           <div
             ref={drawerPanelRef}
-            className={`w-full max-w-2xl bg-[#FAF8F5] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out border-l border-[#E6E1D8] pointer-events-auto ${
-              isRegistrationDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`w-full max-w-2xl bg-[#FAF8F5] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out border-l border-[#E6E1D8] pointer-events-auto ${isRegistrationDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             {/* Sticky Drawer Header */}
             <div className="flex items-center justify-between px-5 py-4 bg-white/95 backdrop-blur-md border-b border-[#E6E1D8] z-20 shrink-0">
@@ -1008,11 +1747,10 @@ export default function App() {
 
       {/* Earthy Botanical Footer */}
       <footer className="mt-16 border-t border-[#E6E1D8] bg-[#F1F4EF]/70 py-8 text-center text-xs text-[#5C6260]">
-        <div className={`mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 ${
-          isAdminRoute
-            ? 'w-full max-w-none px-4 sm:px-8 xl:px-12 2xl:px-16'
-            : 'max-w-7xl px-4'
-        }`}>
+        <div className={`mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 ${isAdminRoute
+          ? 'w-full max-w-none px-4 sm:px-8 xl:px-12 2xl:px-16'
+          : 'max-w-7xl px-4'
+          }`}>
           <div className="flex items-center gap-3">
             <BrandLogo variant="image" size="sm" />
             <span className="hidden sm:inline text-[#2B2E31] font-medium">• Yoga Classes, Private Bookings & Special Experiences</span>
