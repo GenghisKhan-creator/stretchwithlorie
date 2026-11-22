@@ -89,8 +89,25 @@ function parseRegistrationDate(reg) {
       dateKey: reg.sessionDate,
       monthKey: `${yyyy}-${mm}`,
       monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+      dayName: d.toLocaleDateString('en-US', { weekday: 'long' })
     };
+  }
+
+  // Check if registration has a specific slot day (e.g. Wednesday 7:00 AM, Saturday 8:30 AM, Sunday 6:00 PM)
+  if (reg.slotLabel) {
+    const dayMatch = reg.slotLabel.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Wed|Sat|Sun|Mon|Tue|Thu|Fri)/i);
+    if (dayMatch) {
+      const day = dayMatch[1];
+      const cleanDay = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+      return {
+        dateKey: `slot-${cleanDay.toLowerCase()}`,
+        monthKey: 'weekly',
+        monthLabel: 'Weekly Schedule',
+        dateLabel: `${cleanDay} (${reg.slotLabel})`,
+        dayName: cleanDay
+      };
+    }
   }
 
   const raw = (reg.classDate || '').replace(/\(.*?\)/g, '').trim();
@@ -105,7 +122,8 @@ function parseRegistrationDate(reg) {
       dateKey,
       monthKey: `${yyyy}-${mm}`,
       monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+      dayName: d.toLocaleDateString('en-US', { weekday: 'long' })
     };
   }
 
@@ -119,7 +137,8 @@ function parseRegistrationDate(reg) {
       dateKey,
       monthKey: `${yyyy}-${mm}`,
       monthLabel: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      dateLabel: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+      dayName: d.toLocaleDateString('en-US', { weekday: 'long' })
     };
   }
 
@@ -127,7 +146,8 @@ function parseRegistrationDate(reg) {
     dateKey: 'unknown',
     monthKey: 'unknown',
     monthLabel: 'Other Sessions',
-    dateLabel: raw || 'Flexible Date'
+    dateLabel: raw || 'Flexible Date',
+    dayName: 'Flexible Day'
   };
 }
 
@@ -395,7 +415,10 @@ export default function InstructorDashboard({
         selectedMonthFilter === 'ALL' || regDateInfo.monthKey === selectedMonthFilter;
 
       const matchesDate =
-        selectedDateFilter === 'ALL' || regDateInfo.dateKey === selectedDateFilter;
+        selectedDateFilter === 'ALL' ||
+        regDateInfo.dateKey === selectedDateFilter ||
+        (regDateInfo.dayName && regDateInfo.dayName.toLowerCase() === selectedDateFilter.toLowerCase()) ||
+        (reg.slotLabel && reg.slotLabel.toLowerCase().includes(selectedDateFilter.toLowerCase()));
 
       const matchesAttendance =
         attendanceFilter === 'ALL' ||
@@ -906,6 +929,38 @@ export default function InstructorDashboard({
                           />
                         </div>
                       </div>
+                      {/* Daily Slot Breakdown (e.g. Wed, Sat, Sun counts) */}
+                      {cls.hasScheduleSlots && cls.scheduleSlots?.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-[#E6E1D8]/70 space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#5C6260] uppercase tracking-wider">
+                            <span>Day Slots</span>
+                            <span>Mats Booked</span>
+                          </div>
+                          <div className="space-y-1">
+                            {cls.scheduleSlots.map((slot) => (
+                              <div
+                                key={slot.id}
+                                className="flex items-center justify-between text-[11px] bg-[#FAF8F5] rounded-xl px-2.5 py-1 border border-[#E6E1D8]/60"
+                              >
+                                <span className="font-medium text-[#2B2E31] truncate mr-2">
+                                  {slot.label || `${slot.day} ${slot.time}`}
+                                </span>
+                                <span
+                                  className={`font-bold shrink-0 ${
+                                    slot.isFull
+                                      ? 'text-stone-500'
+                                      : slot.spotsLeft <= 2
+                                      ? 'text-amber-800'
+                                      : 'text-[#5A6952]'
+                                  }`}
+                                >
+                                  {slot.bookedCount} / {slot.maxCapacity} {slot.isFull ? '(Sold Out)' : `(${slot.spotsLeft} left)`}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Filter Quick Action */}
@@ -990,11 +1045,63 @@ export default function InstructorDashboard({
                 <span className="rounded-full bg-white border border-[#E6E1D8] px-2.5 py-0.5 text-[#5C6260] font-semibold">
                   Check-in Rate: {filteredAttendanceStats.attendanceRate}%
                 </span>
+                {selectedDateFilter !== 'ALL' && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDateFilter('ALL')}
+                    className="inline-flex items-center gap-1 rounded-full bg-[#EBF0E9] text-[#2F3C2C] px-2.5 py-0.5 text-[11px] font-bold border border-[#7A8B71]/40 hover:bg-[#DDE4DA] transition-colors cursor-pointer"
+                  >
+                    <span>Day Filter Active</span>
+                    <span className="text-[10px]">✕</span>
+                  </button>
+                )}
               </div>
 
-              {/* Filters Row */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Search Input */}
+              {/* Quick Day & Session Headcount Pills Strip */}
+              {availableDates.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none flex-nowrap">
+                  <span className="text-[11px] font-bold text-[#5C6260] uppercase tracking-wider shrink-0 flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 text-[#7A8B71]" />
+                    <span>Day Headcount:</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDateFilter('ALL')}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      selectedDateFilter === 'ALL'
+                        ? 'bg-[#232D21] text-[#F7E7C4] shadow-xs'
+                        : 'bg-white border border-[#E6E1D8] text-[#5C6260] hover:bg-[#FAF8F5]'
+                    }`}
+                  >
+                    All Days ({registrations.length})
+                  </button>
+                  {availableDates.map((d) => (
+                    <button
+                      key={d.key}
+                      type="button"
+                      onClick={() => setSelectedDateFilter(selectedDateFilter === d.key ? 'ALL' : d.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        selectedDateFilter === d.key
+                          ? 'bg-[#7A8B71] text-white shadow-xs ring-2 ring-[#7A8B71]/30'
+                          : 'bg-white border border-[#E6E1D8] text-[#2B2E31] hover:border-[#7A8B71] hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      <span>{d.label}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                          selectedDateFilter === d.key ? 'bg-white/20 text-white' : 'bg-[#E5ECE2] text-[#5A6952]'
+                        }`}
+                      >
+                        {d.count} booked
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Filters Row (5-column responsive layout) */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {/* 1. Search Input */}
                 <div className="relative">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5C6260]" />
                   <input
@@ -1006,7 +1113,7 @@ export default function InstructorDashboard({
                   />
                 </div>
 
-                {/* Class Filter */}
+                {/* 2. Class Filter */}
                 <div>
                   <select
                     value={selectedClassFilter}
@@ -1022,7 +1129,23 @@ export default function InstructorDashboard({
                   </select>
                 </div>
 
-                {/* Month & Date Filter */}
+                {/* 3. Specific Day / Session Date Filter */}
+                <div>
+                  <select
+                    value={selectedDateFilter}
+                    onChange={(e) => setSelectedDateFilter(e.target.value)}
+                    className="w-full rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2.5 text-xs text-[#2B2E31] focus:border-[#7A8B71] outline-none shadow-2xs cursor-pointer"
+                  >
+                    <option value="ALL">All Days / Dates ({registrations.length})</option>
+                    {availableDates.map((d) => (
+                      <option key={d.key} value={d.key}>
+                        {d.label} ({d.count} booked)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Month Filter */}
                 <div>
                   <select
                     value={selectedMonthFilter}
@@ -1041,7 +1164,7 @@ export default function InstructorDashboard({
                   </select>
                 </div>
 
-                {/* Attendance Status Filter */}
+                {/* 5. Attendance Status Filter */}
                 <div>
                   <select
                     value={attendanceFilter}
