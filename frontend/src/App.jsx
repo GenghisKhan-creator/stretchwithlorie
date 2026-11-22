@@ -29,6 +29,7 @@ import {
   Gift,
   ChevronDown,
   Film,
+  Lock,
   X
 } from 'lucide-react';
 
@@ -1016,8 +1017,22 @@ export default function App() {
             <BrandLogo variant="image" size="sm" />
             <span className="hidden sm:inline text-[#2B2E31] font-medium">• Yoga Classes, Private Bookings & Special Experiences</span>
           </div>
-          <div className="flex items-center gap-4 text-[#5C6260]">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-[#5C6260]">
             <span>Accra, Ghana • Studio Sanctuary & Client Locations</span>
+            {!isAdminRoute && (
+              <>
+                <span className="hidden sm:inline text-[#D8D2C4]">•</span>
+                <button
+                  type="button"
+                  onClick={() => navigateTo('/admin')}
+                  className="inline-flex items-center gap-1 text-[#7A8B71] hover:text-[#2B2E31] transition-colors cursor-pointer font-medium"
+                  title="Instructor & Admin Access"
+                >
+                  <Lock className="h-3 w-3" />
+                  <span>Instructor Portal</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </footer>
