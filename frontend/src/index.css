@@ -209,36 +209,40 @@ html, body {
   left: 135%;
 }
 
+/* Orbital spin & symmetric harmonic acoustic waves for hero sanctuary audio player */
+@keyframes audioWaveBreath {
+  0%, 100% { transform: scaleY(0.28); opacity: 0.55; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+.audio-orbit-spin {
+  animation: heroOrbitSlow 22s linear infinite;
+  will-change: transform;
+}
+
+.audio-wave-bar {
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+.audio-wave-1 { animation: audioWaveBreath 1.25s ease-in-out infinite 0.00s; }
+.audio-wave-2 { animation: audioWaveBreath 0.95s ease-in-out infinite 0.18s; }
+.audio-wave-3 { animation: audioWaveBreath 1.10s ease-in-out infinite 0.34s; }
+.audio-wave-4 { animation: audioWaveBreath 0.90s ease-in-out infinite 0.12s; }
+.audio-wave-5 { animation: audioWaveBreath 1.30s ease-in-out infinite 0.28s; }
+
 @media (prefers-reduced-motion: reduce) {
   .hero-orbit-slow,
   .hero-orbit-reverse,
   .hero-seam-filament,
   .hero-bubble-a,
   .hero-bubble-b,
-  .hero-dot-pulse {
+  .hero-dot-pulse,
+  .audio-orbit-spin,
+  .audio-wave-1,
+  .audio-wave-2,
+  .audio-wave-3,
+  .audio-wave-4,
+  .audio-wave-5 {
     animation: none !important;
   }
-}
-
-/* Equalizer dancing waves for ambient sanctuary music */
-@keyframes musicBar1 {
-  0%, 100% { height: 4px; }
-  50% { height: 13px; }
-}
-@keyframes musicBar2 {
-  0%, 100% { height: 12px; }
-  50% { height: 4px; }
-}
-@keyframes musicBar3 {
-  0%, 100% { height: 6px; }
-  50% { height: 14px; }
-}
-.animate-music-bar-1 {
-  animation: musicBar1 0.85s ease-in-out infinite;
-}
-.animate-music-bar-2 {
-  animation: musicBar2 0.7s ease-in-out infinite;
-}
-.animate-music-bar-3 {
-  animation: musicBar3 0.95s ease-in-out infinite;
 }
