@@ -30,7 +30,12 @@ import {
   ChevronDown,
   Film,
   Lock,
-  X
+  X,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  Music
 } from 'lucide-react';
 
 const ADMIN_PATHS = ['/admin', '/portal', '/instructor'];
@@ -74,6 +79,88 @@ function checkIsAdminPath(pathname) {
   return ADMIN_PATHS.includes(clean);
 }
 
+// Ambient Sanctuary Audio Pill (Play & Mute controls with live dancing wave visualizer)
+function SanctuaryAudioPill({
+  isPlaying,
+  isMuted,
+  onTogglePlay,
+  onToggleMute,
+  variant = 'hero'
+}) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 sm:gap-2.5 rounded-full border shadow-sm transition-all duration-300 ${
+        variant === 'floating'
+          ? 'bg-[#2B2E31]/95 text-white border-[#C8A253]/35 px-3 py-1.5 backdrop-blur-md shadow-lg hover:border-[#C8A253]'
+          : 'bg-white/90 backdrop-blur-md border-[#E6E1D8] px-3 sm:px-3.5 py-1.5 hover:shadow-[0_4px_16px_-4px_rgba(43,46,49,0.12)] hover:border-[#C8A253]/60'
+      }`}
+    >
+      {/* Play / Pause Button */}
+      <button
+        type="button"
+        onClick={onTogglePlay}
+        className={`flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200 active:scale-95 cursor-pointer shadow-sm ${
+          variant === 'floating'
+            ? 'bg-[#7A8B71] text-white hover:bg-[#687860]'
+            : 'bg-[#7A8B71] text-white hover:bg-[#687860]'
+        }`}
+        title={isPlaying ? 'Pause Sanctuary Music' : 'Play Sanctuary Music'}
+        aria-label={isPlaying ? 'Pause Sanctuary Music' : 'Play Sanctuary Music'}
+      >
+        {isPlaying ? (
+          <Pause className="h-3 w-3 fill-current" />
+        ) : (
+          <Play className="h-3 w-3 fill-current ml-0.5" />
+        )}
+      </button>
+
+      {/* Mute / Unmute Button */}
+      <button
+        type="button"
+        onClick={onToggleMute}
+        className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors cursor-pointer ${
+          variant === 'floating'
+            ? isMuted
+              ? 'bg-white/10 text-[#E07A5F] hover:bg-white/20'
+              : 'bg-white/10 text-[#E6E1D8] hover:text-white hover:bg-white/20'
+            : isMuted
+              ? 'bg-[#F4EFE6] text-[#A44A4A] hover:bg-[#EAE3D6]'
+              : 'bg-[#F4EFE6] text-[#5C6260] hover:text-[#2B2E31] hover:bg-[#EAE3D6]'
+        }`}
+        title={isMuted ? 'Unmute Sanctuary Music' : 'Mute Sanctuary Music'}
+        aria-label={isMuted ? 'Unmute Sanctuary Music' : 'Mute Sanctuary Music'}
+      >
+        {isMuted ? (
+          <VolumeX className="h-3.5 w-3.5" />
+        ) : (
+          <Volume2 className="h-3.5 w-3.5" />
+        )}
+      </button>
+
+      {/* Track Info & Animated Equalizer Waves */}
+      <div
+        onClick={onTogglePlay}
+        className="flex items-center gap-2 pr-1 cursor-pointer select-none"
+        title="Toggle Background Music"
+      >
+        <div className="flex items-end gap-0.5 h-3">
+          <span className={`w-0.5 rounded-full ${variant === 'floating' ? 'bg-[#C8A253]' : 'bg-[#7A8B71]'} ${isPlaying && !isMuted ? 'animate-music-bar-1' : 'h-1.5'}`} />
+          <span className={`w-0.5 rounded-full ${variant === 'floating' ? 'bg-[#C8A253]' : 'bg-[#7A8B71]'} ${isPlaying && !isMuted ? 'animate-music-bar-2' : 'h-3'}`} />
+          <span className={`w-0.5 rounded-full ${variant === 'floating' ? 'bg-[#C8A253]' : 'bg-[#7A8B71]'} ${isPlaying && !isMuted ? 'animate-music-bar-3' : 'h-2'}`} />
+        </div>
+        <div className="text-left">
+          <span className={`block text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] leading-tight ${variant === 'floating' ? 'text-white' : 'text-[#2B2E31]'}`}>
+            Sanctuary Ambience
+          </span>
+          <span className={`block text-[8px] font-medium tracking-wider ${variant === 'floating' ? 'text-[#C8A253]' : 'text-[#7A8B71]'}`}>
+            {isMuted ? 'Muted' : isPlaying ? 'Playing • Gayatri Mantra' : 'Tap to Play'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [classes, setClasses] = useState([]);
   const [registrations, setRegistrations] = useState([]);
@@ -91,6 +178,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
   const activeHeroSlide = HERO_SLIDES[heroSlideIndex];
+
+  // Sanctuary Background Music State
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showStickyAudioPill, setShowStickyAudioPill] = useState(false);
+  const audioRef = useRef(null);
 
   // GSAP Animation Refs
   const heroSectionRef = useRef(null);
@@ -363,6 +456,79 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Sanctuary Background Music Handlers
+  const handleTogglePlay = useCallback(() => {
+    if (!audioRef.current) return;
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioRef.current.volume = 0.38;
+      audioRef.current.muted = isMuted;
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlayingAudio(true))
+          .catch((err) => console.warn('Audio play prevented:', err));
+      }
+    }
+  }, [isPlayingAudio, isMuted]);
+
+  const handleToggleMute = useCallback((e) => {
+    e?.stopPropagation?.();
+    if (!audioRef.current) return;
+    const nextMuted = !isMuted;
+    audioRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+
+    // If unmuting while paused, resume playing
+    if (!nextMuted && !isPlayingAudio) {
+      audioRef.current.volume = 0.38;
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => setIsPlayingAudio(true)).catch(() => {});
+      }
+    }
+  }, [isMuted, isPlayingAudio]);
+
+  // Attempt ambient autoplay on mount or resume on first user interaction
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (!audioEl) return;
+    audioEl.volume = 0.38;
+
+    const playPromise = audioEl.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlayingAudio(true);
+        })
+        .catch(() => {
+          // Autoplay blocked by browser policy: listen for first interaction
+          setIsPlayingAudio(false);
+          const startOnInteraction = () => {
+            if (audioRef.current && audioRef.current.paused) {
+              audioRef.current.volume = 0.38;
+              audioRef.current.play()
+                .then(() => setIsPlayingAudio(true))
+                .catch(() => {});
+            }
+          };
+          window.addEventListener('click', startOnInteraction, { once: true });
+          window.addEventListener('touchstart', startOnInteraction, { once: true });
+        });
+    }
+  }, []);
+
+  // Monitor scroll position to show sticky audio pill when scrolled past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyAudioPill(window.scrollY > 480);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Close Registration Slide-in Drawer smoothly with GSAP exit animation
   const handleCloseRegistration = () => {
     if (isClosingDrawerRef.current) return;
@@ -475,47 +641,36 @@ export default function App() {
         );
       }
 
-      // 5. Center Lorie pose focus-pull reveal -> continuous levitation physics
+      // 5. Center Lorie pose focus-pull reveal (grounded & steady)
       if (poseImgRef.current) {
-        const poseTl = gsap.timeline();
-        poseTl.fromTo(
+        gsap.fromTo(
           poseImgRef.current,
-          { opacity: 0, y: 30, scale: 0.92, filter: 'blur(10px)' },
+          { opacity: 0, y: 24, scale: 0.95, filter: 'blur(8px)' },
           {
             opacity: 1,
             y: 0,
             scale: 1,
             filter: 'blur(0px)',
-            duration: 1.2,
+            duration: 1.1,
             ease: 'expo.out',
-            clearProps: 'filter'
+            clearProps: 'transform,filter'
           }
         );
-        poseTl.to(poseImgRef.current, {
-          y: -9,
-          duration: 3.8,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut'
-        });
       }
 
-      // Synchronized inverse floor shadow breathing beneath the levitating pose
+      // Grounded studio floor shadow reveal (steady & grounded)
       if (poseShadowRef.current) {
-        const shadowTl = gsap.timeline();
-        shadowTl.fromTo(
+        gsap.fromTo(
           poseShadowRef.current,
-          { opacity: 0, scaleX: 0.55 },
-          { opacity: 1, scaleX: 1, duration: 1.2, ease: 'expo.out' }
+          { opacity: 0, scaleX: 0.65 },
+          {
+            opacity: 1,
+            scaleX: 1,
+            duration: 1.1,
+            ease: 'expo.out',
+            clearProps: 'transform'
+          }
         );
-        shadowTl.to(poseShadowRef.current, {
-          scaleX: 0.84,
-          opacity: 0.55,
-          duration: 3.8,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut'
-        });
       }
 
       // 6. Vertical STRETCH editorial lettering glide-in
@@ -591,8 +746,6 @@ export default function App() {
       // 9. Interactive Desktop Spatial Depth Parallax (60fps quickTo inertia)
       if (window.matchMedia?.('(pointer: fine)').matches) {
         const heroEl = heroSectionRef.current;
-        const poseX = poseImgRef.current ? gsap.quickTo(poseImgRef.current, 'x', { duration: 0.9, ease: 'power3.out' }) : null;
-        const poseRot = poseImgRef.current ? gsap.quickTo(poseImgRef.current, 'rotation', { duration: 1.0, ease: 'power3.out' }) : null;
         const haloX = centerHaloRef.current ? gsap.quickTo(centerHaloRef.current, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
         const haloY = centerHaloRef.current ? gsap.quickTo(centerHaloRef.current, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
         const textX = verticalTextRef.current ? gsap.quickTo(verticalTextRef.current, 'x', { duration: 0.85, ease: 'power3.out' }) : null;
@@ -604,8 +757,6 @@ export default function App() {
           const rect = heroEl.getBoundingClientRect();
           const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;  // -1 to +1
           const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;  // -1 to +1
-          poseX?.(nx * 10);
-          poseRot?.(nx * 0.9);
           haloX?.(-nx * 14);
           haloY?.(-ny * 9);
           textX?.(nx * 6);
@@ -615,8 +766,6 @@ export default function App() {
         };
 
         const handlePointerLeave = () => {
-          poseX?.(0);
-          poseRot?.(0);
           haloX?.(0);
           haloY?.(0);
           textX?.(0);
@@ -1093,6 +1242,17 @@ export default function App() {
                   <ArrowRight className="h-3.5 w-3.5 text-[#C8A253] group-hover:translate-x-1 transition-transform duration-300" />
                   <span className="border-b border-transparent group-hover:border-[#2B2E31] transition-colors">Wellness Pass &amp; Gift Cards</span>
                 </button>
+
+                {/* Left Bottom Corner: Sanctuary Music Controller (Mobile) */}
+                <div className="gsap-hero-elem lg:hidden pt-2">
+                  <SanctuaryAudioPill
+                    isPlaying={isPlayingAudio}
+                    isMuted={isMuted}
+                    onTogglePlay={handleTogglePlay}
+                    onToggleMute={handleToggleMute}
+                    variant="hero"
+                  />
+                </div>
               </div>
 
               {/* Flow Club badge + studio highlights (desktop) */}
@@ -1129,14 +1289,27 @@ export default function App() {
                   <span className="inline-flex items-center gap-1.5"><Coffee className="h-3.5 w-3.5 text-[#C8A253]" />Mat &amp; Teas</span>
                   <span className="inline-flex items-center gap-1.5"><Heart className="h-3.5 w-3.5 text-[#A44A4A]" />Mobile Money</span>
                 </div>
-                <p className="text-[9px] font-medium uppercase tracking-[0.32em] text-[#9A9387]">
-                  5.60° N • Accra Sanctuary
-                </p>
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <p className="text-[9px] font-medium uppercase tracking-[0.32em] text-[#9A9387]">
+                    5.60° N • Accra Sanctuary
+                  </p>
+                </div>
+
+                {/* Left Bottom Corner: Sanctuary Music Controller (Desktop) */}
+                <div className="pt-1.5">
+                  <SanctuaryAudioPill
+                    isPlaying={isPlayingAudio}
+                    isMuted={isMuted}
+                    onTogglePlay={handleTogglePlay}
+                    onToggleMute={handleToggleMute}
+                    variant="hero"
+                  />
+                </div>
               </div>
             </div>
 
             {/* CENTER: Pose figure over orbital architectural ring with vertical editorial type */}
-            <div className="lg:col-span-4 relative flex items-center justify-center min-h-[300px] sm:min-h-[430px] lg:min-h-0">
+            <div className="lg:col-span-4 relative flex items-center justify-center min-h-[360px] sm:min-h-[460px] lg:min-h-0">
               {/* Futuristic rotating celestial SVG halo with subtle orbital gold nodes */}
               <div
                 ref={centerHaloRef}
@@ -1194,14 +1367,14 @@ export default function App() {
               <div
                 ref={poseShadowRef}
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-3 sm:bottom-5 lg:bottom-8 left-1/2 -translate-x-1/2 h-4 w-44 sm:w-60 lg:w-72 rounded-full bg-[#2B2E31]/15 blur-md will-change-transform"
+                className="pointer-events-none absolute bottom-2 sm:bottom-3 lg:bottom-4 left-1/2 -translate-x-1/2 h-4 w-32 sm:w-44 lg:w-52 rounded-full bg-[#2B2E31]/18 blur-md will-change-transform"
               />
 
               <img
                 ref={poseImgRef}
                 src={loriePoseImg}
-                alt="Lorie holding a standing bow stretch"
-                className="relative z-10 h-[390px] sm:h-[420px] lg:h-[540px] w-auto max-w-none object-contain mix-blend-multiply select-none will-change-transform"
+                alt="Lorie holding a standing vertical split stretch"
+                className="relative z-10 h-[440px] sm:h-[500px] lg:h-[620px] xl:h-[660px] w-auto max-w-none object-contain mix-blend-multiply select-none will-change-transform"
               />
 
               <div
@@ -1772,6 +1945,35 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Sticky Floating Audio Pill (stays accessible in bottom-left corner while users browse & book) */}
+      {!isAdminRoute && (
+        <div
+          className={`fixed bottom-5 left-5 z-40 transition-all duration-300 ease-out ${
+            showStickyAudioPill
+              ? 'opacity-100 translate-y-0 pointer-events-auto'
+              : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
+        >
+          <SanctuaryAudioPill
+            isPlaying={isPlayingAudio}
+            isMuted={isMuted}
+            onTogglePlay={handleTogglePlay}
+            onToggleMute={handleToggleMute}
+            variant="floating"
+          />
+        </div>
+      )}
+
+      {/* Persistent Background Sanctuary Music (Plays seamlessly across browsing and booking) */}
+      <audio
+        ref={audioRef}
+        loop
+        preload="auto"
+      >
+        <source src="/audio/sanctuary_mantra.mp3" type="audio/mpeg" />
+        <source src="/audio/sanctuary_mantra.m4a" type="audio/mp4" />
+      </audio>
 
     </div>
   );
