@@ -673,81 +673,122 @@ export default function WellnessGiftCardModal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 overflow-y-auto no-scrollbar bg-[#181B1C]/80 backdrop-blur-md p-2.5 sm:p-4 sm:py-6 overscroll-contain"
+      className="fixed inset-0 z-50 overflow-y-auto no-scrollbar bg-[#181B1C]/70 backdrop-blur-md p-2.5 sm:p-4 sm:py-6 overscroll-contain"
     >
       <div className="flex min-h-full items-center justify-center py-2 sm:py-4">
         <div
           ref={modalCardRef}
-          className="relative w-full max-w-2xl rounded-3xl bg-[#FAF8F5] border border-[#E6E1D8] shadow-2xl overflow-hidden my-auto max-h-[94dvh] sm:max-h-[92vh] flex flex-col text-[#2B2E31]"
+          className="relative w-full max-w-2xl rounded-[28px] bg-[#FDFCFA] border border-[#E6E1D8] shadow-[0_32px_90px_-24px_rgba(35,45,33,0.38)] overflow-hidden my-auto max-h-[94dvh] sm:max-h-[92vh] flex flex-col text-[#2B2E31]"
         >
 
           {/* SCROLLABLE INNER CONTAINER: Header + Body scroll naturally together (Header is NOT fixed) */}
           <div className="flex-1 overflow-y-auto no-scrollbar overscroll-contain">
 
             {/* ========================================================= */}
-            {/* YOGA-THEMED ARTISANAL HEADER */}
+            {/* EDITORIAL ARCHITECTURAL HEADER (ECHOES HERO SPLIT & ORBIT) */}
             {/* ========================================================= */}
-            <div className="relative bg-gradient-to-r from-[#1E261D] via-[#2A3728] to-[#1C231A] p-5 sm:p-6 text-white border-b border-[#C8A253]/35 overflow-hidden">
-              {/* Ambient gold glow & subtle geometric mandala */}
-              <div className="pointer-events-none absolute -right-12 -top-12 opacity-35">
-                <MandalaWatermark className="h-44 w-44 text-[#C8A253]" />
+            <div className="relative bg-[#FDFCFA] px-5 pt-5 pb-5 sm:px-7 sm:pt-7 sm:pb-6 border-b border-[#E6E1D8] overflow-hidden">
+              {/* Two-tone editorial split background matching Hero */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none hidden sm:block absolute inset-y-0 left-[58%] right-0 bg-[#EEE9E1]/80"
+              >
+                <div className="absolute left-0 inset-y-0 w-px bg-[#C8A253]/20 overflow-hidden">
+                  <div className="hero-seam-filament h-24 w-full bg-gradient-to-b from-transparent via-[#C8A253]/70 to-transparent" />
+                </div>
               </div>
-              <div className="pointer-events-none absolute left-1/3 -bottom-8 h-32 w-32 rounded-full bg-[#7A8B71]/20 blur-2xl" />
+
+              {/* Subtle rotating celestial orbital halo watermark (matches Hero center halo) */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 opacity-60"
+              >
+                <svg viewBox="0 0 200 200" className="hero-orbit-slow h-full w-full">
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="88"
+                    fill="none"
+                    stroke="#2B2E31"
+                    strokeOpacity="0.09"
+                    strokeWidth="1"
+                    strokeDasharray="44 12 14 12"
+                  />
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="88"
+                    fill="none"
+                    stroke="#C8A253"
+                    strokeOpacity="0.45"
+                    strokeWidth="1.2"
+                    strokeDasharray="24 220"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="100" cy="12" r="2.5" fill="#C8A253" fillOpacity="0.85" />
+                </svg>
+              </div>
 
               <div className="relative z-10 flex items-start justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#C8A253]/20 border border-[#C8A253]/50 px-3 py-0.5 text-[11px] font-semibold text-[#F7E7C4] mb-2 shadow-2xs">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5 text-[9.5px] sm:text-[10px] font-semibold uppercase tracking-[0.28em] text-[#7A8B71]">
+                    <span className="h-px w-6 bg-[#C8A253]/85 inline-block" aria-hidden="true" />
                     <LotusEmblem className="h-3.5 w-3.5 text-[#C8A253]" />
-                    <span>Sanctuary Offerings • Prāṇa & Śānti</span>
+                    <span>Sanctuary Offerings • Prāṇa &amp; Śānti</span>
                   </div>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#F7F4EF] leading-tight">
-                    Studio Membership & Mindful Gifting
+                  <h2 className="font-serif font-normal text-2xl sm:text-[1.75rem] tracking-[0.04em] text-[#2B2E31] leading-tight">
+                    Studio Membership{' '}
+                    <span className="italic text-[#5A6952]">&amp; Mindful Gifting</span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-[#E6E1D8]/85 mt-1 leading-relaxed max-w-lg">
-                    Customize your interactive 3D Sanctuary Member Keycard or design a bespoke Mindful Gift Voucher.
+                  <p className="font-serif italic text-xs sm:text-[13px] text-[#7A746B] leading-relaxed max-w-md">
+                    Personalize your interactive 3D Sanctuary Member Keycard or compose a bespoke Mindful Gift Voucher.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full bg-white/10 hover:bg-white/20 p-2 text-white/80 hover:text-white transition-colors cursor-pointer border border-white/10 shrink-0"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 hover:bg-[#232D21] text-[#5C6260] hover:text-[#F7F4EF] transition-all cursor-pointer border border-[#E6E1D8] hover:border-[#C8A253]/60 shadow-2xs shrink-0"
                   aria-label="Close modal"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* CREATIVE YOGA DUAL-PILL SWITCHER */}
+              {/* ARCHITECTURAL DUAL-PILL SWITCHER */}
               {!completedOrder && (
-                <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 bg-[#141A13]/80 p-1.5 rounded-2xl border border-[#C8A253]/30 backdrop-blur-xs">
+                <div className="relative z-10 mt-5 grid grid-cols-2 gap-1.5 bg-[#EEE9E1]/85 p-1.5 rounded-2xl border border-[#E6E1D8] backdrop-blur-xs">
                   <button
                     type="button"
                     onClick={() => { setActiveTab('subscription'); setErrors({}); }}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'subscription'
-                      ? 'bg-gradient-to-r from-[#FAF8F5] to-[#F1F4EF] text-[#232D21] shadow-md font-bold ring-1 ring-[#C8A253]/60'
-                      : 'text-[#E6E1D8]/75 hover:text-white hover:bg-white/5'
+                    className={`flex items-center justify-center gap-2.5 rounded-xl py-2.5 px-3 text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'subscription'
+                      ? 'bg-[#232D21] text-[#F7F4EF] shadow-[0_10px_24px_-10px_rgba(35,45,33,0.55)] ring-1 ring-[#C8A253]/50'
+                      : 'text-[#5C6260] hover:text-[#2B2E31] hover:bg-white/60'
                       }`}
                   >
-                    <LotusEmblem className={`h-4 w-4 ${activeTab === 'subscription' ? 'text-[#7A8B71]' : 'text-[#C8A253]'}`} />
+                    <LotusEmblem className={`h-4 w-4 shrink-0 ${activeTab === 'subscription' ? 'text-[#C8A253]' : 'text-[#7A8B71]'}`} />
                     <div className="text-left leading-tight">
-                      <span className="block">Monthly Flow Pass</span>
-                      <span className="text-[10px] font-normal opacity-75">3D Member Keycard</span>
+                      <span className="block font-serif tracking-[0.03em] font-medium">Monthly Flow Pass</span>
+                      <span className={`text-[9.5px] uppercase tracking-[0.16em] ${activeTab === 'subscription' ? 'text-[#C8A253]' : 'text-[#8A8277]'}`}>
+                        3D Keycard
+                      </span>
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { setActiveTab('gift'); setErrors({}); }}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${activeTab === 'gift'
-                      ? 'bg-gradient-to-r from-[#FAF8F5] to-[#F1F4EF] text-[#232D21] shadow-md font-bold ring-1 ring-[#C8A253]/60'
-                      : 'text-[#E6E1D8]/75 hover:text-white hover:bg-white/5'
+                    className={`flex items-center justify-center gap-2.5 rounded-xl py-2.5 px-3 text-xs sm:text-sm transition-all cursor-pointer ${activeTab === 'gift'
+                      ? 'bg-[#232D21] text-[#F7F4EF] shadow-[0_10px_24px_-10px_rgba(35,45,33,0.55)] ring-1 ring-[#C8A253]/50'
+                      : 'text-[#5C6260] hover:text-[#2B2E31] hover:bg-white/60'
                       }`}
                   >
-                    <Gift className={`h-4 w-4 ${activeTab === 'gift' ? 'text-[#A44A4A]' : 'text-[#E6E1D8]'}`} />
+                    <Gift className={`h-4 w-4 shrink-0 ${activeTab === 'gift' ? 'text-[#C8A253]' : 'text-[#A44A4A]'}`} />
                     <div className="text-left leading-tight">
-                      <span className="block">Mindful Gift Card</span>
-                      <span className="text-[10px] font-normal opacity-75">4 Palettes & Affirmations</span>
+                      <span className="block font-serif tracking-[0.03em] font-medium">Mindful Gift Card</span>
+                      <span className={`text-[9.5px] uppercase tracking-[0.16em] ${activeTab === 'gift' ? 'text-[#C8A253]' : 'text-[#8A8277]'}`}>
+                        4 Sanctuary Palettes
+                      </span>
                     </div>
                   </button>
                 </div>
@@ -757,160 +798,172 @@ export default function WellnessGiftCardModal({
             {/* ========================================================= */}
             {/* MODAL BODY */}
             {/* ========================================================= */}
-            <div className="p-4 sm:p-6 space-y-6">
+            <div className="p-4 sm:p-7 space-y-7 bg-[#FDFCFA]">
 
               {/* ========================================================= */}
               {/* SUCCESS CELEBRATION SCREEN */}
               {/* ========================================================= */}
               {completedOrder ? (
                 <div className="space-y-6 animate-in zoom-in-95 duration-200">
-                  <div className="text-center space-y-2">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E5ECE2] text-[#5A6952] ring-8 ring-[#E5ECE2]/40">
-                      <LotusEmblem className="h-8 w-8 text-[#7A8B71]" />
+                  <div className="text-center space-y-2.5">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#EEE9E1] border border-[#C8A253]/45 text-[#5A6952] shadow-sm">
+                      <LotusEmblem className="h-7 w-7 text-[#C8A253]" />
                     </div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E5ECE2] border border-[#DCE4D9] px-3 py-1 text-xs font-semibold text-[#5A6952]">
-                      <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" /> Payment Authorized via Paystack
-                    </span>
-                    <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2E31]">
-                      {completedOrder.type === 'subscription' ? 'Your Sanctuary Keycard is Active!' : 'Mindful Gift Pass Issued!'}
+                    <div className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.26em] text-[#7A8B71]">
+                      <span className="h-px w-5 bg-[#C8A253]/70" />
+                      <span>Payment Authorized via Paystack</span>
+                      <span className="h-px w-5 bg-[#C8A253]/70" />
+                    </div>
+                    <h3 className="font-serif font-normal text-2xl sm:text-3xl tracking-[0.03em] text-[#2B2E31]">
+                      {completedOrder.type === 'subscription' ? 'Your Sanctuary Keycard is Active' : 'Mindful Gift Pass Issued'}
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#5C6260] max-w-md mx-auto">
+                    <p className="font-serif italic text-xs sm:text-sm text-[#7A746B] max-w-md mx-auto">
                       {completedOrder.type === 'subscription'
                         ? `Welcome to consistent yoga and renewal. Your ${completedOrder.title} is now active for ${completedOrder.buyerName}.`
                         : `A digital wellness certificate (${completedOrder.paletteName}) has been lovingly prepared for ${completedOrder.recipientName}.`}
                     </p>
                   </div>
 
-                  {/* RENDERED LUXURY TACTILE PASS VOUCHER (3D FLIPPABLE) */}
-                  <div className="space-y-2 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-[10px] sm:text-[11px] font-semibold text-[#5C6260]">
-                        {isCompletedCardFlipped ? 'Back of Pass' : 'Front of Pass (Tap to flip)'}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsCompletedCardFlipped((prev) => !prev)}
-                        className="inline-flex items-center gap-1 rounded-full bg-white border border-[#D5CEC2] hover:border-[#7A8B71] px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#232D21] shadow-2xs transition-all cursor-pointer"
-                      >
-                        <RotateCw className={`h-3 w-3 text-[#7A8B71] transition-transform duration-500 ${isCompletedCardFlipped ? 'rotate-180' : ''}`} />
-                        <span>{isCompletedCardFlipped ? 'Front' : 'Flip 180°'}</span>
-                      </button>
+                  {/* RENDERED LUXURY TACTILE PASS VOUCHER (3D FLIPPABLE ON EDITORIAL ORBIT STAGE) */}
+                  <div className="relative rounded-3xl bg-[#EEE9E1]/65 border border-[#E6E1D8] px-4 py-5 sm:px-6 sm:py-6 overflow-hidden">
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 opacity-45"
+                    >
+                      <svg viewBox="0 0 240 240" className="hero-orbit-slow h-full w-full">
+                        <circle cx="120" cy="120" r="110" fill="none" stroke="#C8A253" strokeOpacity="0.35" strokeWidth="1" strokeDasharray="12 10" />
+                      </svg>
                     </div>
-
-                    <div style={{ perspective: '1300px' }} className="w-full select-none">
-                      <div
-                        onClick={() => setIsCompletedCardFlipped((prev) => !prev)}
-                        style={{
-                          transformStyle: 'preserve-3d',
-                          transform: `rotateY(${isCompletedCardFlipped ? 180 : 0}deg)`,
-                          transition: 'transform 0.68s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                        }}
-                        className="relative grid grid-cols-1 cursor-pointer"
-                        title="Click to flip pass"
-                      >
-                        {/* FRONT FACE OF COMPLETED VOUCHER */}
-                        <div
-                          style={{
-                            backfaceVisibility: 'hidden',
-                            WebkitBackfaceVisibility: 'hidden',
-                            transform: 'rotateY(0deg)'
-                          }}
-                          className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-xl border flex flex-col justify-between ${completedOrder.theme === 'gold'
-                            ? 'bg-gradient-to-br from-[#7D6020] via-[#9E7B2F] to-[#574112] border-[#F7E7C4]/80'
-                            : completedOrder.theme === 'blush'
-                              ? 'bg-gradient-to-br from-[#7A3E3E] via-[#944F4F] to-[#542828] border-[#F2D5D7]/60'
-                              : completedOrder.theme === 'midnight'
-                                ? 'bg-gradient-to-br from-[#10160F] via-[#1C261A] to-[#090C08] border-[#C8A253]/75'
-                                : 'bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] border-[#C8A253]/50'
-                            }`}
+                    <div className="relative z-10 space-y-2.5 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7A746B]">
+                          {isCompletedCardFlipped ? 'Back of Pass' : 'Front of Pass • Tap to Flip'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsCompletedCardFlipped((prev) => !prev)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-white/90 border border-[#E6E1D8] hover:border-[#C8A253] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#2B2E31] shadow-2xs transition-all cursor-pointer"
                         >
-                          <div className="pointer-events-none absolute -right-8 -bottom-8 opacity-25">
-                            <MandalaWatermark className="h-32 sm:h-40 w-32 sm:w-40 text-[#C8A253]" />
-                          </div>
+                          <RotateCw className={`h-3 w-3 text-[#C8A253] transition-transform duration-500 ${isCompletedCardFlipped ? 'rotate-180' : ''}`} />
+                          <span>{isCompletedCardFlipped ? 'Front' : 'Flip 180°'}</span>
+                        </button>
+                      </div>
 
-                          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#E6E1D8]/80 pb-2 border-b border-white/15">
-                            <div className="flex items-center gap-1.5">
-                              <LotusEmblem className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#C8A253]" />
-                              <span className="font-serif tracking-widest uppercase font-bold text-[#F7F4EF]">
-                                Stretch with Lorie
+                      <div style={{ perspective: '1300px' }} className="w-full select-none">
+                        <div
+                          onClick={() => setIsCompletedCardFlipped((prev) => !prev)}
+                          style={{
+                            transformStyle: 'preserve-3d',
+                            transform: `rotateY(${isCompletedCardFlipped ? 180 : 0}deg)`,
+                            transition: 'transform 0.68s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                          }}
+                          className="relative grid grid-cols-1 cursor-pointer"
+                          title="Click to flip pass"
+                        >
+                          {/* FRONT FACE OF COMPLETED VOUCHER */}
+                          <div
+                            style={{
+                              backfaceVisibility: 'hidden',
+                              WebkitBackfaceVisibility: 'hidden',
+                              transform: 'rotateY(0deg)'
+                            }}
+                            className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-xl border flex flex-col justify-between ${completedOrder.theme === 'gold'
+                              ? 'bg-gradient-to-br from-[#7D6020] via-[#9E7B2F] to-[#574112] border-[#F7E7C4]/80'
+                              : completedOrder.theme === 'blush'
+                                ? 'bg-gradient-to-br from-[#7A3E3E] via-[#944F4F] to-[#542828] border-[#F2D5D7]/60'
+                                : completedOrder.theme === 'midnight'
+                                  ? 'bg-gradient-to-br from-[#10160F] via-[#1C261A] to-[#090C08] border-[#C8A253]/75'
+                                  : 'bg-gradient-to-br from-[#232D21] via-[#2F3C2C] to-[#1C241B] border-[#C8A253]/50'
+                              }`}
+                          >
+                            <div className="pointer-events-none absolute -right-8 -bottom-8 opacity-25">
+                              <MandalaWatermark className="h-32 sm:h-40 w-32 sm:w-40 text-[#C8A253]" />
+                            </div>
+
+                            <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#E6E1D8]/80 pb-2 border-b border-white/15">
+                              <div className="flex items-center gap-1.5">
+                                <LotusEmblem className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#C8A253]" />
+                                <span className="font-serif tracking-widest uppercase font-bold text-[#F7F4EF]">
+                                  Stretch with Lorie
+                                </span>
+                              </div>
+                              <span className="rounded-full bg-white/15 px-2 py-0.5 text-[8px] sm:text-[9px] font-bold text-[#F7E7C4] border border-white/20">
+                                {completedOrder.type === 'subscription' ? 'MEMBER KEYCARD' : 'GIFT VOUCHER'}
                               </span>
                             </div>
-                            <span className="rounded-full bg-white/15 px-2 py-0.5 text-[8px] sm:text-[9px] font-bold text-[#F7E7C4] border border-white/20">
-                              {completedOrder.type === 'subscription' ? 'MEMBER KEYCARD' : 'GIFT VOUCHER'}
-                            </span>
+
+                            <div className="my-2.5">
+                              <div className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/70">
+                                {completedOrder.type === 'subscription' ? 'Member Name' : 'Gifted With Love To'}
+                              </div>
+                              <h4 className="text-base sm:text-xl font-serif font-bold text-[#F7F4EF] truncate">
+                                {completedOrder.recipientName}
+                              </h4>
+                              {completedOrder.personalNote && (
+                                <p className="mt-1 text-[10px] sm:text-xs italic text-[#E6E1D8]/95 bg-black/25 px-2.5 py-1.5 rounded-xl border border-white/10 line-clamp-2">
+                                  &ldquo;{completedOrder.personalNote}&rdquo;
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="pt-2 border-t border-white/15 flex items-center justify-between">
+                              <div>
+                                <span className="text-[8px] sm:text-[9px] uppercase text-[#E6E1D8]/70 block font-medium">Pass Value</span>
+                                <span className="text-base sm:text-xl font-bold font-serif text-[#F7E7C4]">
+                                  GH₵ {completedOrder.amount}
+                                </span>
+                              </div>
+
+                              <div className="text-right">
+                                <span className="text-[8px] sm:text-[9px] uppercase text-[#E6E1D8]/70 block font-medium">Voucher Code</span>
+                                <span className="font-mono text-xs sm:text-sm font-bold tracking-wider text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 inline-block">
+                                  {completedOrder.voucherCode}
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="my-2.5">
-                            <div className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/70">
-                              {completedOrder.type === 'subscription' ? 'Member Name' : 'Gifted With Love To'}
+                          {/* BACK FACE OF COMPLETED VOUCHER */}
+                          <div
+                            style={{
+                              backfaceVisibility: 'hidden',
+                              WebkitBackfaceVisibility: 'hidden',
+                              transform: 'rotateY(180deg)'
+                            }}
+                            className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-xl border flex flex-col justify-between ${completedOrder.theme === 'gold'
+                              ? 'bg-gradient-to-br from-[#574112] via-[#7D6020] to-[#3B2B0A] border-[#F7E7C4]/80'
+                              : completedOrder.theme === 'blush'
+                                ? 'bg-gradient-to-br from-[#542828] via-[#7A3E3E] to-[#3A1A1A] border-[#F2D5D7]/60'
+                                : completedOrder.theme === 'midnight'
+                                  ? 'bg-gradient-to-br from-[#090C08] via-[#151D13] to-[#050705] border-[#C8A253]/75'
+                                  : 'bg-gradient-to-br from-[#1C241B] via-[#232D21] to-[#121811] border-[#C8A253]/50'
+                              }`}
+                          >
+                            <div className="-mx-3.5 sm:-mx-5 h-6 sm:h-7 bg-black/55 border-y border-[#C8A253]/40 flex items-center justify-between px-4 sm:px-5">
+                              <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#C8A253] uppercase">
+                                VOUCHER • {completedOrder.orderId}
+                              </span>
+                              <span className="font-mono text-[8px] sm:text-[9px] text-[#E6E1D8]/75">
+                                {completedOrder.dateIssued}
+                              </span>
                             </div>
-                            <h4 className="text-base sm:text-xl font-serif font-bold text-[#F7F4EF] truncate">
-                              {completedOrder.recipientName}
-                            </h4>
-                            {completedOrder.personalNote && (
-                              <p className="mt-1 text-[10px] sm:text-xs italic text-[#E6E1D8]/95 bg-black/25 px-2.5 py-1.5 rounded-xl border border-white/10 line-clamp-2">
-                                &ldquo;{completedOrder.personalNote}&rdquo;
+
+                            <div className="my-2 space-y-1 text-[10px] sm:text-xs text-[#E6E1D8]/90">
+                              <span className="text-[9px] uppercase tracking-wider text-[#C8A253] font-bold block">
+                                How to Use at the Sanctuary
+                              </span>
+                              <p className="leading-snug">
+                                Use code <span className="font-mono font-bold text-[#F7E7C4]">{completedOrder.voucherCode}</span> at checkout when booking any studio class to reserve for GH₵ 0, or present on WhatsApp.
                               </p>
-                            )}
-                          </div>
-
-                          <div className="pt-2 border-t border-white/15 flex items-center justify-between">
-                            <div>
-                              <span className="text-[8px] sm:text-[9px] uppercase text-[#E6E1D8]/70 block font-medium">Pass Value</span>
-                              <span className="text-base sm:text-xl font-bold font-serif text-[#F7E7C4]">
-                                GH₵ {completedOrder.amount}
-                              </span>
+                              <p className="text-[9px] sm:text-[10px] text-[#E6E1D8]/75">
+                                Includes Manduka Pro mat reservation & organic herbal tea ritual.
+                              </p>
                             </div>
 
-                            <div className="text-right">
-                              <span className="text-[8px] sm:text-[9px] uppercase text-[#E6E1D8]/70 block font-medium">Voucher Code</span>
-                              <span className="font-mono text-xs sm:text-sm font-bold tracking-wider text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 inline-block">
-                                {completedOrder.voucherCode}
-                              </span>
+                            <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#F7E7C4]">
+                              <span>📍 Suite 4B, East Legon</span>
+                              <span className="underline font-semibold">Tap to flip ↻</span>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* BACK FACE OF COMPLETED VOUCHER */}
-                        <div
-                          style={{
-                            backfaceVisibility: 'hidden',
-                            WebkitBackfaceVisibility: 'hidden',
-                            transform: 'rotateY(180deg)'
-                          }}
-                          className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-xl border flex flex-col justify-between ${completedOrder.theme === 'gold'
-                            ? 'bg-gradient-to-br from-[#574112] via-[#7D6020] to-[#3B2B0A] border-[#F7E7C4]/80'
-                            : completedOrder.theme === 'blush'
-                              ? 'bg-gradient-to-br from-[#542828] via-[#7A3E3E] to-[#3A1A1A] border-[#F2D5D7]/60'
-                              : completedOrder.theme === 'midnight'
-                                ? 'bg-gradient-to-br from-[#090C08] via-[#151D13] to-[#050705] border-[#C8A253]/75'
-                                : 'bg-gradient-to-br from-[#1C241B] via-[#232D21] to-[#121811] border-[#C8A253]/50'
-                            }`}
-                        >
-                          <div className="-mx-3.5 sm:-mx-5 h-6 sm:h-7 bg-black/55 border-y border-[#C8A253]/40 flex items-center justify-between px-4 sm:px-5">
-                            <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#C8A253] uppercase">
-                              VOUCHER • {completedOrder.orderId}
-                            </span>
-                            <span className="font-mono text-[8px] sm:text-[9px] text-[#E6E1D8]/75">
-                              {completedOrder.dateIssued}
-                            </span>
-                          </div>
-
-                          <div className="my-2 space-y-1 text-[10px] sm:text-xs text-[#E6E1D8]/90">
-                            <span className="text-[9px] uppercase tracking-wider text-[#C8A253] font-bold block">
-                              How to Use at the Sanctuary
-                            </span>
-                            <p className="leading-snug">
-                              Use code <span className="font-mono font-bold text-[#F7E7C4]">{completedOrder.voucherCode}</span> at checkout when booking any studio class to reserve for GH₵ 0, or present on WhatsApp.
-                            </p>
-                            <p className="text-[9px] sm:text-[10px] text-[#E6E1D8]/75">
-                              Includes Manduka Pro mat reservation & organic herbal tea ritual.
-                            </p>
-                          </div>
-
-                          <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#F7E7C4]">
-                            <span>📍 Suite 4B, East Legon</span>
-                            <span className="underline font-semibold">Tap to flip ↻</span>
                           </div>
                         </div>
                       </div>
@@ -1003,223 +1056,237 @@ export default function WellnessGiftCardModal({
                     <div className="space-y-6">
 
                       {/* ===================================================== */}
-                      {/* LIVE 3D SANCTUARY MEMBER KEYCARD PREVIEW (INTERACTIVE) */}
+                      {/* LIVE 3D SANCTUARY MEMBER KEYCARD PREVIEW (HERO ORBITAL STAGE) */}
                       {/* ===================================================== */}
-                      <div className="space-y-2 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
-                        <div className="flex items-center justify-between gap-2">
-                          <label className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#232D21] flex items-center gap-1.5">
-                            <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
-                            <span>3D Sanctuary Keycard</span>
-                          </label>
-
-                          <button
-                            type="button"
-                            onClick={() => setIsKeycardFlipped((prev) => !prev)}
-                            className="inline-flex items-center gap-1 rounded-full bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] border border-[#C8A253]/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-semibold shadow-sm transition-all cursor-pointer"
-                          >
-                            <RotateCw className={`h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] transition-transform duration-500 ${isKeycardFlipped ? 'rotate-180' : ''}`} />
-                            <span>{isKeycardFlipped ? 'Flip to Front' : 'Flip Card 180°'}</span>
-                          </button>
+                      <div className="relative rounded-3xl bg-[#EEE9E1]/65 border border-[#E6E1D8] px-4 py-5 sm:px-6 sm:py-6 overflow-hidden">
+                        {/* Subtle celestial orbital halo behind the 3D card (mirrors Hero center halo) */}
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 sm:h-80 sm:w-80 opacity-55"
+                        >
+                          <svg viewBox="0 0 280 280" className="hero-orbit-slow h-full w-full">
+                            <circle cx="140" cy="140" r="132" fill="none" stroke="#2B2E31" strokeOpacity="0.08" strokeWidth="1" strokeDasharray="60 14 20 14" />
+                            <circle cx="140" cy="140" r="132" fill="none" stroke="#C8A253" strokeOpacity="0.4" strokeWidth="1.2" strokeDasharray="32 320" strokeLinecap="round" />
+                            <circle cx="140" cy="8" r="2.5" fill="#C8A253" fillOpacity="0.85" />
+                          </svg>
                         </div>
 
-                        {/* 3D PERSPECTIVE STAGE WITH COMPACT CREDIT-CARD PROPORTIONS */}
-                        <div
-                          style={{ perspective: '1300px' }}
-                          className="w-full select-none"
-                        >
+                        <div className="relative z-10 space-y-2.5 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260] flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#C8A253]" />
+                              <span>Live 3D Keycard Preview</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => setIsKeycardFlipped((prev) => !prev)}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 hover:bg-[#232D21] text-[#2B2E31] hover:text-[#F7E7C4] border border-[#E6E1D8] hover:border-[#C8A253]/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-2xs transition-all cursor-pointer"
+                            >
+                              <RotateCw className={`h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] transition-transform duration-500 ${isKeycardFlipped ? 'rotate-180' : ''}`} />
+                              <span>{isKeycardFlipped ? 'Front' : 'Flip 180°'}</span>
+                            </button>
+                          </div>
+
+                          {/* 3D PERSPECTIVE STAGE WITH COMPACT CREDIT-CARD PROPORTIONS */}
                           <div
-                            ref={memberKeycardRef}
-                            onClick={() => setIsKeycardFlipped((prev) => !prev)}
-                            onMouseMove={(e) => handleCardMouseMove(e, setKeycardTilt)}
-                            onMouseLeave={() => handleCardMouseLeave(setKeycardTilt)}
-                            style={{
-                              transformStyle: 'preserve-3d',
-                              transform: `rotateX(${keycardTilt.rotateX}deg) rotateY(${(isKeycardFlipped ? 180 : 0) + (isKeycardFlipped ? -keycardTilt.rotateY : keycardTilt.rotateY)}deg)`,
-                              transition: 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                            }}
-                            className="relative grid grid-cols-1 cursor-pointer group"
-                            title="Tap anywhere on keycard to flip 180°"
+                            style={{ perspective: '1300px' }}
+                            className="w-full select-none"
                           >
-                            {/* ================= FRONT FACE OF 3D MEMBER KEYCARD ================= */}
                             <div
+                              ref={memberKeycardRef}
+                              onClick={() => setIsKeycardFlipped((prev) => !prev)}
+                              onMouseMove={(e) => handleCardMouseMove(e, setKeycardTilt)}
+                              onMouseLeave={() => handleCardMouseLeave(setKeycardTilt)}
                               style={{
-                                backfaceVisibility: 'hidden',
-                                WebkitBackfaceVisibility: 'hidden',
-                                transform: 'rotateY(0deg)'
+                                transformStyle: 'preserve-3d',
+                                transform: `rotateX(${keycardTilt.rotateX}deg) rotateY(${(isKeycardFlipped ? 180 : 0) + (isKeycardFlipped ? -keycardTilt.rotateY : keycardTilt.rotateY)}deg)`,
+                                transition: 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
                               }}
-                              className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between ${selectedPlan.borderAccent} bg-gradient-to-br ${selectedPlan.cardGradient}`}
+                              className="relative grid grid-cols-1 cursor-pointer group"
+                              title="Tap anywhere on keycard to flip 180°"
                             >
-                              {/* Dynamic 3D Metallic Foil Glare Overlay */}
+                              {/* ================= FRONT FACE OF 3D MEMBER KEYCARD ================= */}
                               <div
-                                className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
                                 style={{
-                                  opacity: keycardTilt.isHovering ? 0.28 : 0.1,
-                                  background: `radial-gradient(circle at ${keycardTilt.glareX}% ${keycardTilt.glareY}%, rgba(247, 231, 196, 0.65), transparent 60%)`
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  transform: 'rotateY(0deg)'
                                 }}
-                              />
-
-                              {/* Background Yoga Pose Silhouette & Sacred Geometry */}
-                              <div className="pointer-events-none absolute right-2 bottom-0 z-0 opacity-15">
-                                <img
-                                  src={loriePoseImg}
-                                  alt=""
-                                  aria-hidden="true"
-                                  className="h-28 sm:h-40 w-auto object-contain filter brightness-125 contrast-125"
+                                className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between ${selectedPlan.borderAccent} bg-gradient-to-br ${selectedPlan.cardGradient}`}
+                              >
+                                {/* Dynamic 3D Metallic Foil Glare Overlay */}
+                                <div
+                                  className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+                                  style={{
+                                    opacity: keycardTilt.isHovering ? 0.28 : 0.1,
+                                    background: `radial-gradient(circle at ${keycardTilt.glareX}% ${keycardTilt.glareY}%, rgba(247, 231, 196, 0.65), transparent 60%)`
+                                  }}
                                 />
-                              </div>
-                              <div className="pointer-events-none absolute -right-8 -top-8 opacity-20">
-                                <MandalaWatermark className="h-32 sm:h-44 w-32 sm:w-44 text-[#C8A253]" />
-                              </div>
 
-                              <div className="relative z-10 space-y-2.5 sm:space-y-3.5">
-                                {/* Top Bar: Brand + Dynamic Tier Badge */}
-                                <div className="flex items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-white/15">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 border border-[#C8A253]/40">
-                                      <LotusEmblem className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#C8A253]" />
+                                {/* Background Yoga Pose Silhouette & Sacred Geometry */}
+                                <div className="pointer-events-none absolute right-2 bottom-0 z-0 opacity-15">
+                                  <img
+                                    src={loriePoseImg}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="h-28 sm:h-40 w-auto object-contain filter brightness-125 contrast-125"
+                                  />
+                                </div>
+                                <div className="pointer-events-none absolute -right-8 -top-8 opacity-20">
+                                  <MandalaWatermark className="h-32 sm:h-44 w-32 sm:w-44 text-[#C8A253]" />
+                                </div>
+
+                                <div className="relative z-10 space-y-2.5 sm:space-y-3.5">
+                                  {/* Top Bar: Brand + Dynamic Tier Badge */}
+                                  <div className="flex items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-white/15">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 border border-[#C8A253]/40">
+                                        <LotusEmblem className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#C8A253]" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <span className="font-serif tracking-widest text-[10px] sm:text-xs uppercase font-bold text-[#F7F4EF] block leading-none truncate">
+                                          Stretch with Lorie
+                                        </span>
+                                        <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#C8A253] font-semibold mt-0.5 block">
+                                          Keycard • {selectedPlan.tierCode}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <div className="min-w-0">
-                                      <span className="font-serif tracking-widest text-[10px] sm:text-xs uppercase font-bold text-[#F7F4EF] block leading-none truncate">
-                                        Stretch with Lorie
+
+                                    <span className={`rounded-full px-2 py-0.5 sm:px-2.5 text-[9px] sm:text-[10px] font-bold tracking-wide shadow-sm shrink-0 ${selectedPlan.badgeStyle}`}>
+                                      {selectedPlan.badge}
+                                    </span>
+                                  </div>
+
+                                  {/* Middle Row: Always Horizontal on Mobile & Desktop like a Real Card */}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="min-w-0 space-y-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <SanctuaryChipSVG className="h-5 w-7 sm:h-6 sm:w-8 shrink-0" />
+                                        <Wifi className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#C8A253]/80 rotate-90" />
+                                        <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-[#E6E1D8]/70 truncate">
+                                          NFC Pass
+                                        </span>
+                                      </div>
+
+                                      <div className="min-w-0">
+                                        <h4 className="text-sm sm:text-xl font-serif font-bold text-[#F7F4EF] tracking-tight truncate">
+                                          {subFormData.fullName.trim() || 'Your Name on Mat'}
+                                        </h4>
+                                        <p className="text-[10px] sm:text-xs text-[#F7E7C4] font-semibold truncate">
+                                          {selectedPlan.name} • {selectedPlan.classesPerMonth} Sessions/Mo
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="shrink-0 text-right bg-black/25 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-white/10">
+                                      <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/70 block">
+                                        Monthly
                                       </span>
-                                      <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#C8A253] font-semibold mt-0.5 block">
-                                        Keycard • {selectedPlan.tierCode}
+                                      <span className="font-serif text-base sm:text-xl font-bold text-[#F7E7C4] block leading-tight">
+                                        GH₵ {selectedPlan.price}
+                                      </span>
+                                      <span className="text-[8px] sm:text-[9px] text-[#96AD8B] font-semibold block">
+                                        {selectedPlan.savings}
                                       </span>
                                     </div>
                                   </div>
 
-                                  <span className={`rounded-full px-2 py-0.5 sm:px-2.5 text-[9px] sm:text-[10px] font-bold tracking-wide shadow-sm shrink-0 ${selectedPlan.badgeStyle}`}>
-                                    {selectedPlan.badge}
-                                  </span>
-                                </div>
-
-                                {/* Middle Row: Always Horizontal on Mobile & Desktop like a Real Card */}
-                                <div className="flex items-center justify-between gap-2">
-                                  <div className="min-w-0 space-y-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <SanctuaryChipSVG className="h-5 w-7 sm:h-6 sm:w-8 shrink-0" />
-                                      <Wifi className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#C8A253]/80 rotate-90" />
-                                      <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-[#E6E1D8]/70 truncate">
-                                        NFC Pass
+                                  {/* Compact Single-Row Perks Strip on Mobile (No Scrollbar) */}
+                                  <div className="flex items-center gap-1 overflow-hidden py-0.5">
+                                    {selectedPlan.cardPerks.slice(0, 2).map((perk, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="inline-flex items-center gap-1 rounded-full bg-white/12 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[10px] font-semibold text-[#F7F4EF] whitespace-nowrap shrink-0"
+                                      >
+                                        <Check className="h-2.5 w-2.5 text-[#C8A253]" />
+                                        {perk}
                                       </span>
-                                    </div>
-
-                                    <div className="min-w-0">
-                                      <h4 className="text-sm sm:text-xl font-serif font-bold text-[#F7F4EF] tracking-tight truncate">
-                                        {subFormData.fullName.trim() || 'Your Name on Mat'}
-                                      </h4>
-                                      <p className="text-[10px] sm:text-xs text-[#F7E7C4] font-semibold truncate">
-                                        {selectedPlan.name} • {selectedPlan.classesPerMonth} Sessions/Mo
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="shrink-0 text-right bg-black/25 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-white/10">
-                                    <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/70 block">
-                                      Monthly
-                                    </span>
-                                    <span className="font-serif text-base sm:text-xl font-bold text-[#F7E7C4] block leading-tight">
-                                      GH₵ {selectedPlan.price}
-                                    </span>
-                                    <span className="text-[8px] sm:text-[9px] text-[#96AD8B] font-semibold block">
-                                      {selectedPlan.savings}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Compact Single-Row Perks Strip on Mobile (No Scrollbar) */}
-                                <div className="flex items-center gap-1 overflow-hidden py-0.5">
-                                  {selectedPlan.cardPerks.slice(0, 2).map((perk, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="inline-flex items-center gap-1 rounded-full bg-white/12 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[10px] font-semibold text-[#F7F4EF] whitespace-nowrap shrink-0"
-                                    >
-                                      <Check className="h-2.5 w-2.5 text-[#C8A253]" />
-                                      {perk}
-                                    </span>
-                                  ))}
-                                  {activeRitualShortLabels.slice(0, 1).map((ritual, idx) => (
-                                    <span
-                                      key={`ritual-${idx}`}
-                                      className="inline-flex items-center gap-1 rounded-full bg-[#C8A253]/25 border border-[#F7E7C4]/50 px-2 py-0.5 text-[8.5px] sm:text-[10px] font-semibold text-[#F7E7C4] whitespace-nowrap shrink-0"
-                                    >
-                                      <Sparkles className="h-2.5 w-2.5 text-[#F7E7C4]" />
-                                      {ritual}
-                                    </span>
-                                  ))}
-                                  {(selectedPlan.cardPerks.length + activeRitualShortLabels.length > 3) && (
-                                    <span className="rounded-full bg-black/30 border border-white/15 px-1.5 py-0.5 text-[8px] sm:text-[9px] text-[#E6E1D8]/85 whitespace-nowrap shrink-0">
-                                      +{selectedPlan.cardPerks.length + activeRitualShortLabels.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Bottom Metadata Strip: Preferred Practice & Flip Hint */}
-                                <div className="pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
-                                  <span className="flex items-center gap-1 font-medium truncate">
-                                    <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] shrink-0" />
-                                    <span className="truncate">{subFormData.preferredTime}</span>
-                                  </span>
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-white/10 group-hover:bg-[#C8A253]/30 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0 transition-colors">
-                                    <RotateCw className="h-2.5 w-2.5" />
-                                    Flip
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* ================= BACK FACE OF 3D MEMBER KEYCARD ================= */}
-                            <div
-                              style={{
-                                backfaceVisibility: 'hidden',
-                                WebkitBackfaceVisibility: 'hidden',
-                                transform: 'rotateY(180deg)'
-                              }}
-                              className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between ${selectedPlan.borderAccent} bg-gradient-to-br ${selectedPlan.cardGradient}`}
-                            >
-                              {/* Magnetic Sanctuary Gold Strip */}
-                              <div className="relative z-10 -mx-3.5 sm:-mx-5 h-6 sm:h-8 bg-gradient-to-r from-[#0F130E] via-[#2B2518] to-[#0F130E] border-y border-[#C8A253]/45 flex items-center justify-between px-4 sm:px-5">
-                                <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#C8A253] uppercase font-bold">
-                                  SANCTUARY-KEYCARD • ACCRA
-                                </span>
-                                <span className="font-mono text-[8px] sm:text-[9px] text-[#F7E7C4]">
-                                  {selectedPlan.tierCode}-2026
-                                </span>
-                              </div>
-
-                              {/* Horizontal 12-Col Grid on Mobile & Desktop to Keep Height Compact */}
-                              <div className="relative z-10 my-2 grid grid-cols-12 gap-2.5 items-center">
-                                <div className="col-span-8 space-y-1">
-                                  <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#C8A253] font-bold block truncate">
-                                    {selectedPlan.name} Privileges
-                                  </span>
-                                  <ul className="space-y-0.5 text-[9.5px] sm:text-[11px] text-[#E6E1D8]/95 leading-tight">
-                                    {selectedPlan.features.slice(0, 4).map((feat, i) => (
-                                      <li key={i} className="flex items-start gap-1">
-                                        <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1">{feat}</span>
-                                      </li>
                                     ))}
-                                  </ul>
-                                </div>
+                                    {activeRitualShortLabels.slice(0, 1).map((ritual, idx) => (
+                                      <span
+                                        key={`ritual-${idx}`}
+                                        className="inline-flex items-center gap-1 rounded-full bg-[#C8A253]/25 border border-[#F7E7C4]/50 px-2 py-0.5 text-[8.5px] sm:text-[10px] font-semibold text-[#F7E7C4] whitespace-nowrap shrink-0"
+                                      >
+                                        <Sparkles className="h-2.5 w-2.5 text-[#F7E7C4]" />
+                                        {ritual}
+                                      </span>
+                                    ))}
+                                    {(selectedPlan.cardPerks.length + activeRitualShortLabels.length > 3) && (
+                                      <span className="rounded-full bg-black/30 border border-white/15 px-1.5 py-0.5 text-[8px] sm:text-[9px] text-[#E6E1D8]/85 whitespace-nowrap shrink-0">
+                                        +{selectedPlan.cardPerks.length + activeRitualShortLabels.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
 
-                                <div className="col-span-4 flex flex-col items-center justify-center bg-black/35 rounded-xl p-2 border border-[#C8A253]/30 text-center">
-                                  <LotusEmblem className="h-5 w-5 sm:h-7 sm:w-7 text-[#C8A253] mb-0.5" />
-                                  <span className="text-[8.5px] sm:text-[10px] font-bold text-[#F7F4EF] truncate max-w-full block">
-                                    {subFormData.fullName.trim() || 'Yogi Pass'}
-                                  </span>
-                                  <span className="text-[7.5px] sm:text-[9px] text-[#E6E1D8]/70 block">
-                                    East Legon
-                                  </span>
+                                  {/* Bottom Metadata Strip: Preferred Practice & Flip Hint */}
+                                  <div className="pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
+                                    <span className="flex items-center gap-1 font-medium truncate">
+                                      <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] shrink-0" />
+                                      <span className="truncate">{subFormData.preferredTime}</span>
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-white/10 group-hover:bg-[#C8A253]/30 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0 transition-colors">
+                                      <RotateCw className="h-2.5 w-2.5" />
+                                      Flip
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
-                                <span className="truncate">Rituals: {activeRitualShortLabels.join(' • ')}</span>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 border border-[#C8A253]/50 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0">
-                                  <RotateCw className="h-2.5 w-2.5" />
-                                  Front
-                                </span>
+                              {/* ================= BACK FACE OF 3D MEMBER KEYCARD ================= */}
+                              <div
+                                style={{
+                                  backfaceVisibility: 'hidden',
+                                  WebkitBackfaceVisibility: 'hidden',
+                                  transform: 'rotateY(180deg)'
+                                }}
+                                className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between ${selectedPlan.borderAccent} bg-gradient-to-br ${selectedPlan.cardGradient}`}
+                              >
+                                {/* Magnetic Sanctuary Gold Strip */}
+                                <div className="relative z-10 -mx-3.5 sm:-mx-5 h-6 sm:h-8 bg-gradient-to-r from-[#0F130E] via-[#2B2518] to-[#0F130E] border-y border-[#C8A253]/45 flex items-center justify-between px-4 sm:px-5">
+                                  <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#C8A253] uppercase font-bold">
+                                    SANCTUARY-KEYCARD • ACCRA
+                                  </span>
+                                  <span className="font-mono text-[8px] sm:text-[9px] text-[#F7E7C4]">
+                                    {selectedPlan.tierCode}-2026
+                                  </span>
+                                </div>
+
+                                {/* Horizontal 12-Col Grid on Mobile & Desktop to Keep Height Compact */}
+                                <div className="relative z-10 my-2 grid grid-cols-12 gap-2.5 items-center">
+                                  <div className="col-span-8 space-y-1">
+                                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#C8A253] font-bold block truncate">
+                                      {selectedPlan.name} Privileges
+                                    </span>
+                                    <ul className="space-y-0.5 text-[9.5px] sm:text-[11px] text-[#E6E1D8]/95 leading-tight">
+                                      {selectedPlan.features.slice(0, 4).map((feat, i) => (
+                                        <li key={i} className="flex items-start gap-1">
+                                          <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
+                                          <span className="line-clamp-1">{feat}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+
+                                  <div className="col-span-4 flex flex-col items-center justify-center bg-black/35 rounded-xl p-2 border border-[#C8A253]/30 text-center">
+                                    <LotusEmblem className="h-5 w-5 sm:h-7 sm:w-7 text-[#C8A253] mb-0.5" />
+                                    <span className="text-[8.5px] sm:text-[10px] font-bold text-[#F7F4EF] truncate max-w-full block">
+                                      {subFormData.fullName.trim() || 'Yogi Pass'}
+                                    </span>
+                                    <span className="text-[7.5px] sm:text-[9px] text-[#E6E1D8]/70 block">
+                                      East Legon
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
+                                  <span className="truncate">Rituals: {activeRitualShortLabels.join(' • ')}</span>
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 border border-[#C8A253]/50 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0">
+                                    <RotateCw className="h-2.5 w-2.5" />
+                                    Front
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1229,12 +1296,16 @@ export default function WellnessGiftCardModal({
                       {/* ===================================================== */}
                       {/* STEP 1: CHOOSE YOUR MINDFUL PASS TIER */}
                       {/* ===================================================== */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold uppercase tracking-wider text-[#5C6260] block">
-                            1. Select Your Membership Tier (Updates Keycard Live)
+                      <div className="space-y-3.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="flex items-center gap-2.5">
+                            <span className="font-serif italic text-sm text-[#C8A253]">01</span>
+                            <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                              Select Membership Tier
+                            </span>
                           </label>
-                          <span className="text-[11px] font-semibold text-[#7A8B71]">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7A8B71]">
                             {selectedPlan.savings}
                           </span>
                         </div>
@@ -1246,49 +1317,55 @@ export default function WellnessGiftCardModal({
                               <div
                                 key={plan.id}
                                 onClick={() => setSelectedPlanId(plan.id)}
-                                className={`relative cursor-pointer rounded-2xl p-4 transition-all border flex flex-col justify-between ${isSelected
-                                  ? 'bg-white border-[#7A8B71] shadow-md ring-2 ring-[#7A8B71]/40 -translate-y-0.5'
-                                  : 'bg-[#FAF8F5] border-[#E6E1D8] hover:border-[#7A8B71]/50 hover:bg-white'
+                                className={`relative cursor-pointer rounded-2xl p-4 transition-all duration-300 border flex flex-col justify-between overflow-hidden ${isSelected
+                                  ? 'bg-white border-[#C8A253] shadow-[0_14px_32px_-14px_rgba(35,45,33,0.18)] ring-1 ring-[#C8A253]/35 -translate-y-0.5'
+                                  : 'bg-[#FDFCFA] border-[#E6E1D8] hover:border-[#C8A253]/60 hover:bg-white'
                                   }`}
                               >
+                                {isSelected && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[#C8A253] to-transparent"
+                                  />
+                                )}
                                 <div>
-                                  <div className="flex items-center justify-between gap-1 mb-1.5">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${plan.isPopular
-                                      ? 'bg-[#A44A4A] text-white shadow-2xs'
-                                      : 'bg-[#E5ECE2] text-[#5A6952]'
+                                  <div className="flex items-center justify-between gap-1 mb-2">
+                                    <span className={`text-[9px] font-semibold uppercase tracking-[0.14em] px-2.5 py-0.5 rounded-full ${plan.isPopular
+                                      ? 'bg-[#232D21] text-[#F7E7C4] border border-[#C8A253]/40'
+                                      : 'bg-[#EEE9E1] text-[#5A6952]'
                                       }`}>
                                       {plan.badge}
                                     </span>
                                     {isSelected && (
-                                      <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#7A8B71] text-white">
-                                        <Check className="h-3 w-3" />
+                                      <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#232D21] text-[#C8A253]">
+                                        <Check className="h-2.5 w-2.5 stroke-[2.5]" />
                                       </span>
                                     )}
                                   </div>
 
-                                  <h4 className="font-serif font-bold text-sm sm:text-base text-[#2B2E31]">
+                                  <h4 className="font-serif font-normal text-base text-[#2B2E31] tracking-[0.02em]">
                                     {plan.name}
                                   </h4>
-                                  <p className="text-[11px] text-[#7A8B71] font-medium">
+                                  <p className="font-serif italic text-[11px] text-[#7A8B71]">
                                     {plan.subtitle}
                                   </p>
-                                  <p className="text-[11px] text-[#5C6260] mt-1 leading-snug">
+                                  <p className="text-[11px] text-[#5C6260] mt-1.5 leading-relaxed">
                                     {plan.description}
                                   </p>
 
-                                  <div className="mt-3">
-                                    <span className="text-xs text-[#5C6260]">GH₵</span>{' '}
-                                    <span className="font-serif text-xl sm:text-2xl font-bold text-[#2B2E31]">
+                                  <div className="mt-3.5 flex items-baseline gap-1">
+                                    <span className="text-[11px] font-medium text-[#7A746B]">GH₵</span>
+                                    <span className="font-serif text-2xl font-normal text-[#2B2E31]">
                                       {plan.price}
                                     </span>
-                                    <span className="text-[11px] text-[#5C6260]"> / month</span>
+                                    <span className="text-[10px] uppercase tracking-[0.12em] text-[#8A8277]">/ mo</span>
                                   </div>
                                 </div>
 
-                                <ul className="mt-3 pt-3 border-t border-[#E6E1D8] space-y-1.5 text-[11px] text-[#5C6260]">
+                                <ul className="mt-3.5 pt-3 border-t border-[#E6E1D8]/80 space-y-1.5 text-[11px] text-[#5C6260]">
                                   {plan.features.slice(0, 3).map((feat, idx) => (
                                     <li key={idx} className="flex items-start gap-1.5">
-                                      <Check className="h-3 w-3 text-[#7A8B71] shrink-0 mt-0.5" />
+                                      <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
                                       <span>{feat}</span>
                                     </li>
                                   ))}
@@ -1302,14 +1379,17 @@ export default function WellnessGiftCardModal({
                       {/* ===================================================== */}
                       {/* STEP 2: CUSTOMIZE COMPLIMENTARY SESSION PERKS ON CARD */}
                       {/* ===================================================== */}
-                      <div className="rounded-2xl bg-gradient-to-r from-[#EBF0E9] via-[#F3F6F2] to-[#FAF8F5] border border-[#D5E0D2] p-4 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 font-bold text-xs text-[#232D21]">
-                            <LotusEmblem className="h-4 w-4 text-[#7A8B71]" />
-                            <span>2. Customize Your Complimentary Session Ritual Perks</span>
+                      <div className="rounded-2xl bg-[#EEE9E1]/50 border border-[#E6E1D8] p-4 sm:p-5 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <span className="font-serif italic text-sm text-[#C8A253]">02</span>
+                            <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                              Complimentary Ritual Perks
+                            </span>
                           </div>
-                          <span className="text-[10px] font-semibold text-[#5A6952]">
-                            Included Free • Tap to toggle on Keycard
+                          <span className="font-serif italic text-[11px] text-[#7A746B]">
+                            Included free • Tap to toggle on keycard
                           </span>
                         </div>
 
@@ -1321,9 +1401,9 @@ export default function WellnessGiftCardModal({
                                 key={ritual.id}
                                 type="button"
                                 onClick={() => toggleRitualPerk(ritual.id)}
-                                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer border ${active
-                                  ? 'bg-[#232D21] text-[#F7E7C4] border-[#C8A253] shadow-xs'
-                                  : 'bg-white/80 text-[#5C6260] border-[#D5E0D2] hover:border-[#7A8B71] hover:text-[#232D21]'
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all cursor-pointer border ${active
+                                  ? 'bg-[#232D21] text-[#F7E7C4] border-[#C8A253]/70 shadow-xs'
+                                  : 'bg-white text-[#5C6260] border-[#E6E1D8] hover:border-[#C8A253]/60 hover:text-[#2B2E31]'
                                   }`}
                               >
                                 <span>{ritual.label}</span>
@@ -1338,9 +1418,12 @@ export default function WellnessGiftCardModal({
                       {/* STEP 3: SUBSCRIBER IDENTITY & PRACTICE SCHEDULE */}
                       {/* ===================================================== */}
                       <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4 sm:p-5 space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-[#7A8B71]" />
-                          3. Personalize Your Keycard & Practice Schedule
+                        <h4 className="flex items-center gap-2.5">
+                          <span className="font-serif italic text-sm text-[#C8A253]">03</span>
+                          <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                            Personalize Keycard &amp; Schedule
+                          </span>
                         </h4>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -1444,12 +1527,15 @@ export default function WellnessGiftCardModal({
 
                       {/* PAYMENT METHOD SELECTOR */}
                       <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4 sm:p-5 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                            <CreditCard className="h-3.5 w-3.5 text-[#7A8B71]" />
-                            Payment Authorization
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="flex items-center gap-2.5">
+                            <span className="font-serif italic text-sm text-[#C8A253]">04</span>
+                            <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                              Payment Authorization
+                            </span>
                           </h4>
-                          <div className="flex items-center gap-1 text-[11px] font-semibold text-[#5A6952]">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7A8B71]">
                             <PaystackIcon className="h-3 w-3" />
                             <span>Paystack Encrypted</span>
                           </div>
@@ -1607,189 +1693,203 @@ export default function WellnessGiftCardModal({
                     <div className="space-y-6">
 
                       {/* ===================================================== */}
-                      {/* INTERACTIVE 3D MINDFUL GIFT CERTIFICATE PREVIEW */}
+                      {/* INTERACTIVE 3D MINDFUL GIFT CERTIFICATE PREVIEW (HERO ORBITAL STAGE) */}
                       {/* ===================================================== */}
-                      <div className="space-y-3">
-                        <div className="space-y-2 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#232D21] flex items-center gap-1.5">
-                              <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
-                              <span>3D Mindful Gift Card</span>
-                            </label>
-
-                            <button
-                              type="button"
-                              onClick={() => setIsGiftCardFlipped((prev) => !prev)}
-                              className="inline-flex items-center gap-1 rounded-full bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] border border-[#C8A253]/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-semibold shadow-sm transition-all cursor-pointer"
-                            >
-                              <RotateCw className={`h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] transition-transform duration-500 ${isGiftCardFlipped ? 'rotate-180' : ''}`} />
-                              <span>{isGiftCardFlipped ? 'Flip to Front' : 'Flip Card 180°'}</span>
-                            </button>
+                      <div className="space-y-4">
+                        <div className="relative rounded-3xl bg-[#EEE9E1]/65 border border-[#E6E1D8] px-4 py-5 sm:px-6 sm:py-6 overflow-hidden">
+                          {/* Subtle celestial orbital halo behind the 3D gift card */}
+                          <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 sm:h-80 sm:w-80 opacity-55"
+                          >
+                            <svg viewBox="0 0 280 280" className="hero-orbit-slow h-full w-full">
+                              <circle cx="140" cy="140" r="132" fill="none" stroke="#2B2E31" strokeOpacity="0.08" strokeWidth="1" strokeDasharray="60 14 20 14" />
+                              <circle cx="140" cy="140" r="132" fill="none" stroke="#C8A253" strokeOpacity="0.4" strokeWidth="1.2" strokeDasharray="32 320" strokeLinecap="round" />
+                              <circle cx="140" cy="8" r="2.5" fill="#C8A253" fillOpacity="0.85" />
+                            </svg>
                           </div>
 
-                          {/* 3D GIFT CARD STAGE WITH COMPACT PHYSICAL CARD PROPORTIONS */}
-                          <div style={{ perspective: '1300px' }} className="w-full select-none">
-                            <div
-                              ref={giftCertificateRef}
-                              onClick={() => setIsGiftCardFlipped((prev) => !prev)}
-                              onMouseMove={(e) => handleCardMouseMove(e, setGiftCardTilt)}
-                              onMouseLeave={() => handleCardMouseLeave(setGiftCardTilt)}
-                              style={{
-                                transformStyle: 'preserve-3d',
-                                transform: `rotateX(${giftCardTilt.rotateX}deg) rotateY(${(isGiftCardFlipped ? 180 : 0) + (isGiftCardFlipped ? -giftCardTilt.rotateY : giftCardTilt.rotateY)}deg)`,
-                                transition: 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                              }}
-                              className="relative grid grid-cols-1 cursor-pointer group"
-                              title="Tap anywhere on gift card to flip 180°"
-                            >
-                              {/* ================= FRONT FACE OF 3D GIFT CERTIFICATE ================= */}
-                              <div
-                                style={{
-                                  backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden',
-                                  transform: 'rotateY(0deg)'
-                                }}
-                                className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between transition-colors duration-300 ${activePalette.cardGradient} ${activePalette.borderClass}`}
+                          <div className="relative z-10 space-y-2.5 max-w-[340px] sm:max-w-[460px] mx-auto w-full">
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260] flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#C8A253]" />
+                                <span>Live 3D Gift Card Preview</span>
+                              </label>
+
+                              <button
+                                type="button"
+                                onClick={() => setIsGiftCardFlipped((prev) => !prev)}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-white/90 hover:bg-[#232D21] text-[#2B2E31] hover:text-[#F7E7C4] border border-[#E6E1D8] hover:border-[#C8A253]/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-2xs transition-all cursor-pointer"
                               >
-                                {/* Dynamic 3D Metallic Foil Glare Overlay */}
+                                <RotateCw className={`h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#C8A253] transition-transform duration-500 ${isGiftCardFlipped ? 'rotate-180' : ''}`} />
+                                <span>{isGiftCardFlipped ? 'Front' : 'Flip 180°'}</span>
+                              </button>
+                            </div>
+
+                            {/* 3D GIFT CARD STAGE WITH COMPACT PHYSICAL CARD PROPORTIONS */}
+                            <div style={{ perspective: '1300px' }} className="w-full select-none">
+                              <div
+                                ref={giftCertificateRef}
+                                onClick={() => setIsGiftCardFlipped((prev) => !prev)}
+                                onMouseMove={(e) => handleCardMouseMove(e, setGiftCardTilt)}
+                                onMouseLeave={() => handleCardMouseLeave(setGiftCardTilt)}
+                                style={{
+                                  transformStyle: 'preserve-3d',
+                                  transform: `rotateX(${giftCardTilt.rotateX}deg) rotateY(${(isGiftCardFlipped ? 180 : 0) + (isGiftCardFlipped ? -giftCardTilt.rotateY : giftCardTilt.rotateY)}deg)`,
+                                  transition: 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                                }}
+                                className="relative grid grid-cols-1 cursor-pointer group"
+                                title="Tap anywhere on gift card to flip 180°"
+                              >
+                                {/* ================= FRONT FACE OF 3D GIFT CERTIFICATE ================= */}
                                 <div
-                                  className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
                                   style={{
-                                    opacity: giftCardTilt.isHovering ? 0.28 : 0.1,
-                                    background: `radial-gradient(circle at ${giftCardTilt.glareX}% ${giftCardTilt.glareY}%, rgba(255, 244, 214, 0.65), transparent 60%)`
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    transform: 'rotateY(0deg)'
                                   }}
-                                />
-
-                                {/* Sacred Geometry & Pose Watermarks */}
-                                <div className="pointer-events-none absolute -right-8 -bottom-8 opacity-25">
-                                  <MandalaWatermark className="h-32 sm:h-44 w-32 sm:w-44 text-[#C8A253]" />
-                                </div>
-                                <div className="pointer-events-none absolute right-4 top-8 opacity-12">
-                                  <img
-                                    src={loriePoseImg}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="h-28 sm:h-36 w-auto object-contain filter brightness-150"
-                                  />
-                                </div>
-
-                                {/* Certificate Header */}
-                                <div className="relative z-10 flex items-center justify-between gap-2 pb-2 border-b border-white/15">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <LotusEmblem className="h-4 w-4 sm:h-5 sm:w-5 text-[#C8A253] shrink-0" />
-                                    <div className="min-w-0">
-                                      <span className="font-serif tracking-widest uppercase font-bold text-[10px] sm:text-xs text-[#F7F4EF] block leading-none truncate">
-                                        Stretch with Lorie
-                                      </span>
-                                      <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/75 block mt-0.5 truncate">
-                                        {activePalette.name}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <span className={`rounded-full px-2 py-0.5 text-[8.5px] sm:text-[10px] font-bold border shrink-0 ${activePalette.pillBg}`}>
-                                    GIFT VOUCHER
-                                  </span>
-                                </div>
-
-                                {/* Certificate Recipient & Live Personal Affirmation */}
-                                <div className="relative z-10 my-2.5 space-y-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                      <span className="text-[8.5px] sm:text-[10px] uppercase tracking-wider text-[#E6E1D8]/75 block font-medium">
-                                        For
-                                      </span>
-                                      <h4 className="text-base sm:text-xl font-serif font-bold text-[#F7F4EF] tracking-tight truncate">
-                                        {giftFormData.recipientName.trim() || 'A Cherished Friend'}
-                                      </h4>
-                                    </div>
-
-                                    <div className="text-right shrink-0">
-                                      <span className="text-[8.5px] sm:text-[10px] uppercase tracking-wider text-[#E6E1D8]/75 block font-medium">
-                                        Gift Value
-                                      </span>
-                                      <span className={`text-lg sm:text-2xl font-serif font-bold leading-none ${activePalette.accentText}`}>
-                                        GH₵ {finalGiftAmount || 200}
-                                      </span>
-                                    </div>
-                                  </div>
-
+                                  className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between transition-colors duration-300 ${activePalette.cardGradient} ${activePalette.borderClass}`}
+                                >
+                                  {/* Dynamic 3D Metallic Foil Glare Overlay */}
                                   <div
-                                    ref={giftQuoteBoxRef}
-                                    className="text-[10px] sm:text-xs italic text-[#F7F4EF]/95 leading-snug bg-black/22 px-2.5 py-2 rounded-xl border border-white/12 shadow-inner line-clamp-2"
-                                  >
-                                    &ldquo;{giftFormData.personalNote || 'Wishing you radiant wellness, presence, and calm.'}&rdquo;
+                                    className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+                                    style={{
+                                      opacity: giftCardTilt.isHovering ? 0.28 : 0.1,
+                                      background: `radial-gradient(circle at ${giftCardTilt.glareX}% ${giftCardTilt.glareY}%, rgba(255, 244, 214, 0.65), transparent 60%)`
+                                    }}
+                                  />
+
+                                  {/* Sacred Geometry & Pose Watermarks */}
+                                  <div className="pointer-events-none absolute -right-8 -bottom-8 opacity-25">
+                                    <MandalaWatermark className="h-32 sm:h-44 w-32 sm:w-44 text-[#C8A253]" />
+                                  </div>
+                                  <div className="pointer-events-none absolute right-4 top-8 opacity-12">
+                                    <img
+                                      src={loriePoseImg}
+                                      alt=""
+                                      aria-hidden="true"
+                                      className="h-28 sm:h-36 w-auto object-contain filter brightness-150"
+                                    />
+                                  </div>
+
+                                  {/* Certificate Header */}
+                                  <div className="relative z-10 flex items-center justify-between gap-2 pb-2 border-b border-white/15">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <LotusEmblem className="h-4 w-4 sm:h-5 sm:w-5 text-[#C8A253] shrink-0" />
+                                      <div className="min-w-0">
+                                        <span className="font-serif tracking-widest uppercase font-bold text-[10px] sm:text-xs text-[#F7F4EF] block leading-none truncate">
+                                          Stretch with Lorie
+                                        </span>
+                                        <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-[#E6E1D8]/75 block mt-0.5 truncate">
+                                          {activePalette.name}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className={`rounded-full px-2 py-0.5 text-[8.5px] sm:text-[10px] font-bold border shrink-0 ${activePalette.pillBg}`}>
+                                      GIFT VOUCHER
+                                    </span>
+                                  </div>
+
+                                  {/* Certificate Recipient & Live Personal Affirmation */}
+                                  <div className="relative z-10 my-2.5 space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="min-w-0">
+                                        <span className="text-[8.5px] sm:text-[10px] uppercase tracking-wider text-[#E6E1D8]/75 block font-medium">
+                                          For
+                                        </span>
+                                        <h4 className="text-base sm:text-xl font-serif font-bold text-[#F7F4EF] tracking-tight truncate">
+                                          {giftFormData.recipientName.trim() || 'A Cherished Friend'}
+                                        </h4>
+                                      </div>
+
+                                      <div className="text-right shrink-0">
+                                        <span className="text-[8.5px] sm:text-[10px] uppercase tracking-wider text-[#E6E1D8]/75 block font-medium">
+                                          Gift Value
+                                        </span>
+                                        <span className={`text-lg sm:text-2xl font-serif font-bold leading-none ${activePalette.accentText}`}>
+                                          GH₵ {finalGiftAmount || 200}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div
+                                      ref={giftQuoteBoxRef}
+                                      className="text-[10px] sm:text-xs italic text-[#F7F4EF]/95 leading-snug bg-black/22 px-2.5 py-2 rounded-xl border border-white/12 shadow-inner line-clamp-2"
+                                    >
+                                      &ldquo;{giftFormData.personalNote || 'Wishing you radiant wellness, presence, and calm.'}&rdquo;
+                                    </div>
+                                  </div>
+
+                                  {/* Certificate Footer: Experience Equivalent, Sender & Flip Hint */}
+                                  <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[9px] sm:text-[10px]">
+                                    <span className="text-[#E6E1D8]/85 truncate">
+                                      From: <strong className="text-white">{giftFormData.senderName.trim() || 'Your Name'}</strong>
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-white/10 group-hover:bg-[#C8A253]/30 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0 transition-colors">
+                                      <RotateCw className="h-2.5 w-2.5" />
+                                      Flip
+                                    </span>
                                   </div>
                                 </div>
 
-                                {/* Certificate Footer: Experience Equivalent, Sender & Flip Hint */}
-                                <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between gap-2 text-[9px] sm:text-[10px]">
-                                  <span className="text-[#E6E1D8]/85 truncate">
-                                    From: <strong className="text-white">{giftFormData.senderName.trim() || 'Your Name'}</strong>
-                                  </span>
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-white/10 group-hover:bg-[#C8A253]/30 border border-[#C8A253]/40 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0 transition-colors">
-                                    <RotateCw className="h-2.5 w-2.5" />
-                                    Flip
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* ================= BACK FACE OF 3D GIFT CERTIFICATE ================= */}
-                              <div
-                                style={{
-                                  backfaceVisibility: 'hidden',
-                                  WebkitBackfaceVisibility: 'hidden',
-                                  transform: 'rotateY(180deg)'
-                                }}
-                                className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between transition-colors duration-300 ${activePalette.cardGradient} ${activePalette.borderClass}`}
-                              >
-                                {/* Artisanal Gold Ribbon Strip */}
-                                <div className="relative z-10 -mx-3.5 sm:-mx-5 h-6 sm:h-8 bg-black/45 border-y border-[#C8A253]/45 flex items-center justify-between px-4 sm:px-5">
-                                  <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#F7E7C4] uppercase font-bold truncate">
-                                    GIFT PASS • {activePalette.name.toUpperCase()}
-                                  </span>
-                                  <span className="font-mono text-[8px] sm:text-[9px] text-[#E6E1D8]/80 shrink-0">
-                                    12 MO VALID
-                                  </span>
-                                </div>
-
-                                <div className="relative z-10 my-2 grid grid-cols-12 gap-2.5 items-center">
-                                  <div className="col-span-8 space-y-1">
-                                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#F7E7C4] font-bold block truncate">
-                                      Unlocks at Sanctuary (GH₵ {finalGiftAmount || 200})
+                                {/* ================= BACK FACE OF 3D GIFT CERTIFICATE ================= */}
+                                <div
+                                  style={{
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)'
+                                  }}
+                                  className={`col-start-1 row-start-1 relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white shadow-2xl border-2 flex flex-col justify-between transition-colors duration-300 ${activePalette.cardGradient} ${activePalette.borderClass}`}
+                                >
+                                  {/* Artisanal Gold Ribbon Strip */}
+                                  <div className="relative z-10 -mx-3.5 sm:-mx-5 h-6 sm:h-8 bg-black/45 border-y border-[#C8A253]/45 flex items-center justify-between px-4 sm:px-5">
+                                    <span className="font-mono text-[8px] sm:text-[9px] tracking-widest text-[#F7E7C4] uppercase font-bold truncate">
+                                      GIFT PASS • {activePalette.name.toUpperCase()}
                                     </span>
-                                    <ul className="space-y-0.5 text-[9.5px] sm:text-[11px] text-[#E6E1D8]/95 leading-tight">
-                                      <li className="flex items-start gap-1">
-                                        <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1 font-semibold">{getGiftExperienceEquivalent(finalGiftAmount || 200)}</span>
-                                      </li>
-                                      <li className="flex items-start gap-1">
-                                        <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1">Book any group flow or private 1-on-1 stretch</span>
-                                      </li>
-                                      <li className="flex items-start gap-1">
-                                        <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1">Free Manduka mat, props & herbal tea ritual</span>
-                                      </li>
-                                    </ul>
-                                  </div>
-
-                                  <div className="col-span-4 flex flex-col items-center justify-center bg-black/30 rounded-xl p-2 border border-white/15 text-center">
-                                    <LotusEmblem className="h-5 w-5 sm:h-7 sm:w-7 text-[#C8A253] mb-0.5" />
-                                    <span className="text-[8.5px] sm:text-[10px] font-bold text-[#F7F4EF] truncate max-w-full block">
-                                      {giftFormData.recipientName.trim() || 'Cherished'}
-                                    </span>
-                                    <span className="text-[7.5px] sm:text-[9px] text-[#E6E1D8]/75 block">
-                                      East Legon
+                                    <span className="font-mono text-[8px] sm:text-[9px] text-[#E6E1D8]/80 shrink-0">
+                                      12 MO VALID
                                     </span>
                                   </div>
-                                </div>
 
-                                <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
-                                  <span className="truncate">📍 Suite 4B, East Legon, Accra</span>
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 border border-[#C8A253]/50 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0">
-                                    <RotateCw className="h-2.5 w-2.5" />
-                                    Front
-                                  </span>
+                                  <div className="relative z-10 my-2 grid grid-cols-12 gap-2.5 items-center">
+                                    <div className="col-span-8 space-y-1">
+                                      <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#F7E7C4] font-bold block truncate">
+                                        Unlocks at Sanctuary (GH₵ {finalGiftAmount || 200})
+                                      </span>
+                                      <ul className="space-y-0.5 text-[9.5px] sm:text-[11px] text-[#E6E1D8]/95 leading-tight">
+                                        <li className="flex items-start gap-1">
+                                          <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
+                                          <span className="line-clamp-1 font-semibold">{getGiftExperienceEquivalent(finalGiftAmount || 200)}</span>
+                                        </li>
+                                        <li className="flex items-start gap-1">
+                                          <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
+                                          <span className="line-clamp-1">Book any group flow or private 1-on-1 stretch</span>
+                                        </li>
+                                        <li className="flex items-start gap-1">
+                                          <Check className="h-3 w-3 text-[#C8A253] shrink-0 mt-0.5" />
+                                          <span className="line-clamp-1">Free Manduka mat, props & herbal tea ritual</span>
+                                        </li>
+                                      </ul>
+                                    </div>
+
+                                    <div className="col-span-4 flex flex-col items-center justify-center bg-black/30 rounded-xl p-2 border border-white/15 text-center">
+                                      <LotusEmblem className="h-5 w-5 sm:h-7 sm:w-7 text-[#C8A253] mb-0.5" />
+                                      <span className="text-[8.5px] sm:text-[10px] font-bold text-[#F7F4EF] truncate max-w-full block">
+                                        {giftFormData.recipientName.trim() || 'Cherished'}
+                                      </span>
+                                      <span className="text-[7.5px] sm:text-[9px] text-[#E6E1D8]/75 block">
+                                        East Legon
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="relative z-10 pt-2 border-t border-white/15 flex items-center justify-between text-[9px] sm:text-[10px] text-[#E6E1D8]/85">
+                                    <span className="truncate">📍 Suite 4B, East Legon, Accra</span>
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 border border-[#C8A253]/50 px-2 py-0.5 text-[8.5px] sm:text-[9px] font-bold text-[#F7E7C4] shrink-0">
+                                      <RotateCw className="h-2.5 w-2.5" />
+                                      Front
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1799,11 +1899,14 @@ export default function WellnessGiftCardModal({
                         {/* ===================================================== */}
                         {/* 4 WELLNESS PALETTES SELECTOR (NAMED SWATCH CARDS) */}
                         {/* ===================================================== */}
-                        <div className="pt-1 space-y-2">
+                        <div className="pt-1 space-y-3">
                           <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                              <Palette className="h-3.5 w-3.5 text-[#7A8B71]" />
-                              1. Choose Wellness Card Palette (4 Sanctuary Themes)
+                            <label className="flex items-center gap-2.5">
+                              <span className="font-serif italic text-sm text-[#C8A253]">01</span>
+                              <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                              <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                                Choose Sanctuary Palette
+                              </span>
                             </label>
                           </div>
 
@@ -1816,18 +1919,18 @@ export default function WellnessGiftCardModal({
                                   type="button"
                                   onClick={() => setGiftTheme(palette.id)}
                                   className={`flex items-center gap-2.5 p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
-                                    ? 'bg-white border-[#232D21] shadow-md ring-2 ring-[#C8A253]/50 -translate-y-0.5'
-                                    : 'bg-[#FAF8F5] border-[#E6E1D8] hover:bg-white hover:border-[#7A8B71]/50'
+                                    ? 'bg-white border-[#C8A253] shadow-[0_10px_24px_-12px_rgba(35,45,33,0.18)] ring-1 ring-[#C8A253]/40 -translate-y-0.5'
+                                    : 'bg-[#FDFCFA] border-[#E6E1D8] hover:bg-white hover:border-[#C8A253]/50'
                                     }`}
                                 >
                                   <span
                                     className={`h-7 w-7 rounded-full shrink-0 border-2 border-white shadow-sm ${palette.swatchBg}`}
                                   />
                                   <div className="min-w-0">
-                                    <span className="text-[11px] font-bold text-[#2B2E31] block leading-tight truncate">
+                                    <span className="font-serif text-xs font-medium text-[#2B2E31] block leading-tight truncate">
                                       {palette.name}
                                     </span>
-                                    <span className="text-[9px] text-[#5C6260] block truncate mt-0.5">
+                                    <span className="text-[9px] text-[#7A746B] block truncate mt-0.5">
                                       {palette.tagline}
                                     </span>
                                   </div>
@@ -1841,12 +1944,16 @@ export default function WellnessGiftCardModal({
                       {/* ===================================================== */}
                       {/* STEP 2: CHOOSE GIFT VALUE OR CUSTOM AMOUNT VOUCHER */}
                       {/* ===================================================== */}
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold uppercase tracking-wider text-[#5C6260] block">
-                            2. Select Gift Voucher Amount or Custom Value
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="flex items-center gap-2.5">
+                            <span className="font-serif italic text-sm text-[#C8A253]">02</span>
+                            <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                              Select Voucher Value
+                            </span>
                           </label>
-                          <span className="text-[11px] font-semibold text-[#A44A4A]">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7A8B71]">
                             GH₵ {finalGiftAmount || 200} Selected
                           </span>
                         </div>
@@ -1862,21 +1969,27 @@ export default function WellnessGiftCardModal({
                                   setGiftAmount(preset.amount);
                                   setIsCustomAmount(false);
                                 }}
-                                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
-                                  ? 'bg-white border-[#A44A4A] shadow-sm ring-2 ring-[#A44A4A]/30'
-                                  : 'bg-[#FAF8F5] border-[#E6E1D8] hover:border-[#A44A4A]/50 hover:bg-white'
+                                className={`relative overflow-hidden p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
+                                  ? 'bg-white border-[#C8A253] shadow-[0_12px_28px_-14px_rgba(35,45,33,0.18)] ring-1 ring-[#C8A253]/35 -translate-y-0.5'
+                                  : 'bg-[#FDFCFA] border-[#E6E1D8] hover:border-[#C8A253]/55 hover:bg-white'
                                   }`}
                               >
+                                {isSelected && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[#C8A253] to-transparent"
+                                  />
+                                )}
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-[#A44A4A]">
+                                  <span className="font-serif text-base font-normal text-[#2B2E31]">
                                     GH₵ {preset.amount}
                                   </span>
                                   <span className="text-xs">{preset.icon}</span>
                                 </div>
-                                <span className="text-xs font-semibold text-[#2B2E31] block mt-0.5">
+                                <span className="text-xs font-semibold text-[#5A6952] block mt-0.5">
                                   {preset.label}
                                 </span>
-                                <span className="text-[10px] text-[#5C6260] block mt-0.5">
+                                <span className="text-[10px] text-[#7A746B] block mt-0.5">
                                   {preset.desc}
                                 </span>
                               </button>
@@ -1887,21 +2000,27 @@ export default function WellnessGiftCardModal({
                           <button
                             type="button"
                             onClick={() => setIsCustomAmount(true)}
-                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${isCustomAmount
-                              ? 'bg-white border-[#A44A4A] shadow-sm ring-2 ring-[#A44A4A]/30'
-                              : 'bg-[#FAF8F5] border-[#E6E1D8] hover:border-[#A44A4A]/50 hover:bg-white'
+                            className={`relative overflow-hidden p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${isCustomAmount
+                              ? 'bg-white border-[#C8A253] shadow-[0_12px_28px_-14px_rgba(35,45,33,0.18)] ring-1 ring-[#C8A253]/35 -translate-y-0.5'
+                              : 'bg-[#FDFCFA] border-[#E6E1D8] hover:border-[#C8A253]/55 hover:bg-white'
                               }`}
                           >
+                            {isCustomAmount && (
+                              <span
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[#C8A253] to-transparent"
+                              />
+                            )}
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#A44A4A] block">
-                                Custom Voucher
+                              <span className="font-serif text-base font-normal text-[#2B2E31] block">
+                                Custom
                               </span>
                               <span className="text-xs">💎</span>
                             </div>
-                            <span className="text-xs font-semibold text-[#2B2E31] block mt-0.5">
+                            <span className="text-xs font-semibold text-[#5A6952] block mt-0.5">
                               Enter Any Amount
                             </span>
-                            <span className="text-[10px] text-[#5C6260] block mt-0.5">
+                            <span className="text-[10px] text-[#7A746B] block mt-0.5">
                               Flexible Credit (Min GH₵ 100)
                             </span>
                           </button>
@@ -1962,9 +2081,12 @@ export default function WellnessGiftCardModal({
                       {/* STEP 3: RECIPIENT & 1-CLICK MINDFUL AFFIRMATION BUTTONS */}
                       {/* ===================================================== */}
                       <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4 sm:p-5 space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                          <Gift className="h-3.5 w-3.5 text-[#A44A4A]" />
-                          3. Recipient & 1-Click Mindful Affirmations
+                        <h4 className="flex items-center gap-2.5">
+                          <span className="font-serif italic text-sm text-[#C8A253]">03</span>
+                          <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                            Recipient &amp; Mindful Affirmations
+                          </span>
                         </h4>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -2081,12 +2203,15 @@ export default function WellnessGiftCardModal({
 
                       {/* GIFT PAYMENT SELECTOR */}
                       <div className="rounded-2xl border border-[#E6E1D8] bg-white p-4 sm:p-5 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                            <CreditCard className="h-3.5 w-3.5 text-[#7A8B71]" />
-                            Payment Option
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="flex items-center gap-2.5">
+                            <span className="font-serif italic text-sm text-[#C8A253]">04</span>
+                            <span className="h-px w-4 bg-[#C8A253]/60" aria-hidden="true" />
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#5C6260]">
+                              Payment Option
+                            </span>
                           </h4>
-                          <div className="flex items-center gap-1 text-[11px] font-semibold text-[#5A6952]">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7A8B71]">
                             <PaystackIcon className="h-3 w-3" />
                             <span>Paystack Ghana</span>
                           </div>
@@ -2198,23 +2323,23 @@ export default function WellnessGiftCardModal({
           </div>
 
           {/* ========================================================= */}
-          {/* MODAL FOOTER */}
+          {/* MODAL FOOTER (EDITORIAL SANCTUARY BAR) */}
           {/* ========================================================= */}
           {!completedOrder && (
-            <div className="bg-[#FAF8F5] border-t border-[#E6E1D8] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-[#7A8B71]" />
-                <span className="text-xs text-[#5C6260]">
-                  Paystack Mobile Money & Card • Instant Pass Issuance
+            <div className="bg-[#FDFCFA] border-t border-[#E6E1D8] px-4 py-3.5 sm:px-7 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
+              {/* <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#7A8B71] shrink-0" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7A746B]">
+                  Paystack Encrypted • Instant Issuance
                 </span>
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="px-4 py-2.5 rounded-xl border border-[#E6E1D8] text-xs font-semibold text-[#5C6260] hover:bg-white hover:text-[#2B2E31] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full border border-[#E6E1D8] bg-white text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5C6260] hover:border-[#2B2E31]/30 hover:text-[#2B2E31] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2223,11 +2348,11 @@ export default function WellnessGiftCardModal({
                   type="button"
                   onClick={handleProcessOrder}
                   disabled={isSubmitting}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#A44A4A] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#8f3e3e] transition-all hover:scale-[1.01] disabled:opacity-75 cursor-pointer"
+                  className="group flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#232D21] text-[#F7F4EF] border border-[#C8A253]/50 hover:border-[#C8A253] text-xs font-semibold tracking-[0.06em] shadow-[0_12px_28px_-10px_rgba(35,45,33,0.55)] hover:bg-[#192118] transition-all active:scale-[0.99] disabled:opacity-75 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#C8A253] border-t-transparent" />
                       <span>
                         {submissionStep === 1 && 'Initiating Paystack...'}
                         {submissionStep === 2 && 'Pushing MoMo prompt...'}
@@ -2236,13 +2361,13 @@ export default function WellnessGiftCardModal({
                     </>
                   ) : (
                     <>
-                      <LotusEmblem className="h-4 w-4 text-[#F7E7C4]" />
+                      <LotusEmblem className="h-4 w-4 text-[#C8A253]" />
                       <span>
                         {activeTab === 'subscription'
                           ? `Activate Keycard • GH₵ ${selectedPlan.price}`
                           : `Issue Gift Card • GH₵ ${finalGiftAmount || 200}`}
                       </span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-3.5 w-3.5 text-[#C8A253] group-hover:translate-x-0.5 transition-transform" />
                     </>
                   )}
                 </button>

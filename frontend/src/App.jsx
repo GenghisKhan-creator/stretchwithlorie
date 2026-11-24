@@ -1340,10 +1340,12 @@ export default function App() {
   const handleAddClass = async (newClassData) => {
     try {
       const created = await api.createClass(newClassData);
-      setClasses((prev) => [created, ...prev]);
-      showToast('success', `Session "${created.title}" published to schedule!`);
-    } catch {
-      showToast('warning', 'Failed to create new class.');
+      setClasses((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
+      showToast('success', `Session "${created.title}" published to schedule & database!`);
+      return created;
+    } catch (err) {
+      showToast('warning', err.message || 'Failed to create new class.');
+      throw err;
     }
   };
 

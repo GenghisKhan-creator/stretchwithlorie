@@ -1,6 +1,13 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { pool } from '../config/db.js';
 import { isSafeMediaUrl } from '../middleware/securityMiddleware.js';
 import { broadcast } from '../websocket.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOADS_DIR = path.resolve(__dirname, '../../../frontend/public/images/uploads');
 
 // Format database row to frontend-friendly camelCase object
 export function formatClass(row) {
@@ -171,11 +178,17 @@ export async function updateClass(req, res, next) {
       description,
       scheduleSlots,
       sessionOptions,
-      isPassEligible
+      isPassEligible,
+      image,
+      imagePosition
     } = req.body;
 
     const resolvedDateText = dateText || date;
     const resolvedTimeText = timeText || time;
+
+    if (image !== undefined && !isSafeMediaUrl(image)) {
+      return res.status(400).json({ success: false, error: 'Invalid or unsafe image URL protocol.' });
+    }
 
     const { rows } = await pool.query(
       `UPDATE classes SET
@@ -193,8 +206,10 @@ export async function updateClass(req, res, next) {
         schedule_slots = COALESCE($12::jsonb, schedule_slots),
         session_options = COALESCE($13::jsonb, session_options),
         is_pass_eligible = COALESCE($14::boolean, is_pass_eligible),
+        image_url = COALESCE($15, image_url),
+        image_position = COALESCE($16, image_position),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $15
+      WHERE id = $17
       RETURNING *`,
       [
         title || null,
@@ -211,6 +226,8 @@ export async function updateClass(req, res, next) {
         scheduleSlots ? JSON.stringify(scheduleSlots) : null,
         sessionOptions ? JSON.stringify(sessionOptions) : null,
         isPassEligible !== undefined ? Boolean(isPassEligible) : null,
+        image !== undefined ? (image || null) : null,
+        imagePosition || null,
         id
       ]
     );
@@ -222,6 +239,46 @@ export async function updateClass(req, res, next) {
     const formatted = formatClass(rows[0]);
     broadcast('CLASS_UPDATED', formatted);
     res.json({ success: true, data: formatted });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/classes/upload-image
+export async function uploadClassImage(req, res, next) {
+  try {
+    const { image, filename } = req.body;
+    if (!image || typeof image !== 'string') {
+      return res.status(400).json({ success: false, error: 'Image data is required.' });
+    }
+
+    const match = image.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);
+    if (!match) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Expected base64 JPEG, PNG, or WebP.' });
+    }
+
+    const ext = match[1].toLowerCase() === 'jpeg' ? 'jpg' : match[1].toLowerCase();
+    const base64Data = match[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    if (buffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({ success: false, error: 'Image file size exceeds 10MB limit.' });
+    }
+
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+
+    const cleanBase = (filename || 'class-photo')
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .slice(0, 30);
+    const safeFilename = `${cleanBase}_${Date.now()}.${ext}`;
+    const targetPath = path.join(UPLOADS_DIR, safeFilename);
+
+    fs.writeFileSync(targetPath, buffer);
+
+    const publicUrl = `/images/uploads/${safeFilename}`;
+    res.json({ success: true, url: publicUrl, filename: safeFilename });
   } catch (err) {
     next(err);
   }

@@ -56,6 +56,8 @@ const INITIAL_REFERRALS = [
   }
 ];
 
+const STORAGE_KEY_ADMIN_KEY = 'stretchwithlorie_admin_key';
+
 export function getAdminToken() {
   try {
     return localStorage.getItem(STORAGE_KEY_ADMIN_TOKEN) || sessionStorage.getItem(STORAGE_KEY_ADMIN_TOKEN) || null;
@@ -64,12 +66,20 @@ export function getAdminToken() {
   }
 }
 
-export function setAdminToken(token, remember = true) {
+export function getAdminKey() {
   try {
-    if (remember) {
-      localStorage.setItem(STORAGE_KEY_ADMIN_TOKEN, token);
-    } else {
-      sessionStorage.setItem(STORAGE_KEY_ADMIN_TOKEN, token);
+    return localStorage.getItem(STORAGE_KEY_ADMIN_KEY) || sessionStorage.getItem(STORAGE_KEY_ADMIN_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminToken(token, remember = true, adminKey = null) {
+  try {
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem(STORAGE_KEY_ADMIN_TOKEN, token);
+    if (adminKey) {
+      storage.setItem(STORAGE_KEY_ADMIN_KEY, adminKey);
     }
   } catch (e) {
     console.warn('Could not store admin token:', e);
@@ -80,6 +90,8 @@ export function clearAdminToken() {
   try {
     localStorage.removeItem(STORAGE_KEY_ADMIN_TOKEN);
     sessionStorage.removeItem(STORAGE_KEY_ADMIN_TOKEN);
+    localStorage.removeItem(STORAGE_KEY_ADMIN_KEY);
+    sessionStorage.removeItem(STORAGE_KEY_ADMIN_KEY);
   } catch (e) {
     console.warn('Could not clear admin token:', e);
   }
@@ -87,7 +99,11 @@ export function clearAdminToken() {
 
 export function getAuthHeaders() {
   const token = getAdminToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const key = getAdminKey();
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (key) headers['x-admin-key'] = key;
+  return headers;
 }
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -437,12 +453,51 @@ export const api = {
   },
 
   /**
+   * Upload class photography file (converts to hosted image URL)
+   */
+  async uploadClassImage(file) {
+    let dataUrl = file;
+    let name = file?.name || 'class_photo';
+    if (file instanceof File || file instanceof Blob) {
+      dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(`${API_BASE_URL}/classes/upload-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ image: dataUrl, filename: name }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.url) return json.url;
+      }
+    } catch (err) {
+      console.warn('Backend image upload failed, using fallback:', err);
+    }
+
+    return dataUrl;
+  },
+
+  /**
    * Add a new class (Instructor Dashboard - Admin Protected)
    */
   async createClass(classData) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(`${API_BASE_URL}/classes`, {
         method: 'POST',
         headers: {
@@ -453,12 +508,34 @@ export const api = {
         signal: controller.signal
       });
       clearTimeout(timeout);
+
       if (res.ok) {
         const json = await res.json();
-        if (json.data) return json.data;
+        if (json.data) {
+          try {
+            const current = await this.getClasses();
+            const filtered = current.filter((c) => c.id !== json.data.id);
+            localStorage.setItem(STORAGE_KEY_CLASSES, JSON.stringify([json.data, ...filtered]));
+          } catch {}
+          return json.data;
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          clearAdminToken();
+          throw new Error('Admin authorization expired. Please log in again to save classes to the database.');
+        }
+        throw new Error(errJson.error || `Server error (${res.status}): Failed to create class.`);
       }
     } catch (err) {
-      console.warn('Could not create class in backend:', err);
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        throw new Error('Server request timed out. Please check your connection and try again.');
+      }
+      if (err.message && !err.message.includes('Failed to fetch')) {
+        throw err;
+      }
+      console.warn('Could not connect to backend, falling back to local storage:', err);
     }
 
     await delay(200);
@@ -740,7 +817,7 @@ export const api = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Incorrect admin password.');
     }
-    setAdminToken(data.token, remember);
+    setAdminToken(data.token, remember, password);
     return data;
   },
 
@@ -1414,3 +1491,5 @@ export const api = {
     };
   }
 };
+
+export default api;

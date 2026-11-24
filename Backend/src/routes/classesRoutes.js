@@ -4,7 +4,8 @@ import {
   getClassById,
   createClass,
   updateClass,
-  deleteClass
+  deleteClass,
+  uploadClassImage
 } from '../controllers/classesController.js';
 import { requireAdminAuth } from '../middleware/authMiddleware.js';
 
@@ -15,8 +16,9 @@ router.get('/', getAllClasses);
 router.get('/:id', getClassById);
 
 // Protected Admin-Only management routes
-router.post('/', requireAdminAuth, createClass);
-router.put('/:id', requireAdminAuth, updateClass);
+router.post('/upload-image', requireAdminAuth, express.json({ limit: '15mb' }), uploadClassImage);
+router.post('/', requireAdminAuth, express.json({ limit: '15mb' }), createClass);
+router.put('/:id', requireAdminAuth, express.json({ limit: '15mb' }), updateClass);
 router.delete('/:id', requireAdminAuth, deleteClass);
 
 export default router;

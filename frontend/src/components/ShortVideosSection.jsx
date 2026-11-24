@@ -684,32 +684,57 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
           onClick={(e) => {
             if (e.target === e.currentTarget) setPurchaseTargetVideo(null);
           }}
-          className="fixed inset-0 z-50 overflow-hidden bg-[#181B1C]/80 backdrop-blur-md p-2.5 sm:p-5 flex items-center justify-center"
+          className="fixed inset-0 z-50 overflow-hidden bg-[#181B1C]/70 backdrop-blur-md p-2.5 sm:p-5 flex items-center justify-center"
         >
-          <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl bg-[#FAF8F5] text-[#2B2E31] border border-[#E6E1D8] shadow-2xl flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-[#1E261D] via-[#2A3728] to-[#1C231A] p-3.5 sm:p-5 text-white border-b border-[#C8A253]/35 flex items-start justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <img
-                  src={resolveVideoThumbnail(purchaseTargetVideo)}
-                  alt={purchaseTargetVideo.title}
-                  className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl object-cover border border-[#C8A253]/50 shrink-0"
-                  onError={(e) => {
-                    const fallback = (purchaseTargetVideo && VIDEO_FALLBACK_THUMBNAILS[purchaseTargetVideo.id]) || flexibilityImg;
-                    if (e.currentTarget.src !== fallback) {
-                      e.currentTarget.src = fallback;
-                    }
-                  }}
-                />
-                <div className="min-w-0">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#C8A253]/25 border border-[#C8A253]/50 px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-[#F7E7C4]">
-                    Unlock Full Video ({purchaseTargetVideo.fullDurationLabel})
-                  </span>
-                  <h3 className="font-serif text-sm sm:text-base lg:text-lg font-bold text-[#F7F4EF] mt-0.5 leading-snug line-clamp-1">
+          <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] rounded-[28px] bg-[#FDFCFA] text-[#2B2E31] border border-[#E6E1D8] shadow-[0_32px_90px_-24px_rgba(35,45,33,0.38)] flex flex-col overflow-hidden">
+            {/* Editorial Architectural Header (Matches Hero Split & Orbital Halo) */}
+            <div className="relative bg-[#FDFCFA] px-4 py-4 sm:px-6 sm:py-5 border-b border-[#E6E1D8] flex items-start justify-between gap-3 shrink-0 overflow-hidden">
+              {/* Two-tone editorial split background */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none hidden sm:block absolute inset-y-0 left-[62%] right-0 bg-[#EEE9E1]/80"
+              >
+                <div className="absolute left-0 inset-y-0 w-px bg-[#C8A253]/20 overflow-hidden">
+                  <div className="hero-seam-filament h-20 w-full bg-gradient-to-b from-transparent via-[#C8A253]/70 to-transparent" />
+                </div>
+              </div>
+
+              {/* Subtle rotating celestial orbital halo watermark */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 opacity-55"
+              >
+                <svg viewBox="0 0 200 200" className="hero-orbit-slow h-full w-full">
+                  <circle cx="100" cy="100" r="88" fill="none" stroke="#2B2E31" strokeOpacity="0.09" strokeWidth="1" strokeDasharray="44 12 14 12" />
+                  <circle cx="100" cy="100" r="88" fill="none" stroke="#C8A253" strokeOpacity="0.45" strokeWidth="1.2" strokeDasharray="24 220" strokeLinecap="round" />
+                  <circle cx="100" cy="12" r="2.5" fill="#C8A253" fillOpacity="0.85" />
+                </svg>
+              </div>
+
+              <div className="relative z-10 flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div className="relative shrink-0">
+                  <img
+                    src={resolveVideoThumbnail(purchaseTargetVideo)}
+                    alt={purchaseTargetVideo.title}
+                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl object-cover border border-[#C8A253]/50 ring-2 ring-white shadow-sm"
+                    onError={(e) => {
+                      const fallback = (purchaseTargetVideo && VIDEO_FALLBACK_THUMBNAILS[purchaseTargetVideo.id]) || flexibilityImg;
+                      if (e.currentTarget.src !== fallback) {
+                        e.currentTarget.src = fallback;
+                      }
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-2 text-[9px] sm:text-[9.5px] font-semibold uppercase tracking-[0.24em] text-[#7A8B71]">
+                    <span className="h-px w-4 bg-[#C8A253]/85 inline-block shrink-0" aria-hidden="true" />
+                    <span className="truncate">Unlock Full Video • {purchaseTargetVideo.fullDurationLabel}</span>
+                  </div>
+                  <h3 className="font-serif font-normal text-base sm:text-lg tracking-[0.02em] text-[#2B2E31] leading-snug line-clamp-1">
                     {purchaseTargetVideo.title}
                   </h3>
-                  <p className="text-[10px] sm:text-[11px] text-[#E6E1D8]/80 truncate">
-                    By {purchaseTargetVideo.creatorName} • Full HD Session & Download Access
+                  <p className="font-serif italic text-[11px] sm:text-xs text-[#7A746B] truncate">
+                    By {purchaseTargetVideo.creatorName} • Full HD Session &amp; Download Access
                   </p>
                 </div>
               </div>
@@ -717,7 +742,7 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
               <button
                 type="button"
                 onClick={() => setPurchaseTargetVideo(null)}
-                className="rounded-full bg-white/10 hover:bg-white/20 p-1.5 text-white/80 hover:text-white cursor-pointer shrink-0"
+                className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-[#232D21] text-[#5C6260] hover:text-[#F7F4EF] border border-[#E6E1D8] hover:border-[#C8A253]/60 transition-all cursor-pointer shrink-0 shadow-2xs"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
@@ -725,15 +750,18 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
             </div>
 
             {/* Body */}
-            <div className="p-3.5 sm:p-5 space-y-3 sm:space-y-4 flex-1 overflow-y-auto overscroll-contain">
-              {/* PAY WHAT YOU WANT (MINIMUM GH₵ 30) */}
-              <div className="rounded-xl sm:rounded-2xl bg-white border border-[#E6E1D8] p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1 overflow-y-auto overscroll-contain bg-[#FDFCFA]">
+              {/* STEP 01: PAY WHAT YOU WANT (MINIMUM GH₵ 30) */}
+              <div className="rounded-2xl bg-[#EEE9E1]/50 border border-[#E6E1D8] p-3.5 sm:p-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#232D21] flex items-center gap-1.5">
-                    <Heart className="h-3.5 w-3.5 text-[#A44A4A] shrink-0" />
-                    <span>Choose Your Price (Min GH₵ {MINIMUM_VIDEO_PRICE_GHS})</span>
+                  <label className="flex items-center gap-2">
+                    <span className="font-serif italic text-sm text-[#C8A253]">01</span>
+                    <span className="h-px w-3.5 bg-[#C8A253]/60" aria-hidden="true" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#5C6260]">
+                      Choose Your Price (Min GH₵ {MINIMUM_VIDEO_PRICE_GHS})
+                    </span>
                   </label>
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-[#7A8B71] shrink-0">
+                  <span className="font-serif italic text-[11px] text-[#7A8B71] shrink-0">
                     Pay more to support
                   </span>
                 </div>
@@ -752,16 +780,16 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                           setIsCustomPay(false);
                           setPurchaseErrors((prev) => ({ ...prev, amount: undefined }));
                         }}
-                        className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        className={`relative overflow-hidden p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-[#232D21] text-[#F7E7C4] border-[#C8A253] shadow-sm'
-                            : 'bg-[#FAF8F5] text-[#2B2E31] border-[#E6E1D8] hover:border-[#7A8B71]'
+                            ? 'bg-[#232D21] text-[#F7F4EF] border-[#C8A253] shadow-[0_10px_22px_-10px_rgba(35,45,33,0.55)] -translate-y-0.5'
+                            : 'bg-white text-[#2B2E31] border-[#E6E1D8] hover:border-[#C8A253]/60'
                         }`}
                       >
-                        <span className="font-serif text-sm sm:text-base font-bold block">
+                        <span className={`font-serif text-base font-normal block ${isSelected ? 'text-[#F7E7C4]' : 'text-[#2B2E31]'}`}>
                           GH₵ {tier.amount}
                         </span>
-                        <span className={`text-[9px] sm:text-[10px] block ${isSelected ? 'text-[#C8A253]' : 'text-[#5C6260]'}`}>
+                        <span className={`text-[9.5px] uppercase tracking-[0.12em] block mt-0.5 ${isSelected ? 'text-[#C8A253]' : 'text-[#7A746B]'}`}>
                           {tier.label}
                         </span>
                       </button>
@@ -771,11 +799,11 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
 
                 {/* Custom Amount Input (>= 30 Cedis) */}
                 <div className="pt-0.5">
-                  <label className="block text-[10px] sm:text-[11px] font-semibold text-[#5C6260] mb-1">
-                    Or enter any custom amount you wish to pay (Minimum GH₵ {MINIMUM_VIDEO_PRICE_GHS}):
+                  <label className="block text-[11px] font-medium text-[#5C6260] mb-1.5">
+                    Or enter any custom amount you wish to pay (Min GH₵ {MINIMUM_VIDEO_PRICE_GHS}):
                   </label>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-xl bg-[#FAF8F5] border border-[#E6E1D8] px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-bold text-[#232D21]">
+                    <span className="rounded-xl bg-white border border-[#E6E1D8] px-3 py-2 text-xs font-serif font-medium text-[#2B2E31]">
                       GH₵
                     </span>
                     <input
@@ -790,46 +818,49 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                         setPurchaseErrors((prev) => ({ ...prev, amount: undefined }));
                       }}
                       placeholder="30 or more (e.g. 50)"
-                      className={`flex-1 rounded-xl border px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold outline-none transition-colors ${
-                        purchaseErrors.amount ? 'border-[#A44A4A] bg-[#FFF5F5]' : 'border-[#E6E1D8] focus:border-[#7A8B71]'
+                      className={`flex-1 rounded-xl border px-3 py-2 text-xs sm:text-sm font-semibold outline-none transition-colors bg-white ${
+                        purchaseErrors.amount ? 'border-[#A44A4A] bg-[#FFF5F5]' : 'border-[#E6E1D8] focus:border-[#C8A253]'
                       }`}
                     />
                   </div>
 
                   {purchaseErrors.amount && (
-                    <p className="text-[10px] sm:text-[11px] font-semibold text-[#A44A4A] mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                    <p className="text-[10px] sm:text-[11px] font-semibold text-[#A44A4A] mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                       <span>{purchaseErrors.amount}</span>
                     </p>
                   )}
 
                   {effectivePayAmount > MINIMUM_VIDEO_PRICE_GHS && (
-                    <p className="text-[10px] sm:text-[11px] font-semibold text-[#5A6952] mt-1 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#C8A253]" />
+                    <p className="font-serif italic text-[11px] text-[#5A6952] mt-1.5 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-[#C8A253] shrink-0" />
                       <span>
-                        Includes +GH₵ {effectivePayAmount - MINIMUM_VIDEO_PRICE_GHS} extra appreciation for {purchaseTargetVideo.creatorName}!
+                        Includes +GH₵ {effectivePayAmount - MINIMUM_VIDEO_PRICE_GHS} extra appreciation for {purchaseTargetVideo.creatorName}
                       </span>
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* BUYER DETAILS & MOMO CHECKOUT */}
-              <div className="rounded-xl sm:rounded-2xl bg-white border border-[#E6E1D8] p-3 sm:p-4 space-y-2.5 sm:space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#5C6260] flex items-center gap-1.5">
-                    <CreditCard className="h-3.5 w-3.5 text-[#7A8B71]" />
-                    Paystack Payment to Unlock Full Video
+              {/* STEP 02: BUYER DETAILS & MOMO CHECKOUT */}
+              <div className="rounded-2xl bg-white border border-[#E6E1D8] p-3.5 sm:p-4 space-y-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    <span className="font-serif italic text-sm text-[#C8A253]">02</span>
+                    <span className="h-px w-3.5 bg-[#C8A253]/60" aria-hidden="true" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#5C6260]">
+                      Paystack Checkout
+                    </span>
                   </span>
-                  <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-[#5A6952]">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7A8B71]">
                     <PaystackIcon className="h-3 w-3" />
                     <span>Paystack Ghana</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   <div>
-                    <label className="block text-[11px] sm:text-xs font-semibold text-[#2B2E31] mb-1">
+                    <label className="block text-[11px] font-semibold text-[#2B2E31] mb-1">
                       Your Name *
                     </label>
                     <input
@@ -837,7 +868,7 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                       value={buyerForm.fullName}
                       onChange={(e) => setBuyerForm({ ...buyerForm, fullName: e.target.value })}
                       placeholder="e.g. Efua Darko"
-                      className="w-full rounded-xl border border-[#E6E1D8] px-3 py-1.5 sm:py-2 text-xs outline-none focus:border-[#7A8B71]"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-[#FDFCFA] focus:bg-white px-3 py-2 text-xs outline-none focus:border-[#C8A253] transition-colors"
                     />
                     {purchaseErrors.fullName && (
                       <p className="text-[10px] text-[#A44A4A] mt-0.5">{purchaseErrors.fullName}</p>
@@ -845,7 +876,7 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                   </div>
 
                   <div>
-                    <label className="block text-[11px] sm:text-xs font-semibold text-[#2B2E31] mb-1">
+                    <label className="block text-[11px] font-semibold text-[#2B2E31] mb-1">
                       WhatsApp / MoMo Phone *
                     </label>
                     <input
@@ -859,7 +890,7 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                         })
                       }
                       placeholder="024 123 4567"
-                      className="w-full rounded-xl border border-[#E6E1D8] px-3 py-1.5 sm:py-2 text-xs outline-none focus:border-[#7A8B71]"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-[#FDFCFA] focus:bg-white px-3 py-2 text-xs outline-none focus:border-[#C8A253] transition-colors"
                     />
                     {purchaseErrors.phone && (
                       <p className="text-[10px] text-[#A44A4A] mt-0.5">{purchaseErrors.phone}</p>
@@ -873,34 +904,43 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                     { id: 'MTN', name: 'MTN MoMo' },
                     { id: 'Telecel', name: 'Telecel Cash' },
                     { id: 'AirtelTigo', name: 'AT Money' }
-                  ].map((net) => (
-                    <button
-                      key={net.id}
-                      type="button"
-                      onClick={() => setBuyerForm({ ...buyerForm, momoNetwork: net.id })}
-                      className={`flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer ${
-                        buyerForm.momoNetwork === net.id
-                          ? 'bg-[#FAF8F5] border-[#7A8B71] ring-1 ring-[#7A8B71]'
-                          : 'border-[#E6E1D8] bg-white'
-                      }`}
-                    >
-                      <div className="h-5 sm:h-6 flex items-center justify-center mb-0.5 sm:mb-1">
-                        <MobileMoneyLogo network={net.id} variant="image" size="sm" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] font-semibold text-[#2B2E31] leading-tight">{net.name}</span>
-                    </button>
-                  ))}
+                  ].map((net) => {
+                    const isSelected = buyerForm.momoNetwork === net.id;
+                    return (
+                      <button
+                        key={net.id}
+                        type="button"
+                        onClick={() => setBuyerForm({ ...buyerForm, momoNetwork: net.id })}
+                        className={`relative overflow-hidden flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-white border-[#C8A253] ring-1 ring-[#C8A253]/35 shadow-xs'
+                            : 'border-[#E6E1D8] bg-[#FDFCFA] hover:bg-white hover:border-[#C8A253]/50'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[#C8A253] to-transparent"
+                          />
+                        )}
+                        <div className="h-5 sm:h-6 flex items-center justify-center mb-1">
+                          <MobileMoneyLogo network={net.id} variant="image" size="sm" />
+                        </div>
+                        <span className="text-[9.5px] sm:text-[10px] font-semibold text-[#2B2E31] leading-tight">{net.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="bg-[#FAF8F5] border-t border-[#E6E1D8] p-3 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+            {/* Editorial Sanctuary Footer */}
+            <div className="bg-[#FDFCFA] border-t border-[#E6E1D8] px-4 py-3.5 sm:px-6 sm:py-4 flex items-center justify-between gap-2.5 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setPurchaseTargetVideo(null)}
                 disabled={isProcessingPayment}
-                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-[#E6E1D8] text-xs font-semibold text-[#5C6260] hover:bg-white cursor-pointer"
+                className="px-4 py-2.5 rounded-full border border-[#E6E1D8] bg-white text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5C6260] hover:border-[#2B2E31]/30 hover:text-[#2B2E31] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -909,11 +949,11 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                 type="button"
                 onClick={handleCompletePurchase}
                 disabled={isProcessingPayment}
-                className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#A44A4A] hover:bg-[#8C3E3E] text-white py-2 sm:py-2.5 px-3 sm:px-5 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer disabled:opacity-75"
+                className="flex-1 flex items-center justify-center gap-2 rounded-full bg-[#232D21] hover:bg-[#192118] text-[#F7F4EF] border border-[#C8A253]/50 hover:border-[#C8A253] py-2.5 px-4 sm:px-5 text-xs font-semibold tracking-[0.05em] shadow-[0_12px_28px_-10px_rgba(35,45,33,0.55)] transition-all active:scale-[0.99] cursor-pointer disabled:opacity-75"
               >
                 {isProcessingPayment ? (
                   <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#C8A253] border-t-transparent" />
                     <span>
                       {paymentStep === 1 && 'Connecting Paystack...'}
                       {paymentStep === 2 && `Authorizing GH₵ ${effectivePayAmount}...`}
@@ -922,8 +962,8 @@ export default function ShortVideosSection({ onVideoPurchased, showToast, isAdmi
                   </>
                 ) : (
                   <>
-                    <Unlock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span>Pay GH₵ {effectivePayAmount || MINIMUM_VIDEO_PRICE_GHS} • Get Full Video</span>
+                    <Unlock className="h-3.5 w-3.5 text-[#C8A253]" />
+                    <span>Pay GH₵ {effectivePayAmount || MINIMUM_VIDEO_PRICE_GHS} • Unlock Full HD Video</span>
                   </>
                 )}
               </button>

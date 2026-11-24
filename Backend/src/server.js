@@ -1,4 +1,6 @@
 import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -70,6 +72,13 @@ app.use(
 
 // Global IP Rate Limiter (Anti-DDoS)
 app.use('/api', globalApiLimiter);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsStaticDir = path.resolve(__dirname, '../../frontend/public/images/uploads');
+
+// Static file access for uploaded studio experience imagery
+app.use('/images/uploads', express.static(uploadsStaticDir));
 
 // API Routes
 app.use('/api/classes', classesRoutes);

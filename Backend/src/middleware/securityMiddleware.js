@@ -111,11 +111,16 @@ export function redactUrlForLogging(url = '') {
  */
 export function isSafeMediaUrl(url) {
   if (url === null || url === undefined || url === '') return true;
-  if (typeof url !== 'string' || url.length > 2048) return false;
+  if (typeof url !== 'string') return false;
   const trimmed = url.trim();
+  // Allow data:image URLs up to 15MB for direct previews or uploads
+  if (/^data:image\/(jpeg|jpg|png|webp|gif);base64,/i.test(trimmed)) {
+    return trimmed.length <= 15 * 1024 * 1024;
+  }
+  // Standard hosted URLs and local relative paths up to 2048 characters
+  if (trimmed.length > 2048) return false;
   if (trimmed.startsWith('/')) return true;
   if (/^https?:\/\//i.test(trimmed)) return true;
-  if (/^data:image\/(jpeg|jpg|png|webp|gif);base64,/i.test(trimmed)) return true;
   return false;
 }
 
