@@ -15,10 +15,12 @@ import {
   X,
   Calendar,
   ChevronDown,
-  ShieldAlert
+  ShieldAlert,
+  SlidersHorizontal
 } from 'lucide-react';
 import { api } from '../services/api';
 import { studioSocket } from '../services/websocket';
+import WellnessCatalogEditor from './WellnessCatalogEditor';
 
 // Helper to format exact date and time for pass purchases and redemptions
 function formatExactDateTime(dateInput) {
@@ -50,6 +52,7 @@ function formatExactDateTime(dateInput) {
 }
 
 export default function GiftCardsManager({ showToast }) {
+  const [activeSection, setActiveSection] = useState('desk'); // 'desk' | 'catalog'
   const [giftCards, setGiftCards] = useState([]);
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -460,16 +463,51 @@ export default function GiftCardsManager({ showToast }) {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchData}
-          className="flex items-center gap-1.5 self-start sm:self-auto rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2 text-xs font-semibold text-[#5C6260] hover:bg-[#FAF8F5] transition-colors shadow-2xs cursor-pointer"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh Records</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <div className="inline-flex rounded-2xl bg-[#EEE9E1] border border-[#E6E1D8] p-1">
+            <button
+              type="button"
+              onClick={() => setActiveSection('desk')}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                activeSection === 'desk'
+                  ? 'bg-[#232D21] text-[#F7F4EF] shadow-xs'
+                  : 'text-[#5C6260] hover:text-[#2B2E31]'
+              }`}
+            >
+              <Gift className="h-3.5 w-3.5 text-[#C8A253]" />
+              <span>Issued Passes &amp; Desk</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('catalog')}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                activeSection === 'catalog'
+                  ? 'bg-[#232D21] text-[#F7F4EF] shadow-xs'
+                  : 'text-[#5C6260] hover:text-[#2B2E31]'
+              }`}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#C8A253]" />
+              <span>Edit Plans &amp; Gift Prices</span>
+            </button>
+          </div>
+
+          {activeSection === 'desk' && (
+            <button
+              type="button"
+              onClick={fetchData}
+              className="flex items-center gap-1.5 rounded-2xl border border-[#E6E1D8] bg-white px-3.5 py-2 text-xs font-semibold text-[#5C6260] hover:bg-[#FAF8F5] transition-colors shadow-2xs cursor-pointer"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh Records</span>
+            </button>
+          )}
+        </div>
       </div>
 
+      {activeSection === 'catalog' ? (
+        <WellnessCatalogEditor showToast={showToast} />
+      ) : (
+        <>
       {/* Front Desk Concierge Quick Lookup Tool */}
       <div className="rounded-3xl border-2 border-[#C8A253]/30 bg-gradient-to-br from-[#FAF5EB] via-white to-[#F7F4EF] p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1384,6 +1422,8 @@ export default function GiftCardsManager({ showToast }) {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

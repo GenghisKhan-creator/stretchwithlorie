@@ -3,8 +3,10 @@
 // with seamless LocalStorage fallback if backend is offline.
 
 import { INITIAL_CLASSES, INITIAL_REGISTRATIONS, DEFAULT_INSTRUCTOR_AVATAR } from '../data/mockData';
+import { DEFAULT_WELLNESS_CATALOG } from '../data/wellnessCatalog';
 
 const STORAGE_KEY_CLASSES = 'stretchwithlorie_classes_v12';
+const STORAGE_KEY_WELLNESS_CATALOG = 'stretchwithlorie_wellness_catalog_v1';
 const STORAGE_KEY_REGISTRATIONS = 'stretchwithlorie_registrations_v12';
 const STORAGE_KEY_REFERRALS = 'stretchwithlorie_referrals_v12';
 const STORAGE_KEY_EVENT_INQUIRIES = 'stretchwithlorie_event_inquiries_v12';
@@ -1489,6 +1491,85 @@ export const api = {
       discountAmount,
       finalPrice
     };
+  },
+
+  /**
+   * Fetch Wellness Membership Plans & Gift Card Presets Catalog
+   */
+  async getWellnessCatalog() {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${API_BASE_URL}/gift-cards/catalog`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          const merged = {
+            ...DEFAULT_WELLNESS_CATALOG,
+            ...json.data
+          };
+          try {
+            localStorage.setItem(STORAGE_KEY_WELLNESS_CATALOG, JSON.stringify(merged));
+          } catch {}
+          return merged;
+        }
+      }
+    } catch {
+      // Fall back to local cache or defaults if backend offline
+    }
+
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY_WELLNESS_CATALOG);
+      if (cached) {
+        return { ...DEFAULT_WELLNESS_CATALOG, ...JSON.parse(cached) };
+      }
+    } catch {}
+
+    return DEFAULT_WELLNESS_CATALOG;
+  },
+
+  /**
+   * Update Wellness Membership Plans & Gift Card Presets (Admin Protected)
+   */
+  async updateWellnessCatalog(catalogData) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const res = await fetch(`${API_BASE_URL}/gift-cards/catalog`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(catalogData),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          try {
+            localStorage.setItem(STORAGE_KEY_WELLNESS_CATALOG, JSON.stringify(json.data));
+          } catch {}
+          return json.data;
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          clearAdminToken();
+          throw new Error('Admin session expired. Please log in again to save wellness & gift pricing.');
+        }
+        throw new Error(errJson.error || `Server error (${res.status}): Failed to save wellness catalog.`);
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        throw new Error('Server request timed out while saving wellness catalog.');
+      }
+      throw err;
+    }
   }
 };
 

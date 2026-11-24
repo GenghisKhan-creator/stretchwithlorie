@@ -25,6 +25,8 @@ import MobileMoneyLogo from './MobileMoneyLogo';
 import { PaystackIcon } from './RegistrationForm';
 import { exportGiftPassPDF } from '../utils/pdfExport';
 import { api } from '../services/api';
+import { studioSocket } from '../services/websocket';
+import { DEFAULT_WELLNESS_CATALOG } from '../data/wellnessCatalog';
 import loriePoseImg from '../assets/lorie_pose.png';
 
 // SACRED LOTUS FLOWER SVG EMBLEM
@@ -341,6 +343,42 @@ export default function WellnessGiftCardModal({
   const giftCertificateRef = useRef(null);
   const giftQuoteBoxRef = useRef(null);
 
+  // Live Admin-Configurable Wellness & Gift Card Catalog
+  const [catalog, setCatalog] = useState(DEFAULT_WELLNESS_CATALOG);
+
+  useEffect(() => {
+    let mounted = true;
+    api.getWellnessCatalog().then((data) => {
+      if (mounted && data) {
+        setCatalog(data);
+        if (data.subscriptionPlans?.length > 0) {
+          setSelectedPlanId((prevId) => {
+            if (data.subscriptionPlans.some((p) => p.id === prevId)) return prevId;
+            const popular = data.subscriptionPlans.find((p) => p.isPopular);
+            return popular ? popular.id : data.subscriptionPlans[0].id;
+          });
+        }
+        if (data.giftPresets?.length > 0) {
+          setGiftAmount((prevAmt) => {
+            if (data.giftPresets.some((g) => g.amount === prevAmt)) return prevAmt;
+            return data.giftPresets[Math.min(2, data.giftPresets.length - 1)].amount;
+          });
+        }
+      }
+    });
+
+    const unsubCatalog = studioSocket.subscribe('WELLNESS_CATALOG_UPDATED', (updatedCatalog) => {
+      if (mounted && updatedCatalog) {
+        setCatalog((prev) => ({ ...prev, ...updatedCatalog }));
+      }
+    });
+
+    return () => {
+      mounted = false;
+      unsubCatalog();
+    };
+  }, [isOpen]);
+
   // Interactive 3D Tilt & Flip States for Member Keycard
   const [keycardTilt, setKeycardTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, isHovering: false });
   const [isKeycardFlipped, setIsKeycardFlipped] = useState(false);
@@ -448,7 +486,12 @@ export default function WellnessGiftCardModal({
 
   if (!isOpen) return null;
 
-  const selectedPlan = SUBSCRIPTION_PLANS.find((p) => p.id === selectedPlanId) || SUBSCRIPTION_PLANS[1];
+  const subscriptionPlans = catalog.subscriptionPlans?.length > 0 ? catalog.subscriptionPlans : SUBSCRIPTION_PLANS;
+  const giftPresets = catalog.giftPresets?.length > 0 ? catalog.giftPresets : GIFT_PRESETS;
+  const customAmountPicks = catalog.customAmountPicks?.length > 0 ? catalog.customAmountPicks : CUSTOM_AMOUNT_QUICK_PICKS;
+  const minCustomGiftAmount = Number(catalog.minCustomGiftAmount) || 100;
+
+  const selectedPlan = subscriptionPlans.find((p) => p.id === selectedPlanId) || subscriptionPlans[0];
   const activePalette = WELLNESS_PALETTES.find((p) => p.id === giftTheme) || WELLNESS_PALETTES[0];
   const finalGiftAmount = isCustomAmount ? (parseInt(customAmountValue, 10) || 0) : giftAmount;
 
@@ -507,8 +550,8 @@ export default function WellnessGiftCardModal({
         errs.subAgreedToTerms = 'Please confirm agreement to the studio commitments before proceeding.';
       }
     } else {
-      if (isCustomAmount && (!finalGiftAmount || finalGiftAmount < 100)) {
-        errs.giftAmount = 'Minimum gift voucher amount is GH₵ 100.';
+      if (isCustomAmount && (!finalGiftAmount || finalGiftAmount < minCustomGiftAmount)) {
+        errs.giftAmount = `Minimum gift voucher amount is GH₵ ${minCustomGiftAmount}.`;
       }
       if (!giftFormData.recipientName.trim()) errs.recipientName = 'Please enter the recipient’s name.';
       if (!giftFormData.senderName.trim()) errs.senderName = 'Please enter your name as the sender.';
@@ -1311,7 +1354,7 @@ export default function WellnessGiftCardModal({
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          {SUBSCRIPTION_PLANS.map((plan) => {
+                          {subscriptionPlans.map((plan) => {
                             const isSelected = selectedPlanId === plan.id;
                             return (
                               <div
@@ -1959,7 +2002,7 @@ export default function WellnessGiftCardModal({
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                          {GIFT_PRESETS.map((preset) => {
+                          {giftPresets.map((preset) => {
                             const isSelected = !isCustomAmount && giftAmount === preset.amount;
                             return (
                               <button
@@ -2021,7 +2064,7 @@ export default function WellnessGiftCardModal({
                               Enter Any Amount
                             </span>
                             <span className="text-[10px] text-[#7A746B] block mt-0.5">
-                              Flexible Credit (Min GH₵ 100)
+                              Flexible Credit (Min GH₵ {minCustomGiftAmount})
                             </span>
                           </button>
                         </div>
@@ -2043,9 +2086,9 @@ export default function WellnessGiftCardModal({
                               </span>
                               <input
                                 type="number"
-                                min="100"
+                                min={minCustomGiftAmount}
                                 step="50"
-                                placeholder="Enter custom amount (e.g. 500)"
+                                placeholder={`Enter custom amount (min ${minCustomGiftAmount})`}
                                 value={customAmountValue}
                                 onChange={(e) => setCustomAmountValue(e.target.value)}
                                 className="flex-1 rounded-xl border border-[#E6E1D8] px-3 py-2 text-xs sm:text-sm font-semibold outline-none focus:border-[#A44A4A]"
@@ -2055,7 +2098,7 @@ export default function WellnessGiftCardModal({
                             {/* Quick-Pick Custom Amount Pills */}
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span className="text-[10px] text-[#5C6260] mr-1">Quick amounts:</span>
-                              {CUSTOM_AMOUNT_QUICK_PICKS.map((amt) => (
+                              {customAmountPicks.map((amt) => (
                                 <button
                                   key={amt}
                                   type="button"

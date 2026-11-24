@@ -589,3 +589,122 @@ export async function getAllGiftCards(req, res, next) {
     next(err);
   }
 }
+
+const WELLNESS_CATALOG_KEY = 'wellness_gift_catalog';
+
+async function ensureStudioSettingsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS studio_settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+}
+
+// GET /api/gift-cards/catalog (Public — returns admin-configured wellness plans & gift presets)
+export async function getWellnessCatalog(req, res, next) {
+  try {
+    await ensureStudioSettingsTable();
+    const { rows } = await pool.query(
+      'SELECT value, updated_at FROM studio_settings WHERE key = $1',
+      [WELLNESS_CATALOG_KEY]
+    );
+    if (rows.length === 0) {
+      return res.json({ success: true, data: null });
+    }
+    res.json({
+      success: true,
+      data: rows[0].value,
+      updatedAt: rows[0].updated_at
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PUT /api/gift-cards/catalog (Admin Protected — saves wellness plans & gift card prices/presets)
+export async function updateWellnessCatalog(req, res, next) {
+  try {
+    await ensureStudioSettingsTable();
+    const {
+      subscriptionPlans,
+      giftPresets,
+      customAmountPicks,
+      minCustomGiftAmount
+    } = req.body || {};
+
+    if (!Array.isArray(subscriptionPlans) || subscriptionPlans.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one membership plan is required.' });
+    }
+    if (!Array.isArray(giftPresets) || giftPresets.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one gift card preset is required.' });
+    }
+
+    const sanitizedPlans = subscriptionPlans.map((plan, idx) => ({
+      id: String(plan.id || `plan-${Date.now()}-${idx}`).slice(0, 60),
+      name: String(plan.name || 'Wellness Pass').trim().slice(0, 100),
+      subtitle: String(plan.subtitle || '').trim().slice(0, 120),
+      badge: String(plan.badge || 'Sanctuary Pass').trim().slice(0, 60),
+      tierCode: String(plan.tierCode || `PASS-0${idx + 1}`).trim().slice(0, 30),
+      isPopular: Boolean(plan.isPopular),
+      classesPerMonth: Math.max(1, Math.min(100, parseInt(plan.classesPerMonth, 10) || 1)),
+      price: Math.max(1, Math.min(50000, Number(plan.price) || 100)),
+      savings: String(plan.savings || '').trim().slice(0, 60),
+      description: String(plan.description || '').trim().slice(0, 300),
+      themeColor: String(plan.themeColor || '#7A8B71').slice(0, 30),
+      cardGradient: String(plan.cardGradient || 'from-[#1C251B] via-[#2B3829] to-[#131A12]').slice(0, 120),
+      borderAccent: String(plan.borderAccent || 'border-[#C8A253]/75').slice(0, 80),
+      badgeStyle: String(plan.badgeStyle || 'bg-[#E5ECE2] text-[#232D21]').slice(0, 120),
+      cardPerks: Array.isArray(plan.cardPerks)
+        ? plan.cardPerks.map((p) => String(p).trim()).filter(Boolean).slice(0, 8)
+        : [],
+      features: Array.isArray(plan.features)
+        ? plan.features.map((f) => String(f).trim()).filter(Boolean).slice(0, 12)
+        : []
+    }));
+
+    const sanitizedPresets = giftPresets.map((preset) => ({
+      amount: Math.max(10, Math.min(50000, Number(preset.amount) || 100)),
+      label: String(preset.label || 'Wellness Gift').trim().slice(0, 80),
+      desc: String(preset.desc || '').trim().slice(0, 140),
+      icon: String(preset.icon || '🪷').trim().slice(0, 10)
+    }));
+
+    const sanitizedPicks = Array.isArray(customAmountPicks)
+      ? customAmountPicks
+          .map((n) => Math.max(10, Math.min(50000, Number(n) || 0)))
+          .filter((n) => n >= 10)
+          .slice(0, 10)
+      : [250, 500, 1000, 1500, 2000];
+
+    const safeMinCustom = Math.max(10, Math.min(10000, Number(minCustomGiftAmount) || 100));
+
+    const payload = {
+      subscriptionPlans: sanitizedPlans,
+      giftPresets: sanitizedPresets,
+      customAmountPicks: sanitizedPicks.length > 0 ? sanitizedPicks : [250, 500, 1000],
+      minCustomGiftAmount: safeMinCustom
+    };
+
+    const { rows } = await pool.query(
+      `INSERT INTO studio_settings (key, value, updated_at)
+       VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+       RETURNING value, updated_at`,
+      [WELLNESS_CATALOG_KEY, JSON.stringify(payload)]
+    );
+
+    const saved = rows[0].value;
+    broadcast('WELLNESS_CATALOG_UPDATED', saved);
+
+    res.json({
+      success: true,
+      message: 'Wellness plans & gift card pricing saved to database!',
+      data: saved,
+      updatedAt: rows[0].updated_at
+    });
+  } catch (err) {
+    next(err);
+  }
+}

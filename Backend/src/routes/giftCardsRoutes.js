@@ -6,12 +6,18 @@ import {
   deskWalkInBooking,
   adjustCard,
   voidCard,
-  getAllGiftCards
+  getAllGiftCards,
+  getWellnessCatalog,
+  updateWellnessCatalog
 } from '../controllers/giftCardsController.js';
 import { requireAdminAuth } from '../middleware/authMiddleware.js';
 import { bookingWriteLimiter, promoValidateLimiter } from '../middleware/securityMiddleware.js';
 
 const router = express.Router();
+
+// Wellness Membership & Gift Card Catalog Configuration (MUST be before /:code)
+router.get('/catalog', getWellnessCatalog);
+router.put('/catalog', requireAdminAuth, express.json({ limit: '512kb' }), updateWellnessCatalog);
 
 // Collection & Management routes (Admin protected)
 router.get('/', requireAdminAuth, getAllGiftCards);

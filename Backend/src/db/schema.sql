@@ -164,6 +164,13 @@ CREATE TABLE IF NOT EXISTS referral_codes (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 8. Studio Dynamic Settings & Wellness/Gift Catalog Configuration
+CREATE TABLE IF NOT EXISTS studio_settings (
+  key VARCHAR(100) PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_registrations_class_id ON registrations(class_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_booking_ref ON registrations(booking_ref);
