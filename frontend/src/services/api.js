@@ -38,13 +38,14 @@ const INITIAL_REFERRALS = [
     totalRevenueGenerated: 0,
     totalCommissionEarned: 0,
     isActive: true,
+    codeType: 'creator',
     notes: 'TikTok & Instagram Wellness Creator Collaboration'
   },
   {
     id: 'ref-lorievip',
     code: 'LORIEVIP',
     creatorName: 'Sanctuary VIP Launch',
-    creatorHandle: '@stretchwithlorie',
+    creatorHandle: '',
     creatorPhone: '',
     discountType: 'fixed',
     discountValue: 30,
@@ -54,6 +55,7 @@ const INITIAL_REFERRALS = [
     totalRevenueGenerated: 0,
     totalCommissionEarned: 0,
     isActive: true,
+    codeType: 'voucher',
     notes: 'Founding Members GH₵ 30 Off Discount Code'
   }
 ];
@@ -1369,20 +1371,22 @@ export const api = {
     if (current.some((r) => r.code.toUpperCase() === cleanCode)) {
       throw new Error(`Code "${cleanCode}" already exists.`);
     }
+    const isVoucher = referralData.codeType === 'voucher';
     const newRef = {
       id: `ref-${Date.now()}`,
       code: cleanCode,
       creatorName: referralData.creatorName.trim(),
-      creatorHandle: referralData.creatorHandle?.trim() || '',
-      creatorPhone: referralData.creatorPhone?.trim() || '',
+      creatorHandle: isVoucher ? '' : (referralData.creatorHandle?.trim() || ''),
+      creatorPhone: isVoucher ? '' : (referralData.creatorPhone?.trim() || ''),
       discountType: referralData.discountType === 'fixed' ? 'fixed' : 'percentage',
       discountValue: Number(referralData.discountValue) || 10,
-      commissionPercent: Number(referralData.commissionPercent) || 0,
+      commissionPercent: isVoucher ? 0 : (Number(referralData.commissionPercent) || 0),
       maxUses: referralData.maxUses ? Number(referralData.maxUses) : null,
       usesCount: 0,
       totalRevenueGenerated: 0,
       totalCommissionEarned: 0,
       isActive: true,
+      codeType: isVoucher ? 'voucher' : 'creator',
       notes: referralData.notes?.trim() || '',
       createdAt: new Date().toISOString()
     };

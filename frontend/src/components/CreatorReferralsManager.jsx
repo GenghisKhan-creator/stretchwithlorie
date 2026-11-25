@@ -16,7 +16,12 @@ import {
   Percent,
   Phone,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Ticket,
+  AtSign,
+  Info,
+  ShieldCheck,
+  Shuffle
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -26,6 +31,11 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
   const [isCreating, setIsCreating] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [expandedCodeId, setExpandedCodeId] = useState(null);
+
+  // 'creator' (Creator Referral Code) vs 'voucher' (Studio Discount Voucher)
+  const [codeCategory, setCodeCategory] = useState('creator');
+  // List filter: 'all' | 'creator' | 'voucher'
+  const [listFilter, setListFilter] = useState('all');
 
   const [form, setForm] = useState({
     creatorName: '',
@@ -64,23 +74,79 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
     const unlimitedCount = referrals.length - cappedReferrals.length;
     const totalRevenue = referrals.reduce((sum, r) => sum + (Number(r.totalRevenueGenerated) || 0), 0);
     const totalCommission = referrals.reduce((sum, r) => sum + (Number(r.totalCommissionEarned) || 0), 0);
+
+    const creatorCodes = referrals.filter(
+      (r) => r.codeType === 'creator' || (Number(r.commissionPercent) > 0 || (r.creatorHandle && r.creatorHandle.trim()))
+    );
+    const voucherCodes = referrals.filter(
+      (r) => r.codeType === 'voucher' || (!r.creatorHandle && (!r.commissionPercent || Number(r.commissionPercent) === 0))
+    );
+
     return {
       activeCount,
       totalUses,
       totalRemainingOnCapped,
       unlimitedCount,
       totalRevenue,
-      totalCommission
+      totalCommission,
+      creatorCount: creatorCodes.length,
+      voucherCount: voucherCodes.length
     };
   }, [referrals]);
 
+  const handleSwitchCategory = (newCat) => {
+    setCodeCategory(newCat);
+    setFormError('');
+    if (newCat === 'voucher') {
+      setForm((prev) => ({
+        ...prev,
+        commissionPercent: 0,
+        creatorHandle: '',
+        creatorPhone: '',
+        discountValue: prev.discountValue || 15
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        commissionPercent: prev.commissionPercent > 0 ? prev.commissionPercent : 10,
+        discountValue: prev.discountValue || 15
+      }));
+    }
+  };
+
   const handleAutoGenerateCode = () => {
-    const base = (form.creatorName || form.creatorHandle || 'LORIE')
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .slice(0, 6);
-    const val = Math.round(Number(form.discountValue) || 15);
-    const generated = `${base || 'YOGA'}${val}`;
+    // 32-character unambiguous charset: numbers 2-9 and letters A-Z (excluding 0, O, 1, I to prevent confusion)
+    const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const getRandomSegment = (len) => {
+      const array = new Uint32Array(len);
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(array);
+        return Array.from(array, (x) => charset[x % charset.length]).join('');
+      }
+      return Array.from({ length: len }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
+    };
+
+    const block1 = getRandomSegment(4); // 4-char cryptographic block (e.g. 8K9F)
+    const block2 = getRandomSegment(2); // 2-char cryptographic block (e.g. 4B)
+
+    let generated = '';
+    if (codeCategory === 'creator') {
+      const raw = (form.creatorHandle || form.creatorName || '')
+        .replace(/^@/, '')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase();
+      const prefix = raw.length >= 3 ? raw.slice(0, 3) : (raw || 'AMA');
+      // High-entropy, brute-force proof format (~1.07 billion combinations): e.g. AMA-8K9F-4B
+      generated = `${prefix}-${block1}-${block2}`;
+    } else {
+      const raw = (form.creatorName || '')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase();
+      const prefix = raw.length >= 3 ? raw.slice(0, 3) : (raw || 'SWL');
+      // High-entropy, brute-force proof format (~1.07 billion combinations): e.g. SMR-9K84-X7 or SWL-8K9F-4B
+      generated = `${prefix}-${block1}-${block2}`;
+    }
+
     setForm((prev) => ({ ...prev, code: generated }));
     setFormError('');
   };
@@ -88,7 +154,11 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
   const handleCreateReferral = async (e) => {
     e.preventDefault();
     if (!form.creatorName.trim()) {
-      setFormError('Please enter the content creator or campaign name.');
+      setFormError(
+        codeCategory === 'voucher'
+          ? 'Please enter the voucher or campaign name (e.g. Summer Solstice Special).'
+          : 'Please enter the content creator or partner name.'
+      );
       return;
     }
     if (!form.code.trim()) {
@@ -103,13 +173,18 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
     setIsCreating(true);
     setFormError('');
     try {
+      const isVoucher = codeCategory === 'voucher';
       const created = await api.createReferral({
         ...form,
+        codeType: isVoucher ? 'voucher' : 'creator',
+        creatorHandle: isVoucher ? '' : form.creatorHandle,
+        creatorPhone: isVoucher ? '' : form.creatorPhone,
+        commissionPercent: isVoucher ? 0 : (Number(form.commissionPercent) || 0),
         code: form.code.trim().toUpperCase(),
         discountValue: Number(form.discountValue),
-        commissionPercent: Number(form.commissionPercent) || 0,
         maxUses: form.maxUses ? Number(form.maxUses) : null
       });
+
       setReferrals((prev) => [created, ...prev]);
       setForm({
         creatorName: '',
@@ -118,15 +193,21 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
         code: '',
         discountType: 'percentage',
         discountValue: 15,
-        commissionPercent: 10,
+        commissionPercent: codeCategory === 'voucher' ? 0 : 10,
         maxUses: '50',
         notes: ''
       });
+
       if (showToast) {
-        showToast('success', `Referral code "${created.code}" created for ${created.creatorName}!`);
+        showToast(
+          'success',
+          isVoucher
+            ? `Discount voucher "${created.code}" created successfully!`
+            : `Referral code "${created.code}" created for ${created.creatorName}!`
+        );
       }
     } catch (err) {
-      setFormError(err.message || 'Failed to create referral code.');
+      setFormError(err.message || 'Failed to create code.');
     } finally {
       setIsCreating(false);
     }
@@ -163,6 +244,21 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
   };
 
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+
+  // Filtered code list
+  const filteredReferrals = useMemo(() => {
+    if (listFilter === 'creator') {
+      return referrals.filter(
+        (r) => r.codeType === 'creator' || (Number(r.commissionPercent) > 0 || (r.creatorHandle && r.creatorHandle.trim()))
+      );
+    }
+    if (listFilter === 'voucher') {
+      return referrals.filter(
+        (r) => r.codeType === 'voucher' || (!r.creatorHandle && (!r.commissionPercent || Number(r.commissionPercent) === 0))
+      );
+    }
+    return referrals;
+  }, [referrals, listFilter]);
 
   return (
     <div id="creator-referrals-manager" className="mt-12 pt-8 border-t border-[#E6E1D8] space-y-6">
@@ -236,13 +332,16 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
           onSubmit={handleCreateReferral}
           className="lg:col-span-5 rounded-3xl border border-[#E6E1D8] bg-[#FAF8F5] p-5 sm:p-6 shadow-sm space-y-4"
         >
+          {/* Card Header with Type Title */}
           <div className="flex items-center justify-between border-b border-[#E6E1D8] pb-3">
             <div>
               <h3 className="font-serif text-base sm:text-lg font-bold text-[#2B2E31]">
                 Generate New Code & Quota
               </h3>
               <p className="text-[11px] text-[#5C6260]">
-                Set discount, commission split, and total redemption limit
+                {codeCategory === 'creator'
+                  ? 'Creator collaboration code with commission tracking & handles'
+                  : 'Studio discount voucher for seasonal campaigns & promotions'}
               </p>
             </div>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#232D21] text-[#C8A253]">
@@ -250,10 +349,68 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
             </span>
           </div>
 
+          {/* Interactive Code Category Switcher */}
+          <div>
+            <label className="block text-[11px] uppercase tracking-wider font-bold text-[#5C6260] mb-1.5">
+              Select Code Purpose *
+            </label>
+            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#EEE9E1]/80 border border-[#E6E1D8] gap-1">
+              <button
+                type="button"
+                onClick={() => handleSwitchCategory('creator')}
+                className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  codeCategory === 'creator'
+                    ? 'bg-[#232D21] text-[#F7E7C4] shadow-sm'
+                    : 'text-[#5C6260] hover:text-[#2B2E31]'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[#C8A253]" />
+                <span>Creator Referral</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSwitchCategory('voucher')}
+                className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  codeCategory === 'voucher'
+                    ? 'bg-[#232D21] text-[#F7E7C4] shadow-sm'
+                    : 'text-[#5C6260] hover:text-[#2B2E31]'
+                }`}
+              >
+                <Ticket className="h-3.5 w-3.5 text-[#C8A253]" />
+                <span>Discount Voucher</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Contextual Info Banner */}
+          {codeCategory === 'voucher' ? (
+            <div className="flex items-start gap-2.5 rounded-2xl bg-[#EAF2E8] border border-[#CDE0CB] p-3 text-xs text-[#3E523A]">
+              <Ticket className="h-4 w-4 text-[#5A6952] shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-[#2B2E31]">Direct Studio Discount Voucher</p>
+                <p className="text-[11px] text-[#5C6260] mt-0.5">
+                  Direct student discount with <strong>0% creator commission</strong>. Social handles (IG/TikTok) and creator MoMo numbers are hidden.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2.5 rounded-2xl bg-[#FAF5EB] border border-[#E8D7B0] p-3 text-xs text-[#8C6D23]">
+              <Sparkles className="h-4 w-4 text-[#C8A253] shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-[#2B2E31]">Creator / Influencer Partnership</p>
+                <p className="text-[11px] text-[#5C6260] mt-0.5">
+                  Tracks sales referred by creators, records social handles, and calculates commission payout balances.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
+            {/* Title / Name Field */}
             <div>
               <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                Creator Name or Campaign Title *
+                {codeCategory === 'voucher' ? 'Voucher Name or Campaign Title *' : 'Creator / Influencer Full Name *'}
               </label>
               <input
                 type="text"
@@ -262,40 +419,56 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                   setForm({ ...form, creatorName: e.target.value });
                   setFormError('');
                 }}
-                placeholder="e.g. Ama Serwaa or Weekend Wellness Promo"
+                placeholder={
+                  codeCategory === 'voucher'
+                    ? 'e.g. Summer Solstice 20% Off or Founder Pass'
+                    : 'e.g. Ama Serwaa or Coach Kofi'
+                }
                 className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs sm:text-sm text-[#2B2E31] outline-none focus:border-[#7A8B71]"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div>
-                <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                  Social Handle (IG / TikTok)
-                </label>
-                <input
-                  type="text"
-                  value={form.creatorHandle}
-                  onChange={(e) => setForm({ ...form, creatorHandle: e.target.value })}
-                  placeholder="e.g. @amaserwaa"
-                  className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
-                />
-              </div>
+            {/* CREATOR-SPECIFIC FIELDS: Only shown when codeCategory === 'creator' */}
+            {codeCategory === 'creator' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
+                    Social Handle (IG / TikTok)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#7A8B71] font-bold">@</span>
+                    <input
+                      type="text"
+                      value={form.creatorHandle ? form.creatorHandle.replace(/^@/, '') : ''}
+                      onChange={(e) => {
+                        const val = e.target.value.trim().replace(/^@/, '');
+                        setForm({ ...form, creatorHandle: val ? `@${val}` : '' });
+                      }}
+                      placeholder="amaserwaa"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white pl-7 pr-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                  Creator MoMo / WhatsApp
-                </label>
-                <input
-                  type="tel"
-                  value={form.creatorPhone}
-                  onChange={(e) => setForm({ ...form, creatorPhone: e.target.value })}
-                  placeholder="024 123 4567"
-                  className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
-                />
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
+                    Creator MoMo / WhatsApp
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      value={form.creatorPhone}
+                      onChange={(e) => setForm({ ...form, creatorPhone: e.target.value })}
+                      placeholder="024 123 4567"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                    <Phone className="h-3.5 w-3.5 text-[#7A8B71] absolute right-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Discount Type & Value */}
+            {/* Student Discount Type & Value */}
             <div className="grid grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
@@ -326,74 +499,120 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
               </div>
             </div>
 
-            {/* Commission & Max Uses */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                  Creator Commission (%)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={form.commissionPercent}
-                    onChange={(e) => setForm({ ...form, commissionPercent: e.target.value })}
-                    placeholder="10"
-                    className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 pr-7 text-xs font-semibold text-[#2B2E31] outline-none focus:border-[#7A8B71]"
-                  />
-                  <Percent className="h-3.5 w-3.5 text-[#5C6260] absolute right-2.5 top-1/2 -translate-y-1/2" />
+            {/* Commission (Creator only) & Usage Quota */}
+            <div className={codeCategory === 'creator' ? 'grid grid-cols-2 gap-2.5' : 'space-y-3'}>
+              {codeCategory === 'creator' ? (
+                <div>
+                  <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
+                    Creator Commission (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={form.commissionPercent}
+                      onChange={(e) => setForm({ ...form, commissionPercent: e.target.value })}
+                      placeholder="10"
+                      className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 pr-7 text-xs font-semibold text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                    />
+                    <Percent className="h-3.5 w-3.5 text-[#5C6260] absolute right-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               <div>
                 <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
-                  Usage Limit (How Many People)
+                  {codeCategory === 'voucher' ? 'Total Vouchers Available (Usage Limit)' : 'Usage Limit (How Many People)'}
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={form.maxUses}
                   onChange={(e) => setForm({ ...form, maxUses: e.target.value })}
-                  placeholder="Leave blank for ∞"
+                  placeholder="Leave blank for ∞ unlimited"
                   className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs font-semibold text-[#2B2E31] outline-none focus:border-[#7A8B71]"
                 />
               </div>
             </div>
 
-            {/* Promo Code Input + Auto-Generator */}
+            {/* Voucher optional notes / audience */}
+            {codeCategory === 'voucher' && (
+              <div>
+                <label className="block text-xs font-semibold text-[#2B2E31] mb-1">
+                  Voucher Target / Internal Note (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="e.g. Public Instagram promo, Newsletter subscribers, or Walk-in voucher"
+                  className="w-full rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs text-[#2B2E31] outline-none focus:border-[#7A8B71]"
+                />
+              </div>
+            )}
+
+            {/* Promo Code Input + Solid Auto-Generator */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-semibold text-[#2B2E31]">
-                  Referral / Discount Code *
+                  {codeCategory === 'voucher' ? 'Voucher Promo Code *' : 'Referral / Promo Code *'}
                 </label>
                 <button
                   type="button"
                   onClick={handleAutoGenerateCode}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#7A8B71] hover:text-[#5A6952] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#5A6952] hover:text-[#232D21] transition-colors cursor-pointer"
+                  title="Generate a cryptographically random, unguessable code"
                 >
-                  <Wand2 className="h-3 w-3" />
-                  <span>Auto-Generate</span>
+                  <Wand2 className="h-3 w-3 text-[#C8A253]" />
+                  <span>Auto-Generate Secure Code</span>
                 </button>
               </div>
+
               <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={form.code}
-                  onChange={(e) => {
-                    setForm({ ...form, code: e.target.value.toUpperCase().replace(/\s+/g, '') });
-                    setFormError('');
-                  }}
-                  placeholder="e.g. AMA15 or GLOW20"
-                  className="flex-1 rounded-xl border border-[#E6E1D8] bg-white px-3 py-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#232D21] outline-none focus:border-[#7A8B71]"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={form.code}
+                    onChange={(e) => {
+                      setForm({ ...form, code: e.target.value.toUpperCase().replace(/\s+/g, '') });
+                      setFormError('');
+                    }}
+                    placeholder={codeCategory === 'voucher' ? 'e.g. SMR-8K9F-4B' : 'e.g. AMA-9K84-X7'}
+                    className="w-full rounded-xl border border-[#E6E1D8] bg-white pl-3 pr-8 py-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-[#232D21] outline-none focus:border-[#7A8B71]"
+                  />
+                  {form.code && (
+                    <span
+                      title="Code generated & protected"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5A6952]"
+                    >
+                      <ShieldCheck className="h-4 w-4 text-[#7A8B71]" />
+                    </span>
+                  )}
+                </div>
+
                 <button
                   type="button"
                   onClick={handleAutoGenerateCode}
-                  className="rounded-xl border border-[#E6E1D8] bg-white hover:bg-[#F1F4EF] px-3 py-2 text-xs font-semibold text-[#2B2E31] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#E6E1D8] bg-white hover:bg-[#F1F4EF] hover:border-[#7A8B71] px-3.5 py-2 text-xs font-bold text-[#2B2E31] transition-all cursor-pointer shadow-2xs"
+                  title="Generate a fresh, unguessable code"
                 >
-                  Suggest
+                  <Shuffle className="h-3.5 w-3.5 text-[#C8A253]" />
+                  <span>Generate</span>
                 </button>
+              </div>
+
+              {/* Security Hint */}
+              <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#5C6260]">
+                <span className="inline-flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3 text-[#7A8B71]" />
+                  <span>Brute-force proof code (~1.07 billion random combinations)</span>
+                </span>
+                {form.code && (
+                  <span className="font-mono text-[#5A6952] font-semibold">
+                    {form.code.length} chars
+                  </span>
+                )}
               </div>
             </div>
 
@@ -408,30 +627,91 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
               disabled={isCreating}
               className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#232D21] hover:bg-[#2F3C2C] text-[#F7E7C4] py-3 px-4 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer disabled:opacity-70"
             >
-              <Sparkles className="h-4 w-4 text-[#C8A253]" />
-              <span>{isCreating ? 'Generating Code...' : 'Create Referral Code & Link'}</span>
+              {codeCategory === 'voucher' ? (
+                <>
+                  <Ticket className="h-4 w-4 text-[#C8A253]" />
+                  <span>{isCreating ? 'Creating Voucher...' : 'Create Studio Discount Voucher'}</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-[#C8A253]" />
+                  <span>{isCreating ? 'Generating Code...' : 'Create Referral Code & Link'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
 
         {/* Active Codes & Creator Links List */}
         <div className="lg:col-span-7 space-y-3.5">
+          {/* Header & Filter Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+            <h3 className="font-serif text-base font-bold text-[#2B2E31]">
+              Active Codes & Collaborations ({referrals.length})
+            </h3>
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white border border-[#E6E1D8] shadow-2xs self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setListFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  listFilter === 'all'
+                    ? 'bg-[#232D21] text-[#F7E7C4]'
+                    : 'text-[#5C6260] hover:text-[#2B2E31]'
+                }`}
+              >
+                All ({referrals.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setListFilter('creator')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  listFilter === 'creator'
+                    ? 'bg-[#232D21] text-[#F7E7C4]'
+                    : 'text-[#5C6260] hover:text-[#2B2E31]'
+                }`}
+              >
+                ✨ Creators ({summary.creatorCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setListFilter('voucher')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  listFilter === 'voucher'
+                    ? 'bg-[#232D21] text-[#F7E7C4]'
+                    : 'text-[#5C6260] hover:text-[#2B2E31]'
+                }`}
+              >
+                🏷️ Vouchers ({summary.voucherCount})
+              </button>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="rounded-3xl border border-[#E6E1D8] bg-white p-8 text-center text-xs text-[#5C6260]">
-              Loading creator codes...
+              Loading promo codes & creator links...
             </div>
-          ) : referrals.length === 0 ? (
+          ) : filteredReferrals.length === 0 ? (
             <div className="rounded-3xl border border-[#E6E1D8] bg-white p-8 text-center space-y-2">
               <Tag className="h-8 w-8 text-[#7A8B71] mx-auto" />
               <h4 className="font-serif text-base font-bold text-[#2B2E31]">
-                No Creator Codes Yet
+                {listFilter === 'all'
+                  ? 'No Codes Generated Yet'
+                  : listFilter === 'creator'
+                    ? 'No Creator Referral Codes'
+                    : 'No Studio Discount Vouchers'}
               </h4>
               <p className="text-xs text-[#5C6260]">
-                Use the generator on the left to create your first influencer referral code or discount link.
+                {listFilter === 'voucher'
+                  ? 'Switch the generator on the left to "Discount Voucher" to create direct promo codes.'
+                  : 'Use the generator on the left to create influencer codes or studio discount vouchers.'}
               </p>
             </div>
           ) : (
-            referrals.map((refItem) => {
+            filteredReferrals.map((refItem) => {
+              const isVoucher =
+                refItem.codeType === 'voucher' ||
+                (!refItem.creatorHandle && (!refItem.commissionPercent || Number(refItem.commissionPercent) === 0));
+
               const referralUrl = `${siteOrigin}/?ref=${encodeURIComponent(refItem.code)}`;
               const isCodeCopied = copiedId === `code-${refItem.id}`;
               const isLinkCopied = copiedId === `link-${refItem.id}`;
@@ -455,7 +735,7 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                     refItem.isActive ? 'border-[#E6E1D8]' : 'border-[#E6E1D8] opacity-65 bg-[#FAF8F5]'
                   }`}
                 >
-                  {/* Top Row: Code Pill, Creator Info & Controls */}
+                  {/* Top Row: Code Pill, Type Badge, Info & Controls */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#F1ECE4]">
                     <div className="flex items-start sm:items-center gap-3">
                       {/* Code Pill */}
@@ -478,11 +758,34 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                           <h4 className="font-serif text-base font-bold text-[#2B2E31]">
                             {refItem.creatorName}
                           </h4>
-                          {refItem.creatorHandle && (
+
+                          {/* Code Type Badge */}
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                              isVoucher
+                                ? 'bg-[#F2F6F1] border-[#D1E0CE] text-[#4A6B46]'
+                                : 'bg-[#FAF5EB] border-[#E8D7B0] text-[#8C6D23]'
+                            }`}
+                          >
+                            {isVoucher ? (
+                              <>
+                                <Ticket className="h-3 w-3" />
+                                <span>Studio Voucher</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3" />
+                                <span>Creator Referral</span>
+                              </>
+                            )}
+                          </span>
+
+                          {!isVoucher && refItem.creatorHandle && (
                             <span className="text-xs font-semibold text-[#7A8B71]">
                               {refItem.creatorHandle}
                             </span>
                           )}
+
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                               !refItem.isActive
@@ -507,13 +810,27 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                               ? `${refItem.discountValue}% OFF`
                               : `GH₵${refItem.discountValue} OFF`}
                           </span>
-                          <span className="rounded-lg bg-[#F1F4EF] border border-[#DCE4D9] px-2 py-0.5 font-semibold text-[#5A6952]">
-                            Creator Split: {refItem.commissionPercent}%
-                          </span>
-                          {refItem.creatorPhone && (
+
+                          {isVoucher ? (
+                            <span className="rounded-lg bg-[#F1F4EF] border border-[#DCE4D9] px-2 py-0.5 font-semibold text-[#5A6952]">
+                              Direct Studio Promo • 0% Commission
+                            </span>
+                          ) : (
+                            <span className="rounded-lg bg-[#F1F4EF] border border-[#DCE4D9] px-2 py-0.5 font-semibold text-[#5A6952]">
+                              Creator Split: {refItem.commissionPercent}%
+                            </span>
+                          )}
+
+                          {!isVoucher && refItem.creatorPhone && (
                             <span className="inline-flex items-center gap-1 text-[#5C6260]">
                               <Phone className="h-3 w-3 text-[#7A8B71]" />
                               {refItem.creatorPhone}
+                            </span>
+                          )}
+
+                          {isVoucher && refItem.notes && (
+                            <span className="text-[11px] text-[#5C6260] italic">
+                              "{refItem.notes}"
                             </span>
                           )}
                         </div>
@@ -637,9 +954,15 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                         <span className="text-[10px] uppercase tracking-wider text-[#5C6260] block">
                           Commission Owed
                         </span>
-                        <span className="font-bold text-[#A44A4A]">
-                          GH₵{Number(refItem.totalCommissionEarned || 0).toLocaleString()}
-                        </span>
+                        {isVoucher ? (
+                          <span className="font-bold text-[#5A6952]">
+                            GH₵0 (Studio Direct)
+                          </span>
+                        ) : (
+                          <span className="font-bold text-[#A44A4A]">
+                            GH₵{Number(refItem.totalCommissionEarned || 0).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -668,7 +991,9 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                           handleCopyText(
                             referralUrl,
                             `link-${refItem.id}`,
-                            `Referral link for ${refItem.creatorName}`
+                            isVoucher
+                              ? `Promo link for "${refItem.creatorName}"`
+                              : `Referral link for ${refItem.creatorName}`
                           )
                         }
                         className="inline-flex items-center gap-1.5 rounded-xl bg-[#F1F4EF] hover:bg-[#E5ECE2] border border-[#DCE4D9] px-3 py-1.5 text-xs font-bold text-[#232D21] transition-colors cursor-pointer"
@@ -681,7 +1006,7 @@ export default function CreatorReferralsManager({ registrations = [], showToast 
                         ) : (
                           <>
                             <Link2 className="h-3.5 w-3.5 text-[#7A8B71]" />
-                            <span>Copy Creator Link</span>
+                            <span>{isVoucher ? 'Copy Promo Link' : 'Copy Creator Link'}</span>
                           </>
                         )}
                       </button>

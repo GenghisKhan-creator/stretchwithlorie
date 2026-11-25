@@ -161,8 +161,12 @@ CREATE TABLE IF NOT EXISTS referral_codes (
   total_commission_earned NUMERIC(10, 2) NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   notes TEXT DEFAULT '',
+  code_type VARCHAR(50) DEFAULT 'creator',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure extended code_type column exists on referral_codes table
+ALTER TABLE referral_codes ADD COLUMN IF NOT EXISTS code_type VARCHAR(50) DEFAULT 'creator';
 
 -- 8. Studio Dynamic Settings & Wellness/Gift Catalog Configuration
 CREATE TABLE IF NOT EXISTS studio_settings (

@@ -1,7 +1,16 @@
 import { pool } from '../config/db.js';
 
+// Ensure code_type column exists on referral_codes table
+pool.query('ALTER TABLE referral_codes ADD COLUMN IF NOT EXISTS code_type VARCHAR(50) DEFAULT \'creator\'').catch(() => {});
+
 export function formatReferralCode(row) {
   if (!row) return null;
+  const inferredType =
+    row.code_type ||
+    (Number(row.commission_percent) > 0 || (row.creator_handle && row.creator_handle.trim())
+      ? 'creator'
+      : 'voucher');
+
   return {
     id: row.id,
     code: row.code,
@@ -17,6 +26,7 @@ export function formatReferralCode(row) {
     totalCommissionEarned: Number(row.total_commission_earned || 0),
     isActive: row.is_active,
     notes: row.notes || '',
+    codeType: inferredType,
     createdAt: row.created_at
   };
 }
@@ -71,6 +81,11 @@ export async function validateReferralCode(req, res, next) {
 
     const basePrice = Number(amount) || 0;
     const { discountAmount, finalPrice } = computeDiscount(basePrice, refRow);
+    const codeType =
+      refRow.code_type ||
+      (Number(refRow.commission_percent) > 0 || (refRow.creator_handle && refRow.creator_handle.trim())
+        ? 'creator'
+        : 'voucher');
 
     res.json({
       success: true,
@@ -81,7 +96,8 @@ export async function validateReferralCode(req, res, next) {
         discountType: refRow.discount_type,
         discountValue: Number(refRow.discount_value),
         discountAmount,
-        finalPrice
+        finalPrice,
+        codeType
       }
     });
   } catch (err) {
@@ -115,19 +131,27 @@ export async function createReferralCode(req, res, next) {
       discountValue = 10,
       commissionPercent = 10,
       maxUses = null,
-      notes = ''
+      notes = '',
+      codeType = 'creator'
     } = req.body;
 
     if (!code || !creatorName) {
       return res.status(400).json({
         success: false,
-        error: 'Code and Creator / Campaign Name are required.'
+        error: codeType === 'voucher'
+          ? 'Promo Code and Voucher / Campaign Title are required.'
+          : 'Promo Code and Creator Name are required.'
       });
     }
 
+    const isVoucher = codeType === 'voucher';
     const cleanCode = String(code).trim().toUpperCase().replace(/\s+/g, '');
     const id = `ref-${Date.now()}`;
     const parsedMaxUses = maxUses && Number(maxUses) > 0 ? Number(maxUses) : null;
+    const finalCommission = isVoucher ? 0 : Math.min(100, Math.max(0, Number(commissionPercent) || 0));
+    const finalHandle = isVoucher ? '' : String(creatorHandle || '').trim();
+    const finalPhone = isVoucher ? '' : String(creatorPhone || '').trim();
+    const finalCodeType = isVoucher ? 'voucher' : 'creator';
 
     const existing = await pool.query('SELECT id FROM referral_codes WHERE UPPER(code) = $1', [cleanCode]);
     if (existing.rows.length > 0) {
@@ -137,29 +161,56 @@ export async function createReferralCode(req, res, next) {
       });
     }
 
-    const { rows } = await pool.query(
-      `INSERT INTO referral_codes (
-        id, code, creator_name, creator_handle, creator_phone,
-        discount_type, discount_value, commission_percent, max_uses, notes, is_active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
-      RETURNING *`,
-      [
-        id,
-        cleanCode,
-        creatorName.trim(),
-        creatorHandle.trim(),
-        creatorPhone.trim(),
-        discountType === 'fixed' ? 'fixed' : 'percentage',
-        Math.max(0, Number(discountValue) || 0),
-        Math.min(100, Math.max(0, Number(commissionPercent) || 0)),
-        parsedMaxUses,
-        notes.trim()
-      ]
-    );
+    let insertedRow;
+    try {
+      const { rows } = await pool.query(
+        `INSERT INTO referral_codes (
+          id, code, creator_name, creator_handle, creator_phone,
+          discount_type, discount_value, commission_percent, max_uses, notes, code_type, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
+        RETURNING *`,
+        [
+          id,
+          cleanCode,
+          creatorName.trim(),
+          finalHandle,
+          finalPhone,
+          discountType === 'fixed' ? 'fixed' : 'percentage',
+          Math.max(0, Number(discountValue) || 0),
+          finalCommission,
+          parsedMaxUses,
+          notes.trim(),
+          finalCodeType
+        ]
+      );
+      insertedRow = rows[0];
+    } catch {
+      // Fallback if code_type column doesn't exist yet on DB
+      const { rows } = await pool.query(
+        `INSERT INTO referral_codes (
+          id, code, creator_name, creator_handle, creator_phone,
+          discount_type, discount_value, commission_percent, max_uses, notes, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+        RETURNING *`,
+        [
+          id,
+          cleanCode,
+          creatorName.trim(),
+          finalHandle,
+          finalPhone,
+          discountType === 'fixed' ? 'fixed' : 'percentage',
+          Math.max(0, Number(discountValue) || 0),
+          finalCommission,
+          parsedMaxUses,
+          notes.trim()
+        ]
+      );
+      insertedRow = { ...rows[0], code_type: finalCodeType };
+    }
 
     res.status(201).json({
       success: true,
-      data: formatReferralCode(rows[0])
+      data: formatReferralCode(insertedRow)
     });
   } catch (err) {
     next(err);
